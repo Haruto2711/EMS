@@ -33,19 +33,6 @@ The system supports **3 user roles**:
 
 ---
 
-## Team Members
-
-| # | Name | Student ID | Role |
-|---|------|-----------|------|
-| 1 | Nguyen Van Thanh | — | — |
-| 2 | Do Thanh Son | — | — |
-| 3 | Nguyen Anh Quan | — | — |
-| 4 | — | — | — |
-| 5 | — | — | — |
-
->  *Update this table with full team info.*
-
----
 
 ## Tech Stack
 
