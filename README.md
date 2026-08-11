@@ -1,4 +1,4 @@
-# 🏢 EMS – Employee Management System
+# EMS – Employee Management System
 
 > **SWP391 – Software Project** | FPT University  
 > **Group:** BL5 – Group 1 | **Milestone:** M1
@@ -27,9 +27,9 @@ The system supports **3 user roles**:
 
 | Role | Description |
 |------|-------------|
-| 👤 **Employee** | Check in/out, submit leave/exception requests, view schedule & payslip |
-| 👔 **Manager** | Approve requests, assign schedules, manage attendance & draft payroll |
-| 🔧 **Admin** | Manage employee accounts, roles, permissions & system settings |
+| **Employee** | Check in/out, submit leave/exception requests, view schedule & payslip |
+| **Manager** | Approve requests, assign schedules, manage attendance & draft payroll |
+| **Admin** | Manage employee accounts, roles, permissions & system settings |
 
 ---
 
@@ -43,7 +43,7 @@ The system supports **3 user roles**:
 | 4 | — | — | — |
 | 5 | — | — | — |
 
-> ✏️ *Update this table with full team info.*
+>  *Update this table with full team info.*
 
 ---
 
@@ -63,7 +63,7 @@ The system supports **3 user roles**:
 
 ## Features
 
-### 👤 Employee
+### Employee
 - [x] Login / Logout
 - [x] Check In / Check Out
 - [x] View Assigned Fixed Schedule
@@ -210,7 +210,7 @@ Then deploy the generated `.war` file from `target/` to your Tomcat `webapps/` f
 
 ---
 
-## 📄 License
+## License
 
 This project is developed for educational purposes as part of **SWP391** at **FPT University**.  
 © 2026 BL5 – Group 1. All rights reserved.
