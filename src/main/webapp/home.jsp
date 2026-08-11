@@ -15,63 +15,83 @@
       color: #334155;
       min-height: 100vh;
       display: flex;
-      flex-direction: column;
     }
 
-    /* Header */
-    header {
+    /* Sidebar Layout */
+    .sidebar {
+      width: 260px;
       background-color: #1e293b;
       color: #ffffff;
-      padding: 0 20px;
-      height: 60px;
       display: flex;
-      align-items: center;
-      justify-content: space-between;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      padding: 24px 16px;
+      z-index: 100;
     }
     .logo {
-      font-size: 20px;
+      font-size: 24px;
       font-weight: 700;
       color: #ffffff;
       text-decoration: none;
+      margin-bottom: 32px;
+      padding-left: 12px;
     }
-    nav {
+    .sidebar nav {
       display: flex;
-      gap: 20px;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
     }
-    nav a {
+    .sidebar nav a {
       color: #cbd5e1;
       text-decoration: none;
       font-size: 14px;
       font-weight: 500;
-      padding: 6px 12px;
-      border-radius: 6px;
+      padding: 12px;
+      border-radius: 8px;
       transition: background 0.2s, color 0.2s;
     }
-    nav a:hover, nav a.active {
+    .sidebar nav a:hover, .sidebar nav a.active {
       background-color: #334155;
       color: #ffffff;
     }
-    .user-menu {
-      display: flex;
-      align-items: center;
-      gap: 15px;
+    .sidebar-footer {
+      border-top: 1px solid #334155;
+      padding-top: 16px;
+      margin-top: auto;
+    }
+    .user-info {
+      margin-bottom: 12px;
+      padding: 0 12px;
+    }
+    .user-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #ffffff;
+      display: block;
     }
     .role-badge {
+      display: inline-block;
       background-color: #3b82f6;
       color: #ffffff;
       font-size: 11px;
       font-weight: 600;
-      padding: 3px 8px;
+      padding: 2px 8px;
       border-radius: 12px;
+      margin-top: 4px;
     }
     .logout-btn {
-      color: #f1f5f9;
+      width: 100%;
+      color: #ffffff;
       background-color: #ef4444;
       border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
+      padding: 10px;
+      border-radius: 8px;
       font-size: 13px;
-      font-weight: 500;
+      font-weight: 600;
       cursor: pointer;
       transition: background 0.2s;
     }
@@ -79,12 +99,18 @@
       background-color: #dc2626;
     }
 
-    /* Container */
+    /* Main Content */
+    .main-content {
+      margin-left: 260px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
     .container {
-      max-width: 1200px;
       width: 100%;
-      margin: 0 auto;
-      padding: 24px 20px;
+      max-width: 1100px;
+      padding: 32px 40px;
       flex: 1;
     }
 
@@ -92,7 +118,7 @@
       margin-bottom: 24px;
     }
     .welcome-section h1 {
-      font-size: 24px;
+      font-size: 26px;
       font-weight: 700;
       color: #0f172a;
     }
@@ -107,13 +133,13 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 20px;
-      margin-bottom: 24px;
+      margin-bottom: 28px;
     }
     .stat-card {
       background: #ffffff;
       padding: 20px;
       border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
       border: 1px solid #e2e8f0;
     }
     .stat-title {
@@ -135,14 +161,14 @@
       grid-template-columns: 1fr 1fr;
       gap: 20px;
     }
-    @media (max-width: 768px) {
+    @media (max-width: 992px) {
       .main-grid { grid-template-columns: 1fr; }
     }
 
     .card {
       background: #ffffff;
       border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
       border: 1px solid #e2e8f0;
       overflow: hidden;
     }
@@ -163,7 +189,7 @@
       text-align: center;
     }
     .clock {
-      font-size: 36px;
+      font-size: 38px;
       font-weight: 700;
       color: #0f172a;
       margin-bottom: 8px;
@@ -233,19 +259,20 @@
 
     /* Footer */
     footer {
-      background-color: #1e293b;
+      background-color: #f8fafc;
       color: #94a3b8;
       text-align: center;
-      padding: 16px 20px;
+      padding: 20px;
       font-size: 12px;
-      border-top: 1px solid #334155;
+      border-top: 1px solid #e2e8f0;
+      margin-top: auto;
     }
   </style>
 </head>
 <body>
 
-<!-- Header -->
-<header>
+<!-- Sidebar -->
+<aside class="sidebar">
   <a href="home.jsp" class="logo">EMS</a>
   <nav>
     <a href="home.jsp" class="active">Trang chủ</a>
@@ -253,82 +280,86 @@
     <a href="#">Yêu cầu</a>
     <a href="#">Bảng lương</a>
   </nav>
-  <div class="user-menu">
-    <span class="role-badge">Nhân viên</span>
-    <span style="font-size:13px;">Nguyễn Văn Thanh</span>
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <span class="user-name">Nguyễn Văn Thanh</span>
+      <span class="role-badge">Nhân viên</span>
+    </div>
     <button class="logout-btn" onclick="alert('Đã đăng xuất')">Đăng xuất</button>
   </div>
-</header>
+</aside>
 
-<!-- Main Container -->
-<div class="container">
-  <div class="welcome-section">
-    <h1>Chào mừng, Nguyễn Văn Thanh</h1>
-    <p>Dưới đây là tổng quan hoạt động trong ngày của bạn.</p>
-  </div>
+<!-- Main Content Area -->
+<div class="main-content">
+  <div class="container">
+    <div class="welcome-section">
+      <h1>Chào mừng, Nguyễn Văn Thanh</h1>
+      <p>Dưới đây là tổng quan hoạt động trong ngày của bạn.</p>
+    </div>
 
-  <!-- Quick Stats -->
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-title">Ngày công định mức (Tháng)</div>
-      <div class="stat-value">22</div>
+    <!-- Quick Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-title">Ngày công định mức (Tháng)</div>
+        <div class="stat-value">22</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">Số ngày đã đi làm</div>
+        <div class="stat-value">18</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">Ngày phép còn lại</div>
+        <div class="stat-value">12 ngày</div>
+      </div>
     </div>
-    <div class="stat-card">
-      <div class="stat-title">Số ngày đã đi làm</div>
-      <div class="stat-value">18</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-title">Ngày phép còn lại</div>
-      <div class="stat-value">12 ngày</div>
-    </div>
-  </div>
 
-  <div class="main-grid">
-    <!-- Attendance -->
-    <div class="card">
-      <div class="card-header">Điểm danh hàng ngày</div>
-      <div class="card-body">
-        <div class="attendance-box">
-          <div class="clock" id="live-clock">00:00:00</div>
-          <div class="date-str" id="live-date">...</div>
-          <div class="btn-group">
-            <button class="btn btn-primary" onclick="checkIn()">Check In</button>
-            <button class="btn btn-secondary" onclick="checkOut()">Check Out</button>
+    <div class="main-grid">
+      <!-- Attendance -->
+      <div class="card">
+        <div class="card-header">Điểm danh hàng ngày</div>
+        <div class="card-body">
+          <div class="attendance-box">
+            <div class="clock" id="live-clock">00:00:00</div>
+            <div class="date-str" id="live-date">...</div>
+            <div class="btn-group">
+              <button class="btn btn-primary" onclick="checkIn()">Check In</button>
+              <button class="btn btn-secondary" onclick="checkOut()">Check Out</button>
+            </div>
+            <div class="status-message" id="attendance-status">Hôm nay bạn chưa điểm danh.</div>
           </div>
-          <div class="status-message" id="attendance-status">Hôm nay bạn chưa điểm danh.</div>
+        </div>
+      </div>
+
+      <!-- Leave Requests -->
+      <div class="card">
+        <div class="card-header">Yêu cầu nghỉ phép gần đây</div>
+        <div class="card-body">
+          <ul class="request-list">
+            <li class="request-item">
+              <div class="request-info">
+                <h4>Nghỉ phép năm (3 ngày)</h4>
+                <p>15/08/2026 - 17/08/2026</p>
+              </div>
+              <span class="status-badge pending">Chờ duyệt</span>
+            </li>
+            <li class="request-item">
+              <div class="request-info">
+                <h4>Nghỉ ốm (1 ngày)</h4>
+                <p>05/08/2026</p>
+              </div>
+              <span class="status-badge approved">Đã duyệt</span>
+            </li>
+          </ul>
         </div>
       </div>
     </div>
-
-    <!-- Leave Requests -->
-    <div class="card">
-      <div class="card-header">Yêu cầu nghỉ phép gần đây</div>
-      <div class="card-body">
-        <ul class="request-list">
-          <li class="request-item">
-            <div class="request-info">
-              <h4>Nghỉ phép năm (3 ngày)</h4>
-              <p>15/08/2026 - 17/08/2026</p>
-            </div>
-            <span class="status-badge pending">Chờ duyệt</span>
-          </li>
-          <li class="request-item">
-            <div class="request-info">
-              <h4>Nghỉ ốm (1 ngày)</h4>
-              <p>05/08/2026</p>
-            </div>
-            <span class="status-badge approved">Đã duyệt</span>
-          </li>
-        </ul>
-      </div>
-    </div>
   </div>
-</div>
 
-<!-- Footer -->
-<footer>
-  © 2026 Hệ thống Quản lý Nhân sự (EMS) · FPT University SWP391
-</footer>
+  <!-- Footer -->
+  <footer>
+    © 2026 Hệ thống Quản lý Nhân sự (EMS) · FPT University SWP391
+  </footer>
+</div>
 
 <script>
   // Live Clock

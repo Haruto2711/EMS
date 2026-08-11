@@ -15,63 +15,83 @@
       color: #334155;
       min-height: 100vh;
       display: flex;
-      flex-direction: column;
     }
 
-    /* Header */
-    header {
+    /* Sidebar Layout */
+    .sidebar {
+      width: 260px;
       background-color: #1e293b;
       color: #ffffff;
-      padding: 0 20px;
-      height: 60px;
       display: flex;
-      align-items: center;
-      justify-content: space-between;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      padding: 24px 16px;
+      z-index: 100;
     }
     .logo {
-      font-size: 20px;
+      font-size: 24px;
       font-weight: 700;
       color: #ffffff;
       text-decoration: none;
+      margin-bottom: 32px;
+      padding-left: 12px;
     }
-    nav {
+    .sidebar nav {
       display: flex;
-      gap: 20px;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
     }
-    nav a {
+    .sidebar nav a {
       color: #cbd5e1;
       text-decoration: none;
       font-size: 14px;
       font-weight: 500;
-      padding: 6px 12px;
-      border-radius: 6px;
+      padding: 12px;
+      border-radius: 8px;
       transition: background 0.2s, color 0.2s;
     }
-    nav a:hover, nav a.active {
+    .sidebar nav a:hover, .sidebar nav a.active {
       background-color: #334155;
       color: #ffffff;
     }
-    .user-menu {
-      display: flex;
-      align-items: center;
-      gap: 15px;
+    .sidebar-footer {
+      border-top: 1px solid #334155;
+      padding-top: 16px;
+      margin-top: auto;
+    }
+    .user-info {
+      margin-bottom: 12px;
+      padding: 0 12px;
+    }
+    .user-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #ffffff;
+      display: block;
     }
     .role-badge {
+      display: inline-block;
       background-color: #6366f1;
       color: #ffffff;
       font-size: 11px;
       font-weight: 600;
-      padding: 3px 8px;
+      padding: 2px 8px;
       border-radius: 12px;
+      margin-top: 4px;
     }
     .logout-btn {
-      color: #f1f5f9;
+      width: 100%;
+      color: #ffffff;
       background-color: #ef4444;
       border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
+      padding: 10px;
+      border-radius: 8px;
       font-size: 13px;
-      font-weight: 500;
+      font-weight: 600;
       cursor: pointer;
       transition: background 0.2s;
     }
@@ -79,12 +99,18 @@
       background-color: #dc2626;
     }
 
-    /* Container */
+    /* Main Content */
+    .main-content {
+      margin-left: 260px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
     .container {
-      max-width: 1200px;
       width: 100%;
-      margin: 0 auto;
-      padding: 24px 20px;
+      max-width: 1100px;
+      padding: 32px 40px;
       flex: 1;
     }
 
@@ -92,7 +118,7 @@
       margin-bottom: 24px;
     }
     .welcome-section h1 {
-      font-size: 24px;
+      font-size: 26px;
       font-weight: 700;
       color: #0f172a;
     }
@@ -107,13 +133,13 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 20px;
-      margin-bottom: 24px;
+      margin-bottom: 28px;
     }
     .stat-card {
       background: #ffffff;
       padding: 20px;
       border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
       border: 1px solid #e2e8f0;
     }
     .stat-title {
@@ -135,14 +161,14 @@
       grid-template-columns: 1fr 1fr;
       gap: 20px;
     }
-    @media (max-width: 768px) {
+    @media (max-width: 992px) {
       .main-grid { grid-template-columns: 1fr; }
     }
 
     .card {
       background: #ffffff;
       border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
       border: 1px solid #e2e8f0;
       overflow: hidden;
     }
@@ -231,19 +257,20 @@
 
     /* Footer */
     footer {
-      background-color: #1e293b;
+      background-color: #f8fafc;
       color: #94a3b8;
       text-align: center;
-      padding: 16px 20px;
+      padding: 20px;
       font-size: 12px;
-      border-top: 1px solid #334155;
+      border-top: 1px solid #e2e8f0;
+      margin-top: auto;
     }
   </style>
 </head>
 <body>
 
-<!-- Header -->
-<header>
+<!-- Sidebar -->
+<aside class="sidebar">
   <a href="home.jsp" class="logo">EMS</a>
   <nav>
     <a href="home_manager.jsp" class="active">Trang chủ</a>
@@ -251,105 +278,109 @@
     <a href="#">Điểm danh phòng ban</a>
     <a href="#">Bảng lương nháp</a>
   </nav>
-  <div class="user-menu">
-    <span class="role-badge">Quản lý</span>
-    <span style="font-size:13px;">Manager Khoa</span>
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <span class="user-name">Manager Khoa</span>
+      <span class="role-badge">Quản lý</span>
+    </div>
     <button class="logout-btn" onclick="alert('Đã đăng xuất')">Đăng xuất</button>
   </div>
-</header>
+</aside>
 
-<!-- Main Container -->
-<div class="container">
-  <div class="welcome-section">
-    <h1>Chào mừng, Manager Khoa</h1>
-    <p>Dưới đây là tổng quan quản lý phòng ban của bạn.</p>
-  </div>
+<!-- Main Content Area -->
+<div class="main-content">
+  <div class="container">
+    <div class="welcome-section">
+      <h1>Chào mừng, Manager Khoa</h1>
+      <p>Dưới đây là tổng quan quản lý phòng ban của bạn.</p>
+    </div>
 
-  <!-- Quick Stats -->
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-title">Tổng số nhân sự</div>
-      <div class="stat-value">24</div>
+    <!-- Quick Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-title">Tổng số nhân sự</div>
+        <div class="stat-value">24</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">Yêu cầu chờ duyệt</div>
+        <div class="stat-value">3</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">Tỷ lệ đi làm hôm nay</div>
+        <div class="stat-value">94%</div>
+      </div>
     </div>
-    <div class="stat-card">
-      <div class="stat-title">Yêu cầu chờ duyệt</div>
-      <div class="stat-value">3</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-title">Tỷ lệ đi làm hôm nay</div>
-      <div class="stat-value">94%</div>
-    </div>
-  </div>
 
-  <div class="main-grid">
-    <!-- Approve List -->
-    <div class="card">
-      <div class="card-header">Yêu cầu chờ duyệt</div>
-      <div class="card-body">
-        <div class="req-list">
-          <div class="req-item">
-            <div class="req-info">
-              <h4>Nguyễn Văn Thanh</h4>
-              <p>Nghỉ phép năm · 15/08 - 17/08</p>
+    <div class="main-grid">
+      <!-- Approve List -->
+      <div class="card">
+        <div class="card-header">Yêu cầu chờ duyệt</div>
+        <div class="card-body">
+          <div class="req-list">
+            <div class="req-item">
+              <div class="req-info">
+                <h4>Nguyễn Văn Thanh</h4>
+                <p>Nghỉ phép năm · 15/08 - 17/08</p>
+              </div>
+              <div class="action-btns">
+                <button class="btn-small approve" onclick="alert('Đã duyệt')">Duyệt</button>
+                <button class="btn-small reject" onclick="alert('Đã từ chối')">Từ chối</button>
+              </div>
             </div>
-            <div class="action-btns">
-              <button class="btn-small approve" onclick="alert('Đã duyệt')">Duyệt</button>
-              <button class="btn-small reject" onclick="alert('Đã từ chối')">Từ chối</button>
-            </div>
-          </div>
-          <div class="req-item">
-            <div class="req-info">
-              <h4>Lê Thị Mai</h4>
-              <p>Nghỉ ốm · 12/08</p>
-            </div>
-            <div class="action-btns">
-              <button class="btn-small approve" onclick="alert('Đã duyệt')">Duyệt</button>
-              <button class="btn-small reject" onclick="alert('Đã từ chối')">Từ chối</button>
+            <div class="req-item">
+              <div class="req-info">
+                <h4>Lê Thị Mai</h4>
+                <p>Nghỉ ốm · 12/08</p>
+              </div>
+              <div class="action-btns">
+                <button class="btn-small approve" onclick="alert('Đã duyệt')">Duyệt</button>
+                <button class="btn-small reject" onclick="alert('Đã từ chối')">Từ chối</button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Dept Attendance -->
-    <div class="card">
-      <div class="card-header">Tình hình điểm danh hôm nay</div>
-      <div class="card-body">
-        <table class="att-table">
-          <thead>
-            <tr>
-              <th>Nhân viên</th>
-              <th>Giờ vào</th>
-              <th>Trạng thái</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Nguyễn Văn Thanh</td>
-              <td>08:02</td>
-              <td><span class="status-dot present"></span>Có mặt</td>
-            </tr>
-            <tr>
-              <td>Lê Thị Mai</td>
-              <td>08:45</td>
-              <td><span class="status-dot late"></span>Đi muộn</td>
-            </tr>
-            <tr>
-              <td>Phạm Thị Lan</td>
-              <td>07:58</td>
-              <td><span class="status-dot present"></span>Có mặt</td>
-            </tr>
-          </tbody>
-        </table>
+      <!-- Dept Attendance -->
+      <div class="card">
+        <div class="card-header">Tình hình điểm danh hôm nay</div>
+        <div class="card-body">
+          <table class="att-table">
+            <thead>
+              <tr>
+                <th>Nhân viên</th>
+                <th>Giờ vào</th>
+                <th>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Nguyễn Văn Thanh</td>
+                <td>08:02</td>
+                <td><span class="status-dot present"></span>Có mặt</td>
+              </tr>
+              <tr>
+                <td>Lê Thị Mai</td>
+                <td>08:45</td>
+                <td><span class="status-dot late"></span>Đi muộn</td>
+              </tr>
+              <tr>
+                <td>Phạm Thị Lan</td>
+                <td>07:58</td>
+                <td><span class="status-dot present"></span>Có mặt</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- Footer -->
-<footer>
-  © 2026 Hệ thống Quản lý Nhân sự (EMS) · FPT University SWP391
-</footer>
+  <!-- Footer -->
+  <footer>
+    © 2026 Hệ thống Quản lý Nhân sự (EMS) · FPT University SWP391
+  </footer>
+</div>
 
 </body>
 </html>

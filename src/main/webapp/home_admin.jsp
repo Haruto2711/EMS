@@ -15,63 +15,83 @@
       color: #334155;
       min-height: 100vh;
       display: flex;
-      flex-direction: column;
     }
 
-    /* Header */
-    header {
+    /* Sidebar Layout */
+    .sidebar {
+      width: 260px;
       background-color: #1e293b;
       color: #ffffff;
-      padding: 0 20px;
-      height: 60px;
       display: flex;
-      align-items: center;
-      justify-content: space-between;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      padding: 24px 16px;
+      z-index: 100;
     }
     .logo {
-      font-size: 20px;
+      font-size: 24px;
       font-weight: 700;
       color: #ffffff;
       text-decoration: none;
+      margin-bottom: 32px;
+      padding-left: 12px;
     }
-    nav {
+    .sidebar nav {
       display: flex;
-      gap: 20px;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
     }
-    nav a {
+    .sidebar nav a {
       color: #cbd5e1;
       text-decoration: none;
       font-size: 14px;
       font-weight: 500;
-      padding: 6px 12px;
-      border-radius: 6px;
+      padding: 12px;
+      border-radius: 8px;
       transition: background 0.2s, color 0.2s;
     }
-    nav a:hover, nav a.active {
+    .sidebar nav a:hover, .sidebar nav a.active {
       background-color: #334155;
       color: #ffffff;
     }
-    .user-menu {
-      display: flex;
-      align-items: center;
-      gap: 15px;
+    .sidebar-footer {
+      border-top: 1px solid #334155;
+      padding-top: 16px;
+      margin-top: auto;
+    }
+    .user-info {
+      margin-bottom: 12px;
+      padding: 0 12px;
+    }
+    .user-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: #ffffff;
+      display: block;
     }
     .role-badge {
+      display: inline-block;
       background-color: #ef4444;
       color: #ffffff;
       font-size: 11px;
       font-weight: 600;
-      padding: 3px 8px;
+      padding: 2px 8px;
       border-radius: 12px;
+      margin-top: 4px;
     }
     .logout-btn {
-      color: #f1f5f9;
+      width: 100%;
+      color: #ffffff;
       background-color: #ef4444;
       border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
+      padding: 10px;
+      border-radius: 8px;
       font-size: 13px;
-      font-weight: 500;
+      font-weight: 600;
       cursor: pointer;
       transition: background 0.2s;
     }
@@ -79,12 +99,18 @@
       background-color: #dc2626;
     }
 
-    /* Container */
+    /* Main Content */
+    .main-content {
+      margin-left: 260px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
     .container {
-      max-width: 1200px;
       width: 100%;
-      margin: 0 auto;
-      padding: 24px 20px;
+      max-width: 1100px;
+      padding: 32px 40px;
       flex: 1;
     }
 
@@ -92,7 +118,7 @@
       margin-bottom: 24px;
     }
     .welcome-section h1 {
-      font-size: 24px;
+      font-size: 26px;
       font-weight: 700;
       color: #0f172a;
     }
@@ -107,13 +133,13 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 20px;
-      margin-bottom: 24px;
+      margin-bottom: 28px;
     }
     .stat-card {
       background: #ffffff;
       padding: 20px;
       border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
       border: 1px solid #e2e8f0;
     }
     .stat-title {
@@ -135,14 +161,14 @@
       grid-template-columns: 1fr 1fr;
       gap: 20px;
     }
-    @media (max-width: 768px) {
+    @media (max-width: 992px) {
       .main-grid { grid-template-columns: 1fr; }
     }
 
     .card {
       background: #ffffff;
       border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
       border: 1px solid #e2e8f0;
       overflow: hidden;
     }
@@ -218,115 +244,118 @@
 
     /* Footer */
     footer {
-      background-color: #1e293b;
+      background-color: #f8fafc;
       color: #94a3b8;
       text-align: center;
-      padding: 16px 20px;
+      padding: 20px;
       font-size: 12px;
-      border-top: 1px solid #334155;
+      border-top: 1px solid #e2e8f0;
+      margin-top: auto;
     }
   </style>
 </head>
 <body>
 
-<!-- Header -->
-<header>
+<!-- Sidebar -->
+<aside class="sidebar">
   <a href="home.jsp" class="logo">EMS</a>
   <nav>
     <a href="home_admin.jsp" class="active">Trang chủ</a>
     <a href="#">Tài khoản</a>
     <a href="#">Phân quyền</a>
-    <a href="#">Công thức lương</a>
-    <a href="#">Cấu hình</a>
   </nav>
-  <div class="user-menu">
-    <span class="role-badge">Quản trị viên</span>
-    <span style="font-size:13px;">Admin</span>
+  <div class="sidebar-footer">
+    <div class="user-info">
+      <span class="user-name">Admin</span>
+      <span class="role-badge">Quản trị viên</span>
+    </div>
     <button class="logout-btn" onclick="alert('Đã đăng xuất')">Đăng xuất</button>
   </div>
-</header>
+</aside>
 
-<!-- Main Container -->
-<div class="container">
-  <div class="welcome-section">
-    <h1>Chào mừng, Quản trị viên</h1>
-    <p>Hệ thống hoạt động bình thường.</p>
-  </div>
+<!-- Main Content Area -->
+<div class="main-content">
+  <div class="container">
+    <div class="welcome-section">
+      <h1>Chào mừng, Quản trị viên</h1>
+      <p>Hệ thống hoạt động bình thường.</p>
+    </div>
 
-  <!-- Quick Stats -->
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-title">Tổng số tài khoản</div>
-      <div class="stat-value">87</div>
+    <!-- Quick Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-title">Tổng số tài khoản</div>
+        <div class="stat-value">87</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">Số vai trò</div>
+        <div class="stat-value">3</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-title">Công thức lương</div>
+        <div class="stat-value">5</div>
+      </div>
     </div>
-    <div class="stat-card">
-      <div class="stat-title">Số vai trò</div>
-      <div class="stat-value">3</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-title">Công thức lương</div>
-      <div class="stat-value">5</div>
-    </div>
-  </div>
 
-  <div class="main-grid">
-    <!-- Recent Accounts -->
-    <div class="card">
-      <div class="card-header">Tài khoản nhân viên gần đây</div>
-      <div class="card-body">
-        <div class="acc-list">
-          <div class="acc-item">
-            <div class="acc-info">
-              <h4>Nguyễn Văn Thanh</h4>
-              <p>thanh@ems.com · Nhân viên</p>
+    <div class="main-grid">
+      <!-- Recent Accounts -->
+      <div class="card">
+        <div class="card-header">Tài khoản nhân viên gần đây</div>
+        <div class="card-body">
+          <div class="acc-list">
+            <div class="acc-item">
+              <div class="acc-info">
+                <h4>Nguyễn Văn Thanh</h4>
+                <p>thanh@ems.com · Nhân viên</p>
+              </div>
+              <span class="status-badge active">Hoạt động</span>
             </div>
-            <span class="status-badge active">Hoạt động</span>
+            <div class="acc-item">
+              <div class="acc-info">
+                <h4>Manager Khoa</h4>
+                <p>khoa@ems.com · Quản lý</p>
+              </div>
+              <span class="status-badge active">Hoạt động</span>
+            </div>
+            <div class="acc-item">
+              <div class="acc-info">
+                <h4>Trần Văn Nam</h4>
+                <p>nam@ems.com · Nhân viên</p>
+              </div>
+              <span class="status-badge inactive">Khóa</span>
+            </div>
           </div>
-          <div class="acc-item">
-            <div class="acc-info">
-              <h4>Manager Khoa</h4>
-              <p>khoa@ems.com · Quản lý</p>
+        </div>
+      </div>
+
+      <!-- Configuration Settings -->
+      <div class="card">
+        <div class="card-header">Cấu hình hệ thống</div>
+        <div class="card-body">
+          <div class="config-list">
+            <div class="config-item">
+              <span class="config-lbl">Số giờ làm việc định mức</span>
+              <span class="config-val">8 giờ/ngày</span>
             </div>
-            <span class="status-badge active">Hoạt động</span>
-          </div>
-          <div class="acc-item">
-            <div class="acc-info">
-              <h4>Trần Văn Nam</h4>
-              <p>nam@ems.com · Nhân viên</p>
+            <div class="config-item">
+              <span class="config-lbl">Hệ số làm thêm giờ</span>
+              <span class="config-val">1.5x</span>
             </div>
-            <span class="status-badge inactive">Khóa</span>
+            <div class="config-item">
+              <span class="config-lbl">Hạn mức nghỉ phép/năm</span>
+              <span class="config-val">12 ngày</span>
+            </div>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- Configuration Settings -->
-    <div class="card">
-      <div class="card-header">Cấu hình hệ thống</div>
-      <div class="card-body">
-        <div class="config-list">
-          <div class="config-item">
-            <span class="config-lbl">Số giờ làm việc định mức</span>
-            <span class="config-val">8 giờ/ngày</span>
-          </div>
-          <div class="config-item">
-            <span class="config-lbl">Hệ số làm thêm giờ</span>
-            <span class="config-val">1.5x</span>
-          </div>
-          <div class="config-item">
-            <span class="config-lbl">Hạn mức nghỉ phép/năm</span>
-            <span class="config-val">12 ngày</span>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
+
+  <!-- Footer -->
+  <footer>
+    © 2026 Hệ thống Quản lý Nhân sự (EMS) · FPT University SWP391
+  </footer>
 </div>
-
-<!-- Footer -->
-<footer>
-  © 2026 Hệ thống Quản lý Nhân sự (EMS) · FPT University SWP391
-</footer>
 
 </body>
 </html>
