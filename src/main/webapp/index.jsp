@@ -9,5 +9,7 @@
 </h1>
 <br/>
 <a href="hello-servlet">Hello Servlet</a>
+<br/>
+<a href="base-salaries">Xem Lương Cơ Bản (Base Salaries)</a>
 </body>
 </html>
