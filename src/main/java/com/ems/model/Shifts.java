@@ -13,6 +13,25 @@ public class Shifts {
     private Integer earlycheckinminute;
     private Integer latecheckoutminute;
     private Boolean isactive;
+    private Boolean isDefault;
+
+    public Boolean getDefault() {
+        return isDefault;
+    }
+
+    public void setDefault(Boolean aDefault) {
+        isDefault = aDefault;
+    }
+
+    public int getDayOfweek() {
+        return dayOfweek;
+    }
+
+    public void setDayOfweek(int dayOfweek) {
+        this.dayOfweek = dayOfweek;
+    }
+
+    private int dayOfweek;
 
     public Integer getId() {
         return id;
