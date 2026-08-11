@@ -5,7 +5,7 @@
 
 ---
 
-## 📌 Table of Contents
+##  Table of Contents
 
 - [Overview](#overview)
 - [Tech Stack](#tech-stack)
