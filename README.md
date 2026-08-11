@@ -8,7 +8,6 @@
 ## 📌 Table of Contents
 
 - [Overview](#overview)
-- [Team Members](#team-members)
 - [Tech Stack](#tech-stack)
 - [Features](#features)
 - [Project Structure](#project-structure)
