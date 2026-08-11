@@ -60,7 +60,7 @@ The system supports **3 user roles**:
 - [x] View Detailed Monthly Payslip
 - [x] Change Password
 
-### 👔 Manager
+### Manager
 - [x] Login / Logout
 - [x] Assign Fixed Schedule to Employee
 - [x] View Department Attendance
@@ -70,7 +70,7 @@ The system supports **3 user roles**:
 - [x] Calculate Salary
 - [x] Change Password
 
-### 🔧 Admin
+### Admin
 - [x] Login / Logout
 - [x] Manage Employee Profiles & Accounts
 - [x] Manage Roles & Permissions
