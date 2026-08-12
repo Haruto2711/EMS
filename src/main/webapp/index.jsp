@@ -11,5 +11,7 @@
 <a href="hello-servlet">Hello Servlet</a>
 <br/>
 <a href="base-salaries">Xem Lương Cơ Bản (Base Salaries)</a>
+<br/>
+<a href="work-schedule">Lịch Làm Việc (Work Schedule)</a>
 </body>
 </html>
