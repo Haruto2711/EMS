@@ -13,5 +13,7 @@
 <a href="base-salaries">Xem Lương Cơ Bản (Base Salaries)</a>
 <br/>
 <a href="work-schedule">Lịch Làm Việc (Work Schedule)</a>
+<br/>
+<a href="holiday">Lịch nghỉ lễ (Holiday)</a>
 </body>
 </html>
