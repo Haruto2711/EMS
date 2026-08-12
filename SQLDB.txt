@@ -1,201 +1,288 @@
--- 1. Tạo và chọn Database
-CREATE DATABASE IF NOT EXISTS hrms_db;
-USE hrms_db;
+create database hrms_db;
 
--- 2. Tạo các bảng độc lập (Không chứa khóa ngoại trỏ đến bảng khác)
-CREATE TABLE roles (
-    Id INT AUTO_INCREMENT PRIMARY KEY,
-    Name VARCHAR(50) NOT NULL,
-    CONSTRAINT Name UNIQUE (Name)
+use hrms_db;
+
+create table accounts
+(
+   Id           int auto_increment
+       primary key,
+   Username     varchar(50)      not null,
+   PasswordHash varchar(255)     not null,
+   Status       bit default b'1' not null,
+   UserId       int              not null,
+   constraint UserId
+       unique (UserId),
+   constraint Username
+       unique (Username)
 );
 
-CREATE TABLE requesttypes (
-    Id INT AUTO_INCREMENT PRIMARY KEY,
-    Code VARCHAR(20) NOT NULL,
-    Name VARCHAR(50) CHARSET utf8mb3 NOT NULL,
-    CONSTRAINT Code UNIQUE (Code)
+
+create table departments
+(
+   Id            int auto_increment
+       primary key,
+   Code          varchar(20)                  not null,
+   Name          varchar(100) charset utf8mb3 not null,
+   HeadAccountId int                          null,
+   constraint Code
+       unique (Code),
+   constraint FK_Departments_Accounts
+       foreign key (HeadAccountId) references accounts (Id)
 );
 
-CREATE TABLE shifts (
-    Id INT AUTO_INCREMENT PRIMARY KEY,
-    Name VARCHAR(100) CHARSET utf8mb3 NOT NULL,
-    StartTime TIME NOT NULL,
-    EndTime TIME NOT NULL,
-    BreakStart TIME NOT NULL,
-    BreakEnd TIME NOT NULL,
-    LateToleranceMinute INT DEFAULT 0 NOT NULL,
-    EarlyCheckInMinute INT DEFAULT 0 NOT NULL,
-    LateCheckOutMinute INT DEFAULT 0 NOT NULL,
-    IsActive BIT DEFAULT b'1' NOT NULL
+
+create table holidays
+(
+   Id          int auto_increment
+       primary key,
+   HolidayDate date         not null,
+   HolidayName varchar(100) not null,
+   Year        int          not null,
+   CreatedBy   int          null,
+   constraint FK_Holidays_Accounts
+       foreign key (CreatedBy) references accounts (Id)
 );
 
-CREATE TABLE timesheetperiods (
-    Id INT AUTO_INCREMENT PRIMARY KEY,
-    Name VARCHAR(50) CHARSET utf8mb3 NOT NULL,
-    StartDate DATE NOT NULL,
-    EndDate DATE NOT NULL,
-    IsLocked BIT DEFAULT b'0' NOT NULL
+
+create table requesttypes
+(
+   Id   int auto_increment
+       primary key,
+   Code varchar(20)                 not null,
+   Name varchar(50) charset utf8mb3 not null,
+   constraint Code
+       unique (Code)
 );
 
--- 3. Tạo các bảng liên quan đến Position và Department
-CREATE TABLE positions (
-    Id INT AUTO_INCREMENT PRIMARY KEY,
-    Code VARCHAR(20) NOT NULL,
-    Name VARCHAR(100) CHARSET utf8mb3 NOT NULL,
-    JobLevel INT NOT NULL,
-    DefaultShiftId INT NULL,
-    CONSTRAINT Code UNIQUE (Code),
-    CONSTRAINT FK_Positions_Shifts FOREIGN KEY (DefaultShiftId) REFERENCES shifts (Id)
+
+create table requests
+(
+   Id                       int auto_increment
+       primary key,
+   Title                    varchar(100)                          not null,
+   Reason                   varchar(255)                          null,
+   Status                   varchar(20) default 'Pending'         not null,
+   StartDate                datetime                              not null,
+   EndDate                  datetime                              not null,
+   Value                    decimal(5, 1)                         not null,
+   ImageUrl                 varchar(500) charset utf8mb3          null,
+   CreatedAt                datetime    default CURRENT_TIMESTAMP not null,
+   RequestTypeId            int                                   not null,
+   CreatedByAccountId       int                                   not null,
+   CurrentApproverAccountId int                                   null,
+   constraint FK_Requests_Approver
+       foreign key (CurrentApproverAccountId) references accounts (Id),
+   constraint FK_Requests_Creator
+       foreign key (CreatedByAccountId) references accounts (Id),
+   constraint FK_Requests_RequestTypes
+       foreign key (RequestTypeId) references requesttypes (Id)
 );
 
-CREATE TABLE departments (
-    Id INT AUTO_INCREMENT PRIMARY KEY,
-    Code VARCHAR(20) NOT NULL,
-    Name VARCHAR(100) CHARSET utf8mb3 NOT NULL,
-    HeadAccountId INT NULL,
-    CONSTRAINT Code UNIQUE (Code)
+
+create table roles
+(
+   Id   int auto_increment
+       primary key,
+   Name varchar(50) not null,
+   constraint Name
+       unique (Name)
 );
 
--- 4. Tạo bảng Users
-CREATE TABLE users (
-    Id INT AUTO_INCREMENT PRIMARY KEY,
-    EmployeeCode VARCHAR(20) NOT NULL,
-    FullName VARCHAR(100) CHARSET utf8mb3 NOT NULL,
-    EmailCompany VARCHAR(100) NOT NULL,
-    Phone VARCHAR(15) NULL,
-    Gender BIT NULL,
-    DateOfBirth DATE NULL,
-    Status BIT DEFAULT b'1' NOT NULL,
-    DepartmentId INT NOT NULL,
-    PositionId INT NOT NULL,
-    DependentsCount INT DEFAULT 0 NOT NULL,
-    CONSTRAINT EmailCompany UNIQUE (EmailCompany),
-    CONSTRAINT EmployeeCode UNIQUE (EmployeeCode),
-    CONSTRAINT FK_Users_Departments FOREIGN KEY (DepartmentId) REFERENCES departments (Id),
-    CONSTRAINT FK_Users_Positions FOREIGN KEY (PositionId) REFERENCES positions (Id)
+
+create table accountroles
+(
+   AccountId int not null,
+   RoleId    int not null,
+   primary key (AccountId, RoleId),
+   constraint FK_AccountRoles_Accounts
+       foreign key (AccountId) references accounts (Id)
+           on delete cascade,
+   constraint FK_AccountRoles_Roles
+       foreign key (RoleId) references roles (Id)
+           on delete cascade
 );
 
--- 5. Tạo bảng Accounts (sau khi đã có Users)
-CREATE TABLE accounts (
-    Id INT AUTO_INCREMENT PRIMARY KEY,
-    Username VARCHAR(50) NOT NULL,
-    PasswordHash VARCHAR(255) NOT NULL,
-    Status BIT DEFAULT b'1' NOT NULL,
-    UserId INT NOT NULL,
-    CONSTRAINT UserId UNIQUE (UserId),
-    CONSTRAINT Username UNIQUE (Username),
-    CONSTRAINT FK_Accounts_Users FOREIGN KEY (UserId) REFERENCES users (Id) ON DELETE CASCADE
+
+create table shifts
+(
+   Id                  int auto_increment
+       primary key,
+   Name                varchar(100) charset utf8mb3 not null,
+   StartTime           time                         null,
+   EndTime             time                         null,
+   BreakStart          time                         null,
+   BreakEnd            time                         null,
+   LateToleranceMinute int default 0                not null,
+   EarlyCheckInMinute  int default 0                not null,
+   LateCheckOutMinute  int default 0                not null,
+   IsActive            bit default b'1'             not null,
+   IsDefault           bit default b'0'             not null,
+   DayOfWeek           tinyint                      null
 );
 
--- Thêm khóa ngoại HeadAccountId cho Departments (sau khi đã tạo Accounts)
-ALTER TABLE departments
-    ADD CONSTRAINT FK_Departments_Accounts
-    FOREIGN KEY (HeadAccountId) REFERENCES accounts (Id);
 
--- 6. Tạo các bảng Phụ thuộc còn lại
-CREATE TABLE holidays (
-    Id INT AUTO_INCREMENT PRIMARY KEY,
-    HolidayDate DATE NOT NULL,
-    HolidayName VARCHAR(100) NOT NULL,
-    Year INT NOT NULL,
-    CreatedBy INT NULL,
-    CONSTRAINT FK_Holidays_Accounts FOREIGN KEY (CreatedBy) REFERENCES accounts (Id)
+create table positions
+(
+   Id             int auto_increment
+       primary key,
+   Code           varchar(20)                  not null,
+   Name           varchar(100) charset utf8mb3 not null,
+   JobLevel       int                          not null,
+   DefaultShiftId int                          null,
+   constraint Code
+       unique (Code),
+   constraint FK_Positions_Shifts
+       foreign key (DefaultShiftId) references shifts (Id)
 );
 
-CREATE TABLE requests (
-    Id INT AUTO_INCREMENT PRIMARY KEY,
-    Title VARCHAR(100) NOT NULL,
-    Reason VARCHAR(255) NULL,
-    Status VARCHAR(20) DEFAULT 'Pending' NOT NULL,
-    StartDate DATETIME NOT NULL,
-    EndDate DATETIME NOT NULL,
-    Value DECIMAL(5, 1) NOT NULL,
-    ImageUrl VARCHAR(500) NULL, 
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    RequestTypeId INT NOT NULL,
-    CreatedByAccountId INT NOT NULL,
-    CurrentApproverAccountId INT NULL,
-    CONSTRAINT FK_Requests_Approver FOREIGN KEY (CurrentApproverAccountId) REFERENCES accounts (Id),
-    CONSTRAINT FK_Requests_Creator FOREIGN KEY (CreatedByAccountId) REFERENCES accounts (Id),
-    CONSTRAINT FK_Requests_RequestTypes FOREIGN KEY (RequestTypeId) REFERENCES requesttypes (Id)
+
+create table timesheetperiods
+(
+   Id        int auto_increment
+       primary key,
+   Name      varchar(50) charset utf8mb3 not null,
+   StartDate date                        not null,
+   EndDate   date                        not null,
+   IsLocked  bit default b'0'            not null
 );
 
-CREATE TABLE accountroles (
-    AccountId INT NOT NULL,
-    RoleId INT NOT NULL,
-    PRIMARY KEY (AccountId, RoleId),
-    CONSTRAINT FK_AccountRoles_Accounts FOREIGN KEY (AccountId) REFERENCES accounts (Id) ON DELETE CASCADE,
-    CONSTRAINT FK_AccountRoles_Roles FOREIGN KEY (RoleId) REFERENCES roles (Id) ON DELETE CASCADE
+
+create table users
+(
+   Id              int auto_increment
+       primary key,
+   EmployeeCode    varchar(20)                  not null,
+   FullName        varchar(100) charset utf8mb3 not null,
+   EmailCompany    varchar(100)                 not null,
+   Phone           varchar(15)                  null,
+   Gender          bit                          null,
+   DateOfBirth     date                         null,
+   Status          bit default b'1'             not null,
+   DepartmentId    int                          not null,
+   PositionId      int                          not null,
+   DependentsCount int default 0                not null,
+   constraint EmailCompany
+       unique (EmailCompany),
+   constraint EmployeeCode
+       unique (EmployeeCode),
+   constraint FK_Users_Departments
+       foreign key (DepartmentId) references departments (Id),
+   constraint FK_Users_Positions
+       foreign key (PositionId) references positions (Id)
 );
 
-CREATE TABLE attendance (
-    Id INT AUTO_INCREMENT PRIMARY KEY,
-    EmployeeId INT NOT NULL,
-    AttendanceDate DATE NOT NULL,
-    CheckInTime TIME NULL,
-    CheckOutTime TIME NULL,
-    PeriodId INT NULL,
-    CONSTRAINT UQ_Attendance_Employee_Date UNIQUE (EmployeeId, AttendanceDate),
-    CONSTRAINT FK_Attendance_Periods FOREIGN KEY (PeriodId) REFERENCES timesheetperiods (Id),
-    CONSTRAINT FK_Attendance_Users FOREIGN KEY (EmployeeId) REFERENCES users (Id) ON DELETE CASCADE
+
+alter table accounts
+   add constraint FK_Accounts_Users
+       foreign key (UserId) references users (Id)
+           on delete cascade;
+
+
+create table attendance
+(
+   Id             int auto_increment
+       primary key,
+   EmployeeId     int  not null,
+   AttendanceDate date not null,
+   CheckInTime    time null,
+   CheckOutTime   time null,
+   PeriodId       int  null,
+   constraint UQ_Attendance_Employee_Date
+       unique (EmployeeId, AttendanceDate),
+   constraint FK_Attendance_Periods
+       foreign key (PeriodId) references timesheetperiods (Id),
+   constraint FK_Attendance_Users
+       foreign key (EmployeeId) references users (Id)
+           on delete cascade
 );
 
-CREATE TABLE employmentbasesalarys (
-    Id INT AUTO_INCREMENT PRIMARY KEY,
-    BaseSalary DECIMAL(18, 2) NOT NULL,
-    UserId INT NOT NULL,
-    CONSTRAINT FK_EmploymentBaseSalarys_Users FOREIGN KEY (UserId) REFERENCES users (Id) ON DELETE CASCADE
+
+create table employmentbasesalarys
+(
+   Id         int auto_increment
+       primary key,
+   BaseSalary decimal(18, 2) not null,
+   UserId     int            not null,
+   constraint FK_EmploymentBaseSalarys_Users
+       foreign key (UserId) references users (Id)
+           on delete cascade
 );
 
-CREATE TABLE leavebalances (
-    Id INT AUTO_INCREMENT PRIMARY KEY,
-    Year INT NOT NULL,
-    TotalDays INT DEFAULT 12 NOT NULL,
-    UsedDays INT DEFAULT 0 NOT NULL,
-    RemainingDays INT DEFAULT 12 NOT NULL,
-    UserId INT NOT NULL,
-    CONSTRAINT FK_LeaveBalances_Users FOREIGN KEY (UserId) REFERENCES users (Id) ON DELETE CASCADE
+
+create table leavebalances
+(
+   Id            int auto_increment
+       primary key,
+   Year          int            not null,
+   TotalDays     int default 12 not null,
+   UsedDays      int default 0  not null,
+   RemainingDays int default 12 not null,
+   UserId        int            not null,
+   constraint FK_LeaveBalances_Users
+       foreign key (UserId) references users (Id)
+           on delete cascade
 );
 
-CREATE TABLE notifications (
-    Id INT AUTO_INCREMENT PRIMARY KEY,
-    UserId INT NOT NULL,
-    Title VARCHAR(200) NOT NULL,
-    Message VARCHAR(500) NULL,
-    IsRead BIT DEFAULT b'0' NOT NULL,
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT FK_Notifications_Users FOREIGN KEY (UserId) REFERENCES users (Id) ON DELETE CASCADE
+
+create table notifications
+(
+   Id        int auto_increment
+       primary key,
+   UserId    int                                not null,
+   Title     varchar(200)                       not null,
+   Message   varchar(500)                       null,
+   IsRead    bit      default b'0'              not null,
+   CreatedAt datetime default CURRENT_TIMESTAMP not null,
+   constraint FK_Notifications_Users
+       foreign key (UserId) references users (Id)
+           on delete cascade
 );
 
-CREATE TABLE payslips (
-    Id INT AUTO_INCREMENT PRIMARY KEY,
-    BaseSalary DECIMAL(18, 2) NOT NULL,
-    OtSalary DECIMAL(18, 2) DEFAULT 0.00 NOT NULL,
-    Allowances DECIMAL(18, 2) DEFAULT 0.00 NOT NULL,
-    InsuranceDeduction DECIMAL(18, 2) DEFAULT 0.00 NOT NULL,
-    DependentDeduction DECIMAL(18, 2) DEFAULT 0.00 NOT NULL, 
-    TaxDeduction DECIMAL(18, 2) DEFAULT 0.00 NOT NULL,
-    OtherDeductions DECIMAL(18, 2) DEFAULT 0.00 NOT NULL, 
-    GrossAmount DECIMAL(18, 2) NOT NULL,
-    NetAmount DECIMAL(18, 2) NOT NULL,
-    Status VARCHAR(20) DEFAULT 'Draft' NOT NULL,
-    Note VARCHAR(255) NULL,
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    UserId INT NOT NULL,
-    PeriodId INT NOT NULL,
-    CONSTRAINT FK_Payslips_Periods FOREIGN KEY (PeriodId) REFERENCES timesheetperiods (Id),
-    CONSTRAINT FK_Payslips_Users FOREIGN KEY (UserId) REFERENCES users (Id)
+
+create table payslips
+(
+   Id                 int auto_increment
+       primary key,
+   BaseSalary         decimal(18, 2)                           not null,
+   OtSalary           decimal(18, 2) default 0.00              not null,
+   Allowances         decimal(18, 2) default 0.00              not null,
+   InsuranceDeduction decimal(18, 2) default 0.00              not null,
+   DependentDeduction decimal(18, 2) default 0.00              not null,
+   TaxDeduction       decimal(18, 2) default 0.00              not null,
+   OtherDeductions    decimal(18, 2) default 0.00              not null,
+   GrossAmount        decimal(18, 2)                           not null,
+   NetAmount          decimal(18, 2)                           not null,
+   Status             varchar(20)    default 'Draft'           not null,
+   Note               varchar(255)                             null,
+   CreatedAt          datetime       default CURRENT_TIMESTAMP not null,
+   UserId             int                                      not null,
+   PeriodId           int                                      not null,
+   constraint FK_Payslips_Periods
+       foreign key (PeriodId) references timesheetperiods (Id),
+   constraint FK_Payslips_Users
+       foreign key (UserId) references users (Id)
 );
 
-CREATE TABLE shiftassignments (
-    Id INT AUTO_INCREMENT PRIMARY KEY,
-    EmployeeId INT NOT NULL,
-    ShiftId INT NOT NULL,
-    StartDate DATE NOT NULL,
-    EndDate DATE NOT NULL,
-    AssignedBy INT NULL,
-    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    CONSTRAINT FK_ShiftAssignments_Accounts FOREIGN KEY (AssignedBy) REFERENCES accounts (Id),
-    CONSTRAINT FK_ShiftAssignments_Shifts FOREIGN KEY (ShiftId) REFERENCES shifts (Id) ON DELETE CASCADE,
-    CONSTRAINT FK_ShiftAssignments_Users FOREIGN KEY (EmployeeId) REFERENCES users (Id) ON DELETE CASCADE
+
+create table shiftassignments
+(
+   Id         int auto_increment
+       primary key,
+   EmployeeId int                                not null,
+   ShiftId    int                                not null,
+   StartDate  date                               not null,
+   EndDate    date                               not null,
+   AssignedBy int                                null,
+   CreatedAt  datetime default CURRENT_TIMESTAMP not null,
+   constraint FK_ShiftAssignments_Accounts
+       foreign key (AssignedBy) references accounts (Id),
+   constraint FK_ShiftAssignments_Shifts
+       foreign key (ShiftId) references shifts (Id)
+           on delete cascade,
+   constraint FK_ShiftAssignments_Users
+       foreign key (EmployeeId) references users (Id)
+           on delete cascade
 );
+
+
+
