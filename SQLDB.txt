@@ -1,0 +1,201 @@
+-- 1. Tạo và chọn Database
+CREATE DATABASE IF NOT EXISTS hrms_db;
+USE hrms_db;
+
+-- 2. Tạo các bảng độc lập (Không chứa khóa ngoại trỏ đến bảng khác)
+CREATE TABLE roles (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    Name VARCHAR(50) NOT NULL,
+    CONSTRAINT Name UNIQUE (Name)
+);
+
+CREATE TABLE requesttypes (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    Code VARCHAR(20) NOT NULL,
+    Name VARCHAR(50) CHARSET utf8mb3 NOT NULL,
+    CONSTRAINT Code UNIQUE (Code)
+);
+
+CREATE TABLE shifts (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    Name VARCHAR(100) CHARSET utf8mb3 NOT NULL,
+    StartTime TIME NOT NULL,
+    EndTime TIME NOT NULL,
+    BreakStart TIME NOT NULL,
+    BreakEnd TIME NOT NULL,
+    LateToleranceMinute INT DEFAULT 0 NOT NULL,
+    EarlyCheckInMinute INT DEFAULT 0 NOT NULL,
+    LateCheckOutMinute INT DEFAULT 0 NOT NULL,
+    IsActive BIT DEFAULT b'1' NOT NULL
+);
+
+CREATE TABLE timesheetperiods (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    Name VARCHAR(50) CHARSET utf8mb3 NOT NULL,
+    StartDate DATE NOT NULL,
+    EndDate DATE NOT NULL,
+    IsLocked BIT DEFAULT b'0' NOT NULL
+);
+
+-- 3. Tạo các bảng liên quan đến Position và Department
+CREATE TABLE positions (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    Code VARCHAR(20) NOT NULL,
+    Name VARCHAR(100) CHARSET utf8mb3 NOT NULL,
+    JobLevel INT NOT NULL,
+    DefaultShiftId INT NULL,
+    CONSTRAINT Code UNIQUE (Code),
+    CONSTRAINT FK_Positions_Shifts FOREIGN KEY (DefaultShiftId) REFERENCES shifts (Id)
+);
+
+CREATE TABLE departments (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    Code VARCHAR(20) NOT NULL,
+    Name VARCHAR(100) CHARSET utf8mb3 NOT NULL,
+    HeadAccountId INT NULL,
+    CONSTRAINT Code UNIQUE (Code)
+);
+
+-- 4. Tạo bảng Users
+CREATE TABLE users (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    EmployeeCode VARCHAR(20) NOT NULL,
+    FullName VARCHAR(100) CHARSET utf8mb3 NOT NULL,
+    EmailCompany VARCHAR(100) NOT NULL,
+    Phone VARCHAR(15) NULL,
+    Gender BIT NULL,
+    DateOfBirth DATE NULL,
+    Status BIT DEFAULT b'1' NOT NULL,
+    DepartmentId INT NOT NULL,
+    PositionId INT NOT NULL,
+    DependentsCount INT DEFAULT 0 NOT NULL,
+    CONSTRAINT EmailCompany UNIQUE (EmailCompany),
+    CONSTRAINT EmployeeCode UNIQUE (EmployeeCode),
+    CONSTRAINT FK_Users_Departments FOREIGN KEY (DepartmentId) REFERENCES departments (Id),
+    CONSTRAINT FK_Users_Positions FOREIGN KEY (PositionId) REFERENCES positions (Id)
+);
+
+-- 5. Tạo bảng Accounts (sau khi đã có Users)
+CREATE TABLE accounts (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    Username VARCHAR(50) NOT NULL,
+    PasswordHash VARCHAR(255) NOT NULL,
+    Status BIT DEFAULT b'1' NOT NULL,
+    UserId INT NOT NULL,
+    CONSTRAINT UserId UNIQUE (UserId),
+    CONSTRAINT Username UNIQUE (Username),
+    CONSTRAINT FK_Accounts_Users FOREIGN KEY (UserId) REFERENCES users (Id) ON DELETE CASCADE
+);
+
+-- Thêm khóa ngoại HeadAccountId cho Departments (sau khi đã tạo Accounts)
+ALTER TABLE departments
+    ADD CONSTRAINT FK_Departments_Accounts
+    FOREIGN KEY (HeadAccountId) REFERENCES accounts (Id);
+
+-- 6. Tạo các bảng Phụ thuộc còn lại
+CREATE TABLE holidays (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    HolidayDate DATE NOT NULL,
+    HolidayName VARCHAR(100) NOT NULL,
+    Year INT NOT NULL,
+    CreatedBy INT NULL,
+    CONSTRAINT FK_Holidays_Accounts FOREIGN KEY (CreatedBy) REFERENCES accounts (Id)
+);
+
+CREATE TABLE requests (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    Title VARCHAR(100) NOT NULL,
+    Reason VARCHAR(255) NULL,
+    Status VARCHAR(20) DEFAULT 'Pending' NOT NULL,
+    StartDate DATETIME NOT NULL,
+    EndDate DATETIME NOT NULL,
+    Value DECIMAL(5, 1) NOT NULL,
+    ImageUrl VARCHAR(500) NULL, 
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    RequestTypeId INT NOT NULL,
+    CreatedByAccountId INT NOT NULL,
+    CurrentApproverAccountId INT NULL,
+    CONSTRAINT FK_Requests_Approver FOREIGN KEY (CurrentApproverAccountId) REFERENCES accounts (Id),
+    CONSTRAINT FK_Requests_Creator FOREIGN KEY (CreatedByAccountId) REFERENCES accounts (Id),
+    CONSTRAINT FK_Requests_RequestTypes FOREIGN KEY (RequestTypeId) REFERENCES requesttypes (Id)
+);
+
+CREATE TABLE accountroles (
+    AccountId INT NOT NULL,
+    RoleId INT NOT NULL,
+    PRIMARY KEY (AccountId, RoleId),
+    CONSTRAINT FK_AccountRoles_Accounts FOREIGN KEY (AccountId) REFERENCES accounts (Id) ON DELETE CASCADE,
+    CONSTRAINT FK_AccountRoles_Roles FOREIGN KEY (RoleId) REFERENCES roles (Id) ON DELETE CASCADE
+);
+
+CREATE TABLE attendance (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    EmployeeId INT NOT NULL,
+    AttendanceDate DATE NOT NULL,
+    CheckInTime TIME NULL,
+    CheckOutTime TIME NULL,
+    PeriodId INT NULL,
+    CONSTRAINT UQ_Attendance_Employee_Date UNIQUE (EmployeeId, AttendanceDate),
+    CONSTRAINT FK_Attendance_Periods FOREIGN KEY (PeriodId) REFERENCES timesheetperiods (Id),
+    CONSTRAINT FK_Attendance_Users FOREIGN KEY (EmployeeId) REFERENCES users (Id) ON DELETE CASCADE
+);
+
+CREATE TABLE employmentbasesalarys (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    BaseSalary DECIMAL(18, 2) NOT NULL,
+    UserId INT NOT NULL,
+    CONSTRAINT FK_EmploymentBaseSalarys_Users FOREIGN KEY (UserId) REFERENCES users (Id) ON DELETE CASCADE
+);
+
+CREATE TABLE leavebalances (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    Year INT NOT NULL,
+    TotalDays INT DEFAULT 12 NOT NULL,
+    UsedDays INT DEFAULT 0 NOT NULL,
+    RemainingDays INT DEFAULT 12 NOT NULL,
+    UserId INT NOT NULL,
+    CONSTRAINT FK_LeaveBalances_Users FOREIGN KEY (UserId) REFERENCES users (Id) ON DELETE CASCADE
+);
+
+CREATE TABLE notifications (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    UserId INT NOT NULL,
+    Title VARCHAR(200) NOT NULL,
+    Message VARCHAR(500) NULL,
+    IsRead BIT DEFAULT b'0' NOT NULL,
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT FK_Notifications_Users FOREIGN KEY (UserId) REFERENCES users (Id) ON DELETE CASCADE
+);
+
+CREATE TABLE payslips (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    BaseSalary DECIMAL(18, 2) NOT NULL,
+    OtSalary DECIMAL(18, 2) DEFAULT 0.00 NOT NULL,
+    Allowances DECIMAL(18, 2) DEFAULT 0.00 NOT NULL,
+    InsuranceDeduction DECIMAL(18, 2) DEFAULT 0.00 NOT NULL,
+    DependentDeduction DECIMAL(18, 2) DEFAULT 0.00 NOT NULL, 
+    TaxDeduction DECIMAL(18, 2) DEFAULT 0.00 NOT NULL,
+    OtherDeductions DECIMAL(18, 2) DEFAULT 0.00 NOT NULL, 
+    GrossAmount DECIMAL(18, 2) NOT NULL,
+    NetAmount DECIMAL(18, 2) NOT NULL,
+    Status VARCHAR(20) DEFAULT 'Draft' NOT NULL,
+    Note VARCHAR(255) NULL,
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    UserId INT NOT NULL,
+    PeriodId INT NOT NULL,
+    CONSTRAINT FK_Payslips_Periods FOREIGN KEY (PeriodId) REFERENCES timesheetperiods (Id),
+    CONSTRAINT FK_Payslips_Users FOREIGN KEY (UserId) REFERENCES users (Id)
+);
+
+CREATE TABLE shiftassignments (
+    Id INT AUTO_INCREMENT PRIMARY KEY,
+    EmployeeId INT NOT NULL,
+    ShiftId INT NOT NULL,
+    StartDate DATE NOT NULL,
+    EndDate DATE NOT NULL,
+    AssignedBy INT NULL,
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT FK_ShiftAssignments_Accounts FOREIGN KEY (AssignedBy) REFERENCES accounts (Id),
+    CONSTRAINT FK_ShiftAssignments_Shifts FOREIGN KEY (ShiftId) REFERENCES shifts (Id) ON DELETE CASCADE,
+    CONSTRAINT FK_ShiftAssignments_Users FOREIGN KEY (EmployeeId) REFERENCES users (Id) ON DELETE CASCADE
+);
