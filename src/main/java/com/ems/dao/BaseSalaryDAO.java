@@ -6,6 +6,7 @@ import com.ems.model.Departments;
 import com.ems.model.Positions;
 import com.ems.util.DBConnection;
 
+import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -23,6 +24,7 @@ public class BaseSalaryDAO {
                 "SELECT ebs.Id AS salaryId, ebs.BaseSalary AS baseSalary, " +
                 "u.Id AS userId, u.EmployeeCode AS employeeCode, u.FullName AS fullName, " +
                 "u.EmailCompany AS emailCompany, u.Phone AS phone, u.Gender AS gender, u.Status AS status, " +
+                "u.DependentsCount AS dependentsCount, " +
                 "d.Id AS departmentId, d.Name AS departmentName, d.Code AS departmentCode, " +
                 "p.Id AS positionId, p.Name AS positionName, p.Code AS positionCode " +
                 "FROM employmentbasesalarys ebs " +
@@ -88,6 +90,7 @@ public class BaseSalaryDAO {
                     dto.setPhone(rs.getString("phone"));
                     dto.setGender(rs.getObject("gender") != null ? rs.getBoolean("gender") : null);
                     dto.setStatus(rs.getBoolean("status"));
+                    dto.setDependentsCount(rs.getInt("dependentsCount"));
                     dto.setDepartmentId(rs.getInt("departmentId"));
                     dto.setDepartmentName(rs.getString("departmentName"));
                     dto.setDepartmentCode(rs.getString("departmentCode"));
@@ -205,5 +208,84 @@ public class BaseSalaryDAO {
             e.printStackTrace();
         }
         return list;
+    }
+
+    public int getTotalEmployeeCount() {
+        String sql = "SELECT COUNT(*) FROM users";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public boolean updateBaseSalaryAndDependents(int userId, BigDecimal baseSalary, int dependentsCount) {
+        String sqlCheck = "SELECT COUNT(*) FROM employmentbasesalarys WHERE UserId = ?";
+        String sqlUpdateSalary = "UPDATE employmentbasesalarys SET BaseSalary = ? WHERE UserId = ?";
+        String sqlInsertSalary = "INSERT INTO employmentbasesalarys (BaseSalary, UserId) VALUES (?, ?)";
+        String sqlUpdateUser = "UPDATE users SET DependentsCount = ? WHERE Id = ?";
+
+        Connection conn = null;
+        try {
+            conn = DBConnection.getConnection();
+            conn.setAutoCommit(false);
+
+            boolean exists = false;
+            try (PreparedStatement psCheck = conn.prepareStatement(sqlCheck)) {
+                psCheck.setInt(1, userId);
+                try (ResultSet rs = psCheck.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) {
+                        exists = true;
+                    }
+                }
+            }
+
+            if (exists) {
+                try (PreparedStatement ps1 = conn.prepareStatement(sqlUpdateSalary)) {
+                    ps1.setBigDecimal(1, baseSalary);
+                    ps1.setInt(2, userId);
+                    ps1.executeUpdate();
+                }
+            } else {
+                try (PreparedStatement ps1 = conn.prepareStatement(sqlInsertSalary)) {
+                    ps1.setBigDecimal(1, baseSalary);
+                    ps1.setInt(2, userId);
+                    ps1.executeUpdate();
+                }
+            }
+
+            try (PreparedStatement ps2 = conn.prepareStatement(sqlUpdateUser)) {
+                ps2.setInt(1, dependentsCount);
+                ps2.setInt(2, userId);
+                ps2.executeUpdate();
+            }
+
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            e.printStackTrace();
+            return false;
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }
     }
 }

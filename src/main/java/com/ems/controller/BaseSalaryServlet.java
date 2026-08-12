@@ -48,13 +48,51 @@ public class BaseSalaryServlet extends HttpServlet {
             }
         }
 
-        List<BaseSalaryDTO> baseSalaries = baseSalaryService.getBaseSalaries(search, departmentId, positionId, sortBy, sortOrder);
+        List<BaseSalaryDTO> allFilteredBaseSalaries = baseSalaryService.getBaseSalaries(search, departmentId, positionId, sortBy, sortOrder);
         SalarySummaryDTO summary = baseSalaryService.getSalarySummary(search, departmentId, positionId);
+        int totalEmployeesCount = baseSalaryService.getTotalEmployeeCount();
         List<Departments> departments = baseSalaryService.getAllDepartments();
         List<Positions> positions = baseSalaryService.getAllPositions();
 
-        request.setAttribute("baseSalaries", baseSalaries);
+        // Pagination handling
+        int page = 1;
+        String pageParam = request.getParameter("page");
+        if (pageParam != null && !pageParam.trim().isEmpty()) {
+            try {
+                page = Integer.parseInt(pageParam);
+            } catch (NumberFormatException ignored) {}
+        }
+        if (page < 1) page = 1;
+
+        int pageSize = 5;
+        String pageSizeParam = request.getParameter("pageSize");
+        if (pageSizeParam != null && !pageSizeParam.trim().isEmpty()) {
+            try {
+                pageSize = Integer.parseInt(pageSizeParam);
+            } catch (NumberFormatException ignored) {}
+        }
+        if (pageSize < 1) pageSize = 5;
+
+        int totalFilteredItems = allFilteredBaseSalaries.size();
+        int totalPages = (int) Math.ceil((double) totalFilteredItems / pageSize);
+        if (totalPages < 1) totalPages = 1;
+        if (page > totalPages) page = totalPages;
+
+        int fromIndex = (page - 1) * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, totalFilteredItems);
+
+        List<BaseSalaryDTO> pagedBaseSalaries = (fromIndex < totalFilteredItems)
+                ? allFilteredBaseSalaries.subList(fromIndex, toIndex)
+                : java.util.Collections.emptyList();
+
+        request.setAttribute("baseSalaries", pagedBaseSalaries);
+        request.setAttribute("allFilteredSalaries", allFilteredBaseSalaries);
         request.setAttribute("summary", summary);
+        request.setAttribute("totalEmployeesCount", totalEmployeesCount > 0 ? totalEmployeesCount : summary.getTotalEmployees());
+        request.setAttribute("totalFilteredItems", totalFilteredItems);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("pageSize", pageSize);
+        request.setAttribute("totalPages", totalPages);
         request.setAttribute("departments", departments);
         request.setAttribute("positions", positions);
 
@@ -65,5 +103,57 @@ public class BaseSalaryServlet extends HttpServlet {
         request.setAttribute("sortOrder", sortOrder != null ? sortOrder : "ASC");
 
         request.getRequestDispatcher("/base-salary-list.jsp").forward(request, response);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        request.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("UTF-8");
+
+        String userIdParam = request.getParameter("userId");
+        String baseSalaryParam = request.getParameter("baseSalary");
+        String dependentsCountParam = request.getParameter("dependentsCount");
+
+        if (userIdParam != null && baseSalaryParam != null) {
+            try {
+                int userId = Integer.parseInt(userIdParam);
+                String cleanSalaryStr = baseSalaryParam.replaceAll("[^0-9.]", "");
+                java.math.BigDecimal baseSalary = new java.math.BigDecimal(cleanSalaryStr);
+                
+                int dependentsCount = 0;
+                if (dependentsCountParam != null && !dependentsCountParam.trim().isEmpty()) {
+                    dependentsCount = Integer.parseInt(dependentsCountParam);
+                }
+                if (dependentsCount < 0) dependentsCount = 0;
+
+                baseSalaryService.updateBaseSalaryAndDependents(userId, baseSalary, dependentsCount);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Redirect preserving parameters if needed
+        String search = request.getParameter("search");
+        String deptIdParam = request.getParameter("departmentId");
+        String posIdParam = request.getParameter("positionId");
+        String pageParam = request.getParameter("page");
+
+        StringBuilder redirectUrl = new StringBuilder(request.getContextPath() + "/base-salaries?");
+        if (search != null && !search.trim().isEmpty()) {
+            redirectUrl.append("search=").append(java.net.URLEncoder.encode(search, "UTF-8")).append("&");
+        }
+        if (deptIdParam != null && !deptIdParam.trim().isEmpty()) {
+            redirectUrl.append("departmentId=").append(deptIdParam).append("&");
+        }
+        if (posIdParam != null && !posIdParam.trim().isEmpty()) {
+            redirectUrl.append("positionId=").append(posIdParam).append("&");
+        }
+        if (pageParam != null && !pageParam.trim().isEmpty()) {
+            redirectUrl.append("page=").append(pageParam).append("&");
+        }
+
+        response.sendRedirect(redirectUrl.toString());
     }
 }

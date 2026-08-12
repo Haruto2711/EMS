@@ -10,6 +10,21 @@
     List<Departments> departments = (List<Departments>) request.getAttribute("departments");
     List<Positions> positions = (List<Positions>) request.getAttribute("positions");
     
+    Integer totalEmployeesCount = (Integer) request.getAttribute("totalEmployeesCount");
+    if (totalEmployeesCount == null) totalEmployeesCount = (summary != null ? summary.getTotalEmployees() : 0);
+    
+    Integer totalFilteredItems = (Integer) request.getAttribute("totalFilteredItems");
+    if (totalFilteredItems == null) totalFilteredItems = (baseSalaries != null ? baseSalaries.size() : 0);
+    
+    Integer currentPage = (Integer) request.getAttribute("currentPage");
+    if (currentPage == null) currentPage = 1;
+    
+    Integer pageSize = (Integer) request.getAttribute("pageSize");
+    if (pageSize == null) pageSize = 5;
+    
+    Integer totalPages = (Integer) request.getAttribute("totalPages");
+    if (totalPages == null) totalPages = 1;
+    
     String searchStr = (String) request.getAttribute("search");
     if (searchStr == null) searchStr = "";
     
@@ -17,926 +32,900 @@
     Integer selectedPosId = (Integer) request.getAttribute("selectedPositionId");
     String sortByVal = (String) request.getAttribute("sortBy");
     String sortOrderVal = (String) request.getAttribute("sortOrder");
+
+    int startItem = totalFilteredItems > 0 ? (currentPage - 1) * pageSize + 1 : 0;
+    int endItem = Math.min(currentPage * pageSize, totalFilteredItems);
 %>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Base Salary Directory | EMS</title>
-    <!-- Google Fonts & Font Awesome -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --primary-light: #eeeffe;
-            --secondary: #06b6d4;
-            --success: #10b981;
-            --success-light: #d1fae5;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --dark: #0f172a;
-            --slate-800: #1e293b;
-            --slate-700: #334155;
-            --slate-600: #475569;
-            --slate-500: #64748b;
-            --slate-400: #94a3b8;
-            --slate-300: #cbd5e1;
-            --slate-200: #e2e8f0;
-            --slate-100: #f1f5f9;
-            --slate-50: #f8fafc;
-            --card-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.04), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
-            --card-shadow-hover: 0 20px 25px -5px rgba(79, 70, 229, 0.1), 0 8px 10px -6px rgba(79, 70, 229, 0.04);
-            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: #f4f6fb;
-            color: var(--slate-800);
-            line-height: 1.5;
-            min-height: 100vh;
-        }
-
-        /* Top Navbar */
-        .navbar {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--slate-200);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            padding: 0.875rem 2rem;
-        }
-
-        .navbar-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            text-decoration: none;
-        }
-
-        .brand-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.25rem;
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-        }
-
-        .brand-title {
-            font-weight: 800;
-            font-size: 1.25rem;
-            color: var(--dark);
-            letter-spacing: -0.02em;
-        }
-
-        .brand-badge {
-            background: var(--primary-light);
-            color: var(--primary);
-            font-size: 0.75rem;
-            font-weight: 700;
-            padding: 0.2rem 0.5rem;
-            border-radius: 6px;
-            text-transform: uppercase;
-        }
-
-        .nav-actions {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .user-pill {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: var(--slate-100);
-            padding: 0.35rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--slate-700);
-        }
-
-        .user-avatar {
-            width: 28px;
-            height: 28px;
-            background: var(--primary);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-            font-weight: 700;
-        }
-
-        /* Main Layout */
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        /* Header Section */
-        .page-header {
-            margin-bottom: 2rem;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-        }
-
-        .page-header-text h1 {
-            font-size: 1.75rem;
-            font-weight: 800;
-            color: var(--dark);
-            letter-spacing: -0.02em;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .page-header-text p {
-            color: var(--slate-500);
-            font-size: 0.95rem;
-            margin-top: 0.25rem;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 0.75rem;
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.625rem 1.25rem;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: var(--transition);
-            border: 1px solid transparent;
-            text-decoration: none;
-        }
-
-        .btn-primary {
-            background-color: var(--primary);
-            color: white;
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
-        }
-
-        .btn-primary:hover {
-            background-color: var(--primary-hover);
-            transform: translateY(-1px);
-        }
-
-        .btn-secondary {
-            background-color: white;
-            color: var(--slate-700);
-            border-color: var(--slate-200);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-        }
-
-        .btn-secondary:hover {
-            background-color: var(--slate-50);
-            border-color: var(--slate-300);
-            color: var(--dark);
-        }
-
-        /* Stat Cards Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 1.25rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: white;
-            border-radius: 16px;
-            padding: 1.25rem 1.5rem;
-            border: 1px solid var(--slate-200);
-            box-shadow: var(--card-shadow);
-            transition: var(--transition);
-            display: flex;
-            align-items: center;
-            gap: 1.25rem;
-        }
-
-        .stat-card:hover {
-            box-shadow: var(--card-shadow-hover);
-            transform: translateY(-2px);
-            border-color: rgba(79, 70, 229, 0.3);
-        }
-
-        .stat-icon {
-            width: 52px;
-            height: 52px;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.35rem;
-            flex-shrink: 0;
-        }
-
-        .stat-icon.blue {
-            background: #e0f2fe;
-            color: #0284c7;
-        }
-
-        .stat-icon.emerald {
-            background: #d1fae5;
-            color: #059669;
-        }
-
-        .stat-icon.indigo {
-            background: #e0e7ff;
-            color: #4338ca;
-        }
-
-        .stat-icon.purple {
-            background: #f3e8ff;
-            color: #7e22ce;
-        }
-
-        .stat-info .stat-label {
-            font-size: 0.8125rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--slate-500);
-        }
-
-        .stat-info .stat-value {
-            font-size: 1.45rem;
-            font-weight: 800;
-            color: var(--dark);
-            margin-top: 0.15rem;
-            letter-spacing: -0.02em;
-        }
-
-        /* Filter Toolbar Card */
-        .filter-card {
-            background: white;
-            border-radius: 16px;
-            padding: 1.25rem;
-            border: 1px solid var(--slate-200);
-            box-shadow: var(--card-shadow);
-            margin-bottom: 1.5rem;
-        }
-
-        .filter-form {
-            display: grid;
-            grid-template-columns: 2fr 1.2fr 1.2fr 1.2fr auto;
-            gap: 1rem;
-            align-items: end;
-        }
-
-        @media (max-width: 1024px) {
-            .filter-form {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        @media (max-width: 640px) {
-            .filter-form {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.4rem;
-        }
-
-        .form-label {
-            font-size: 0.8125rem;
-            font-weight: 700;
-            color: var(--slate-700);
-            display: flex;
-            align-items: center;
-            gap: 0.35rem;
-        }
-
-        .input-wrapper {
-            position: relative;
-        }
-
-        .input-wrapper i {
-            position: absolute;
-            left: 0.875rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--slate-400);
-            font-size: 0.9rem;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 0.625rem 0.875rem 0.625rem 2.4rem;
-            border: 1px solid var(--slate-300);
-            border-radius: 10px;
-            font-family: inherit;
-            font-size: 0.875rem;
-            color: var(--slate-800);
-            background-color: var(--slate-50);
-            transition: var(--transition);
-        }
-
-        select.form-control {
-            padding-left: 0.875rem;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%20%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 0.75rem center;
-            background-size: 1.1rem;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary);
-            background-color: white;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
-        }
-
-        .filter-btn-group {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        /* Main Data Card */
-        .table-card {
-            background: white;
-            border-radius: 16px;
-            border: 1px solid var(--slate-200);
-            box-shadow: var(--card-shadow);
-            overflow: hidden;
-        }
-
-        .table-header-bar {
-            padding: 1.25rem 1.5rem;
-            border-bottom: 1px solid var(--slate-200);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: white;
-        }
-
-        .table-title-group {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .table-title {
-            font-weight: 700;
-            font-size: 1.1rem;
-            color: var(--dark);
-        }
-
-        .results-count {
-            background: var(--slate-100);
-            color: var(--slate-600);
-            font-size: 0.75rem;
-            font-weight: 700;
-            padding: 0.25rem 0.6rem;
-            border-radius: 9999px;
-        }
-
-        /* Table Design */
-        .table-responsive {
-            width: 100%;
-            overflow-x: auto;
-        }
-
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-            font-size: 0.875rem;
-        }
-
-        .data-table th {
-            background: var(--slate-50);
-            color: var(--slate-600);
-            font-weight: 700;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--slate-200);
-            white-space: nowrap;
-        }
-
-        .data-table td {
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--slate-100);
-            vertical-align: middle;
-            color: var(--slate-700);
-            transition: var(--transition);
-        }
-
-        .data-table tbody tr {
-            transition: var(--transition);
-        }
-
-        .data-table tbody tr:hover {
-            background-color: #f8fafc;
-        }
-
-        .data-table tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        /* Table Element Components */
-        .employee-profile {
-            display: flex;
-            align-items: center;
-            gap: 0.875rem;
-        }
-
-        .avatar-circle {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            color: white;
-            font-weight: 700;
-            font-size: 0.95rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 3px 8px rgba(99, 102, 241, 0.25);
-            flex-shrink: 0;
-        }
-
-        .emp-name {
-            font-weight: 700;
-            color: var(--dark);
-            font-size: 0.925rem;
-        }
-
-        .emp-code {
-            font-size: 0.775rem;
-            color: var(--slate-500);
-            font-family: monospace;
-            font-weight: 600;
-        }
-
-        .code-badge {
-            display: inline-block;
-            background: var(--slate-100);
-            color: var(--slate-700);
-            font-family: monospace;
-            font-weight: 700;
-            font-size: 0.8rem;
-            padding: 0.25rem 0.55rem;
-            border-radius: 6px;
-            border: 1px solid var(--slate-200);
-        }
-
-        .badge-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            padding: 0.25rem 0.65rem;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .badge-dept {
-            background: #e0f2fe;
-            color: #0369a1;
-        }
-
-        .badge-pos {
-            background: #f3e8ff;
-            color: #6b21a8;
-        }
-
-        .salary-amount {
-            font-size: 1.05rem;
-            font-weight: 800;
-            color: #047857;
-            letter-spacing: -0.01em;
-        }
-
-        .salary-unit {
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: #059669;
-            margin-left: 0.15rem;
-        }
-
-        .status-dot {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
-
-        .dot.active {
-            background-color: var(--success);
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
-        }
-
-        .dot.inactive {
-            background-color: var(--slate-400);
-        }
-
-        /* Empty State */
-        .empty-state {
-            padding: 4rem 2rem;
-            text-align: center;
-        }
-
-        .empty-icon {
-            width: 72px;
-            height: 72px;
-            background: var(--slate-100);
-            color: var(--slate-400);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            margin: 0 auto 1.25rem auto;
-        }
-
-        .empty-state h3 {
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: var(--dark);
-            margin-bottom: 0.5rem;
-        }
-
-        .empty-state p {
-            color: var(--slate-500);
-            font-size: 0.9rem;
-            max-width: 400px;
-            margin: 0 auto;
-        }
-
-        /* Footer */
-        .footer {
-            margin-top: 3rem;
-            padding: 1.5rem 0;
-            border-top: 1px solid var(--slate-200);
-            text-align: center;
-            color: var(--slate-500);
-            font-size: 0.85rem;
-        }
-
-        /* Utility classes */
-        .text-right {
-            text-align: right;
-        }
-    </style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Lương hợp đồng & Người phụ thuộc – EMS</title>
+  <link rel="stylesheet" href="ems.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    /* Specific styles for Base Salary page body */
+    .bs-header {
+      margin-bottom: 24px;
+    }
+    .bs-header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: -0.4px;
+      margin-bottom: 4px;
+    }
+    .bs-header p {
+      font-size: 13.5px;
+      color: #64748b;
+    }
+
+    /* Top 3 Summary Cards */
+    .bs-stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .bs-stat-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 18px 22px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+    .bs-stat-label {
+      font-size: 13px;
+      color: #64748b;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    .bs-stat-value {
+      font-size: 26px;
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: -0.5px;
+    }
+
+    /* Filter Toolbar Box */
+    .bs-filter-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 20px;
+    }
+    .bs-filter-form {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .bs-search-wrapper {
+      position: relative;
+      flex: 1;
+      min-width: 260px;
+    }
+    .bs-search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      font-size: 14px;
+      pointer-events: none;
+    }
+    .bs-input {
+      width: 100%;
+      height: 38px;
+      padding: 0 14px 0 38px;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 13.5px;
+      color: #1e293b;
+      outline: none;
+      transition: all 0.15s;
+    }
+    .bs-input:focus {
+      background: #ffffff;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+    }
+    .bs-btn-search {
+      height: 38px;
+      padding: 0 20px;
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: background 0.15s;
+    }
+    .bs-btn-search:hover {
+      background: #1d4ed8;
+    }
+    .bs-filter-label {
+      font-size: 13px;
+      color: #475569;
+      font-weight: 500;
+      margin-left: 6px;
+    }
+    .bs-select {
+      height: 38px;
+      padding: 0 28px 0 12px;
+      background: #f8fafc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%20%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E") no-repeat right 8px center/14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #1e293b;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+    }
+    .bs-select:focus {
+      background-color: #ffffff;
+      border-color: #2563eb;
+    }
+
+    /* Main Table Container */
+    .bs-table-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+    .bs-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+    .bs-table th {
+      background: #ffffff;
+      color: #3b82f6;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      padding: 14px 20px;
+      border-bottom: 1px solid #e2e8f0;
+      white-space: nowrap;
+    }
+    .bs-table th .sort-caret {
+      font-size: 10px;
+      margin-left: 3px;
+      opacity: 0.7;
+    }
+    .bs-table td {
+      padding: 14px 20px;
+      font-size: 13.5px;
+      color: #1e293b;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: middle;
+    }
+    .bs-table tr:last-child td {
+      border-bottom: none;
+    }
+    .bs-table tr:hover td {
+      background: #fafafa;
+    }
+
+    /* Table cells specific formatting */
+    .emp-code-text {
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    .emp-user-cell {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .emp-avatar-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+    .emp-name-text {
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .dept-badge {
+      display: inline-block;
+      padding: 3px 12px;
+      background: #e2e8f0;
+      color: #475569;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .pos-text {
+      color: #334155;
+      font-size: 13.5px;
+    }
+    .salary-text {
+      font-weight: 700;
+      color: #0f172a;
+      font-size: 14px;
+    }
+    .npt-badge {
+      width: 24px;
+      height: 24px;
+      background: #2563eb;
+      color: #ffffff;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .btn-edit-outline {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 16px;
+      background: #ffffff;
+      border: 1px solid #3b82f6;
+      border-radius: 9999px;
+      color: #2563eb;
+      font-size: 12.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-decoration: none;
+    }
+    .btn-edit-outline:hover {
+      background: #eff6ff;
+      border-color: #2563eb;
+    }
+
+    /* Pagination Footer Bar */
+    .bs-pagination-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      background: #ffffff;
+      border-top: 1px solid #f1f5f9;
+      font-size: 13px;
+      color: #64748b;
+    }
+    .bs-pagination-info {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .bs-page-size-select {
+      height: 30px;
+      padding: 0 20px 0 10px;
+      background: #f8fafc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%20%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E") no-repeat right 6px center/12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 12px;
+      color: #334155;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+    }
+    .bs-pagination-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .bs-page-btn {
+      min-width: 32px;
+      height: 32px;
+      padding: 0 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #334155;
+      background: transparent;
+      border: 1px solid transparent;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+    .bs-page-btn:hover {
+      background: #f1f5f9;
+    }
+    .bs-page-btn.active {
+      background: #2563eb;
+      color: #ffffff;
+      font-weight: 600;
+    }
+    .bs-page-nav-btn {
+      width: 32px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #64748b;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .bs-page-nav-btn:hover {
+      background: #f8fafc;
+      color: #1e293b;
+    }
+    .bs-page-nav-btn.disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    /* Modal Styling (Image 2) */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(2px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-card {
+      background: #ffffff;
+      border-radius: 14px;
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      padding: 24px;
+      position: relative;
+      animation: modalFadeIn 0.2s ease-out;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .modal-close-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: transparent;
+      border: none;
+      font-size: 18px;
+      color: #94a3b8;
+      cursor: pointer;
+      padding: 4px;
+      line-height: 1;
+      border-radius: 6px;
+    }
+    .modal-close-btn:hover {
+      color: #475569;
+      background: #f1f5f9;
+    }
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-bottom: 2px;
+    }
+    .modal-subtitle {
+      font-size: 13px;
+      color: #64748b;
+      margin-bottom: 18px;
+    }
+    .modal-info-box {
+      background: #f8fafc;
+      border-radius: 8px;
+      padding: 12px 16px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .modal-info-item label {
+      display: block;
+      font-size: 12px;
+      color: #64748b;
+      margin-bottom: 2px;
+    }
+    .modal-info-item span {
+      font-size: 14px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .modal-form-group {
+      margin-bottom: 18px;
+    }
+    .modal-form-group label {
+      display: block;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: #334155;
+      margin-bottom: 8px;
+    }
+    .currency-input-wrapper {
+      position: relative;
+    }
+    .currency-input-wrapper input {
+      width: 100%;
+      height: 42px;
+      padding: 0 36px 0 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #0f172a;
+      outline: none;
+    }
+    .currency-input-wrapper input:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+    }
+    .currency-suffix {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #64748b;
+      font-size: 14px;
+      font-weight: 500;
+      pointer-events: none;
+    }
+
+    /* Stepper Controls */
+    .stepper-control {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .stepper-btn {
+      width: 36px;
+      height: 36px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      color: #475569;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.12s;
+    }
+    .stepper-btn:hover {
+      background: #f8fafc;
+      border-color: #94a3b8;
+      color: #1e293b;
+    }
+    .stepper-input {
+      width: 60px;
+      height: 36px;
+      text-align: center;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #0f172a;
+      outline: none;
+    }
+
+    /* Modal Footer Buttons */
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 26px;
+    }
+    .btn-modal-cancel {
+      padding: 9px 20px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: #374151;
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .btn-modal-cancel:hover {
+      background: #f8fafc;
+    }
+    .btn-modal-save {
+      padding: 9px 20px;
+      background: #2563eb;
+      border: none;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #ffffff;
+      cursor: pointer;
+      transition: background 0.12s;
+    }
+    .btn-modal-save:hover {
+      background: #1d4ed8;
+    }
+  </style>
 </head>
 <body>
 
-    <!-- Navigation Bar -->
-    <nav class="navbar">
-        <div class="navbar-container">
-            <a href="base-salaries" class="brand">
-                <div class="brand-icon">
-                    <i class="fa-solid fa-file-invoice-dollar"></i>
-                </div>
-                <span class="brand-title">EMS System</span>
-                <span class="brand-badge">HR Portal</span>
-            </a>
-            <div class="nav-actions">
-                <div class="user-pill">
-                    <div class="user-avatar">HR</div>
-                    <span>Administrator</span>
-                </div>
-            </div>
+<!-- SIDEBAR (Using home_manager.jsp layout) -->
+<aside class="sidebar">
+  <a href="home_manager.jsp" class="sidebar-brand">
+    <div class="brand-dot">E</div>
+    <span class="brand-name">EMS</span>
+  </a>
+  <nav class="nav-group">
+    <div class="nav-section-label">Menu chính</div>
+    <a href="home_manager.jsp" class="nav-link">Trang chủ</a>
+    <a href="#" class="nav-link">Lịch trình nhóm</a>
+    <div class="nav-section-label">Quản lý</div>
+    <a href="#" class="nav-link">Điểm danh phòng ban</a>
+    <a href="base-salaries" class="nav-link active">Quản lý lương</a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-block">
+      <div class="user-avatar">
+        <%= session.getAttribute("username") != null ? session.getAttribute("username").toString().substring(0,1).toUpperCase() : "M" %>
+      </div>
+      <div>
+        <div class="user-name"><%= session.getAttribute("username") != null ? session.getAttribute("username") : "Manager" %></div>
+        <div class="user-role">Quản lý</div>
+      </div>
+    </div>
+    <button class="btn-logout" onclick="window.location='login'">Đăng xuất</button>
+  </div>
+</aside>
+
+<!-- MAIN CONTENT WRAPPER -->
+<div class="main-content">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <span class="topbar-left">Trang chủ / Quản lý lương cơ bản</span>
+    <span class="topbar-right" id="topbar-date"></span>
+  </div>
+
+  <!-- PAGE BODY (Image 1 UI) -->
+  <div class="page-body">
+    <!-- Header Section -->
+    <div class="bs-header">
+      <h1>Lương hợp đồng &amp; Người phụ thuộc</h1>
+      <p>Thiết lập mức lương cơ bản (Base Salary) và số người phụ thuộc cho từng nhân viên</p>
+    </div>
+
+    <!-- Summary Metrics Grid -->
+    <div class="bs-stats-row">
+      <div class="bs-stat-card">
+        <div class="bs-stat-label">Tổng nhân viên</div>
+        <div class="bs-stat-value"><%= totalEmployeesCount %></div>
+      </div>
+
+      <div class="bs-stat-card">
+        <div class="bs-stat-label">Kết quả lọc</div>
+        <div class="bs-stat-value"><%= totalFilteredItems %></div>
+      </div>
+
+      <div class="bs-stat-card">
+        <div class="bs-stat-label">Tổng quỹ lương (lọc)</div>
+        <div class="bs-stat-value"><%= summary != null ? summary.getFormattedTotalBudget() : "0" %> đ</div>
+      </div>
+    </div>
+
+    <!-- Filter & Search Toolbar -->
+    <div class="bs-filter-card">
+      <form action="base-salaries" method="GET" class="bs-filter-form" id="filterForm">
+        
+        <!-- Search Input -->
+        <div class="bs-search-wrapper">
+          <svg class="bs-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" name="search" class="bs-input" placeholder="Tìm tên hoặc mã nhân viên..." value="<%= searchStr %>"/>
         </div>
-    </nav>
 
-    <main class="container">
-        <!-- Page Header -->
-        <header class="page-header">
-            <div class="page-header-text">
-                <h1>
-                    <i class="fa-solid fa-money-bill-wave" style="color: var(--primary);"></i>
-                    Quản lý Lương Cơ Bản (Base Salary)
-                </h1>
-                <p>Danh sách và thông tin chi tiết mức lương cơ bản của cán bộ nhân viên</p>
-            </div>
-            <div class="header-actions">
-                <button class="btn btn-secondary" onclick="window.print()">
-                    <i class="fa-solid fa-print"></i> In danh sách
-                </button>
-            </div>
-        </header>
+        <!-- Search Button -->
+        <button type="submit" class="bs-btn-search">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          Tìm kiếm
+        </button>
 
-        <!-- Metric Summary Cards -->
-        <section class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon blue">
-                    <i class="fa-solid fa-users"></i>
-                </div>
-                <div class="stat-info">
-                    <div class="stat-label">Tổng nhân viên</div>
-                    <div class="stat-value"><%= summary != null ? summary.getTotalEmployees() : 0 %></div>
-                </div>
-            </div>
+        <!-- Department Filter -->
+        <span class="bs-filter-label">Phòng ban</span>
+        <select name="departmentId" class="bs-select" onchange="document.getElementById('filterForm').submit()">
+          <option value="">Tất cả</option>
+          <% if (departments != null) {
+              for (Departments dept : departments) {
+                  boolean isSelected = selectedDeptId != null && selectedDeptId.equals(dept.getId());
+          %>
+              <option value="<%= dept.getId() %>" <%= isSelected ? "selected" : "" %>>
+                <%= dept.getName() %>
+              </option>
+          <%  }
+          } %>
+        </select>
 
-            <div class="stat-card">
-                <div class="stat-icon emerald">
-                    <i class="fa-solid fa-calculator"></i>
-                </div>
-                <div class="stat-info">
-                    <div class="stat-label">Lương TB (Average)</div>
-                    <div class="stat-value">
-                        <%= summary != null ? summary.getFormattedAverageSalary() : "0" %>
-                        <span style="font-size: 0.85rem; font-weight: 700; color: var(--slate-500);">VNĐ</span>
+        <!-- Position Filter -->
+        <span class="bs-filter-label">Chức vụ</span>
+        <select name="positionId" class="bs-select" onchange="document.getElementById('filterForm').submit()">
+          <option value="">Tất cả</option>
+          <% if (positions != null) {
+              for (Positions pos : positions) {
+                  boolean isSelected = selectedPosId != null && selectedPosId.equals(pos.getId());
+          %>
+              <option value="<%= pos.getId() %>" <%= isSelected ? "selected" : "" %>>
+                <%= pos.getName() %>
+              </option>
+          <%  }
+          } %>
+        </select>
+        
+        <!-- Hidden Page preservation -->
+        <input type="hidden" name="page" value="1"/>
+        <input type="hidden" name="pageSize" value="<%= pageSize %>"/>
+      </form>
+    </div>
+
+    <!-- Data Table -->
+    <div class="bs-table-card">
+      <table class="bs-table">
+        <thead>
+          <tr>
+            <th>MÃ NV <span class="sort-caret">^</span></th>
+            <th>HỌ VÀ TÊN <span class="sort-caret">^</span></th>
+            <th>PHÒNG BAN <span class="sort-caret">^</span></th>
+            <th>CHỨC VỤ <span class="sort-caret">^</span></th>
+            <th>LƯƠNG CƠ BẢN <span class="sort-caret">^</span></th>
+            <th>SỐ NPT <span class="sort-caret">^</span></th>
+            <th>HÀNH ĐỘNG</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% 
+            if (baseSalaries != null && !baseSalaries.isEmpty()) {
+                String[] colors = {"#f87171", "#fb923c", "#fbbf24", "#34d399", "#60a5fa", "#a78bfa", "#f472b6"};
+                for (BaseSalaryDTO item : baseSalaries) {
+                    String fullName = item.getFullName() != null ? item.getFullName() : "";
+                    String firstChar = (!fullName.trim().isEmpty()) ? fullName.trim().substring(0, 1).toUpperCase() : "N";
+                    int colorIdx = Math.abs(fullName.hashCode()) % colors.length;
+                    String avatarColor = colors[colorIdx];
+                    
+                    String code = item.getEmployeeCode() != null ? item.getEmployeeCode() : "";
+                    String dept = item.getDepartmentName() != null ? item.getDepartmentName() : "Chưa phân công";
+                    String pos = item.getPositionName() != null ? item.getPositionName() : "Chưa phân công";
+                    String formattedSalary = item.getFormattedBaseSalary() + " đ";
+                    double rawSalary = item.getBaseSalary() != null ? item.getBaseSalary().doubleValue() : 0;
+                    int npt = item.getDependentsCount();
+          %>
+              <tr>
+                <td class="emp-code-text"><%= code %></td>
+                <td>
+                  <div class="emp-user-cell">
+                    <div class="emp-avatar-circle" style="background-color: <%= avatarColor %>;">
+                      <%= firstChar %>
                     </div>
-                </div>
-            </div>
+                    <span class="emp-name-text"><%= fullName %></span>
+                  </div>
+                </td>
+                <td>
+                  <span class="dept-badge"><%= dept %></span>
+                </td>
+                <td class="pos-text"><%= pos %></td>
+                <td class="salary-text"><%= formattedSalary %></td>
+                <td>
+                  <span class="npt-badge"><%= npt %></span>
+                </td>
+                <td>
+                  <button type="button" class="btn-edit-outline" 
+                          onclick="openEditModal(<%= item.getUserId() %>, '<%= code %>', '<%= fullName.replace("'", "\\'") %>', '<%= dept.replace("'", "\\'") %>', '<%= pos.replace("'", "\\'") %>', <%= rawSalary %>, <%= npt %>)">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 20h9"></path>
+                      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                    </svg>
+                    Chỉnh sửa
+                  </button>
+                </td>
+              </tr>
+          <% 
+                }
+            } else { 
+          %>
+              <tr>
+                <td colspan="7" style="text-align: center; padding: 40px; color: #64748b;">
+                  Không tìm thấy dữ liệu nhân viên nào phù hợp.
+                </td>
+              </tr>
+          <% } %>
+        </tbody>
+      </table>
 
-            <div class="stat-card">
-                <div class="stat-icon indigo">
-                    <i class="fa-solid fa-wallet"></i>
-                </div>
-                <div class="stat-info">
-                    <div class="stat-label">Tổng ngân sách lương</div>
-                    <div class="stat-value">
-                        <%= summary != null ? summary.getFormattedTotalBudget() : "0" %>
-                        <span style="font-size: 0.85rem; font-weight: 700; color: var(--slate-500);">VNĐ</span>
-                    </div>
-                </div>
-            </div>
+      <!-- Pagination Footer -->
+      <div class="bs-pagination-bar">
+        <div class="bs-pagination-info">
+          <span>Hiển thị <strong><%= startItem %>-<%= endItem %></strong> / <%= totalFilteredItems %> nhân viên</span>
+          <span>Mỗi trang
+            <select class="bs-page-size-select" onchange="changePageSize(this.value)">
+              <option value="5" <%= pageSize == 5 ? "selected" : "" %>>5</option>
+              <option value="10" <%= pageSize == 10 ? "selected" : "" %>>10</option>
+              <option value="20" <%= pageSize == 20 ? "selected" : "" %>>20</option>
+            </select>
+          </span>
+        </div>
 
-            <div class="stat-card">
-                <div class="stat-icon purple">
-                    <i class="fa-solid fa-chart-line"></i>
-                </div>
-                <div class="stat-info">
-                    <div class="stat-label">Cao nhất / Thấp nhất</div>
-                    <div class="stat-value" style="font-size: 1.15rem;">
-                        <%= summary != null ? summary.getFormattedMaxSalary() : "0" %>
-                        /
-                        <%= summary != null ? summary.getFormattedMinSalary() : "0" %>
-                    </div>
-                </div>
-            </div>
-        </section>
+        <div class="bs-pagination-controls">
+          <!-- Previous page button -->
+          <a href="<%= buildPageUrl(searchStr, selectedDeptId, selectedPosId, currentPage - 1, pageSize) %>" 
+             class="bs-page-nav-btn <%= currentPage <= 1 ? "disabled" : "" %>">&lt;</a>
 
-        <!-- Filter & Search Toolbar -->
-        <section class="filter-card">
-            <form action="base-salaries" method="GET" class="filter-form" id="filterForm">
-                
-                <!-- Search Input -->
-                <div class="form-group">
-                    <label class="form-label" for="search">
-                        <i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm nhân viên
-                    </label>
-                    <div class="input-wrapper">
-                        <i class="fa-solid fa-user"></i>
-                        <input type="text" id="search" name="search" class="form-control"
-                               placeholder="Nhập tên, mã NV hoặc email..."
-                               value="<%= searchStr %>">
-                    </div>
-                </div>
+          <!-- Page numbers -->
+          <% for (int p = 1; p <= totalPages; p++) { %>
+              <a href="<%= buildPageUrl(searchStr, selectedDeptId, selectedPosId, p, pageSize) %>" 
+                 class="bs-page-btn <%= p == currentPage ? "active" : "" %>"><%= p %></a>
+          <% } %>
 
-                <!-- Department Filter -->
-                <div class="form-group">
-                    <label class="form-label" for="departmentId">
-                        <i class="fa-solid fa-sitemap"></i> Phòng ban
-                    </label>
-                    <select id="departmentId" name="departmentId" class="form-control" onchange="document.getElementById('filterForm').submit()">
-                        <option value="">-- Tất cả phòng ban --</option>
-                        <% if (departments != null) {
-                            for (Departments dept : departments) {
-                                boolean isSelected = selectedDeptId != null && selectedDeptId.equals(dept.getId());
-                        %>
-                            <option value="<%= dept.getId() %>" <%= isSelected ? "selected" : "" %>>
-                                <%= dept.getName() %> (<%= dept.getCode() %>)
-                            </option>
-                        <%  }
-                        } %>
-                    </select>
-                </div>
+          <!-- Next page button -->
+          <a href="<%= buildPageUrl(searchStr, selectedDeptId, selectedPosId, currentPage + 1, pageSize) %>" 
+             class="bs-page-nav-btn <%= currentPage >= totalPages ? "disabled" : "" %>">&gt;</a>
+        </div>
+      </div>
+    </div>
+  </div>
 
-                <!-- Position Filter -->
-                <div class="form-group">
-                    <label class="form-label" for="positionId">
-                        <i class="fa-solid fa-briefcase"></i> Chức vụ
-                    </label>
-                    <select id="positionId" name="positionId" class="form-control" onchange="document.getElementById('filterForm').submit()">
-                        <option value="">-- Tất cả chức vụ --</option>
-                        <% if (positions != null) {
-                            for (Positions pos : positions) {
-                                boolean isSelected = selectedPosId != null && selectedPosId.equals(pos.getId());
-                        %>
-                            <option value="<%= pos.getId() %>" <%= isSelected ? "selected" : "" %>>
-                                <%= pos.getName() %> (<%= pos.getCode() %>)
-                            </option>
-                        <%  }
-                        } %>
-                    </select>
-                </div>
+  <!-- FOOTER -->
+  <footer>© 2026 Hệ thống Quản lý Nhân sự (EMS) · FPT University SWP391</footer>
+</div>
 
-                <!-- Sort Field -->
-                <div class="form-group">
-                    <label class="form-label" for="sortBy">
-                        <i class="fa-solid fa-arrow-down-short-wide"></i> Sắp xếp theo
-                    </label>
-                    <select id="sortBy" name="sortBy" class="form-control" onchange="document.getElementById('filterForm').submit()">
-                        <option value="code" <%= "code".equalsIgnoreCase(sortByVal) ? "selected" : "" %>>Mã nhân viên</option>
-                        <option value="name" <%= "name".equalsIgnoreCase(sortByVal) ? "selected" : "" %>>Họ và tên</option>
-                        <option value="salary" <%= "salary".equalsIgnoreCase(sortByVal) ? "selected" : "" %>>Mức lương cơ bản</option>
-                        <option value="department" <%= "department".equalsIgnoreCase(sortByVal) ? "selected" : "" %>>Phòng ban</option>
-                        <option value="position" <%= "position".equalsIgnoreCase(sortByVal) ? "selected" : "" %>>Chức vụ</option>
-                    </select>
-                </div>
+<!-- EDIT MODAL FORM (Image 2 UI) -->
+<div class="modal-overlay" id="salaryModal">
+  <div class="modal-card">
+    <button type="button" class="modal-close-btn" onclick="closeEditModal()">✕</button>
+    
+    <div class="modal-title">Chỉnh sửa thông tin lương</div>
+    <div class="modal-subtitle" id="modalSubtitle">NV001 · Nguyễn Văn An</div>
 
-                <!-- Sort Order hidden / submit -->
-                <input type="hidden" id="sortOrder" name="sortOrder" value="<%= sortOrderVal != null ? sortOrderVal : "ASC" %>">
+    <!-- Read-only Dept & Pos -->
+    <div class="modal-info-box">
+      <div class="modal-info-item">
+        <label>Phòng ban</label>
+        <span id="modalDept">Kỹ thuật</span>
+      </div>
+      <div class="modal-info-item">
+        <label>Chức vụ</label>
+        <span id="modalPos">Trưởng nhóm</span>
+      </div>
+    </div>
 
-                <!-- Buttons -->
-                <div class="filter-btn-group">
-                    <button type="submit" class="btn btn-primary" title="Áp dụng lọc">
-                        <i class="fa-solid fa-filter"></i> Lọc
-                    </button>
-                    <a href="base-salaries" class="btn btn-secondary" title="Đặt lại bộ lọc">
-                        <i class="fa-solid fa-rotate-left"></i>
-                    </a>
-                </div>
-            </form>
-        </section>
+    <!-- Form -->
+    <form action="base-salaries" method="POST" id="editForm">
+      <input type="hidden" name="userId" id="editUserId" value=""/>
+      <input type="hidden" name="search" value="<%= searchStr %>"/>
+      <% if (selectedDeptId != null) { %><input type="hidden" name="departmentId" value="<%= selectedDeptId %>"/><% } %>
+      <% if (selectedPosId != null) { %><input type="hidden" name="positionId" value="<%= selectedPosId %>"/><% } %>
+      <input type="hidden" name="page" value="<%= currentPage %>"/>
 
-        <!-- Data Table -->
-        <section class="table-card">
-            <div class="table-header-bar">
-                <div class="table-title-group">
-                    <span class="table-title">Danh sách Lương Cơ Bản Nhân Viên</span>
-                    <span class="results-count"><%= baseSalaries != null ? baseSalaries.size() : 0 %> kết quả</span>
-                </div>
-                
-                <!-- Sort direction switcher -->
-                <div>
-                    <button type="button" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;"
-                            onclick="toggleSortOrder()">
-                        <i class="fa-solid <%= "DESC".equalsIgnoreCase(sortOrderVal) ? "fa-arrow-down-z-a" : "fa-arrow-up-a-z" %>"></i>
-                        Thứ tự: <%= "DESC".equalsIgnoreCase(sortOrderVal) ? "Giảm dần" : "Tăng dần" %>
-                    </button>
-                </div>
-            </div>
+      <!-- Base Salary Input -->
+      <div class="modal-form-group">
+        <label for="editBaseSalary">Lương cơ bản (Base Salary)</label>
+        <div class="currency-input-wrapper">
+          <input type="number" id="editBaseSalary" name="baseSalary" required step="100000" min="0" value="22000000"/>
+          <span class="currency-suffix">đ</span>
+        </div>
+      </div>
 
-            <div class="table-responsive">
-                <% if (baseSalaries != null && !baseSalaries.isEmpty()) { %>
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>STT</th>
-                                <th>Mã NV</th>
-                                <th>Nhân viên</th>
-                                <th>Phòng ban</th>
-                                <th>Chức vụ</th>
-                                <th>Email / SĐT</th>
-                                <th class="text-right">Lương Cơ Bản (Base Salary)</th>
-                                <th>Trạng thái</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <% 
-                                int index = 1;
-                                for (BaseSalaryDTO item : baseSalaries) { 
-                                    String firstChar = (item.getFullName() != null && !item.getFullName().trim().isEmpty()) 
-                                            ? item.getFullName().trim().substring(0, 1).toUpperCase() : "N";
-                                    boolean isActive = item.getStatus() != null && item.getStatus();
-                            %>
-                                <tr>
-                                    <td><%= index++ %></td>
-                                    <td>
-                                        <span class="code-badge"><%= item.getEmployeeCode() != null ? item.getEmployeeCode() : "" %></span>
-                                    </td>
-                                    <td>
-                                        <div class="employee-profile">
-                                            <div class="avatar-circle">
-                                                <%= firstChar %>
-                                            </div>
-                                            <div>
-                                                <div class="emp-name"><%= item.getFullName() != null ? item.getFullName() : "" %></div>
-                                                <div class="emp-code">
-                                                    <%= item.getGender() != null ? (item.getGender() ? "Nam" : "Nữ") : "Chưa cập nhật" %>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="badge-tag badge-dept">
-                                            <i class="fa-solid fa-building"></i>
-                                            <%= item.getDepartmentName() != null ? item.getDepartmentName() : "Chưa phân công" %>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="badge-tag badge-pos">
-                                            <i class="fa-solid fa-user-tag"></i>
-                                            <%= item.getPositionName() != null ? item.getPositionName() : "Chưa phân công" %>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div style="font-size: 0.85rem;">
-                                            <i class="fa-regular fa-envelope" style="color: var(--slate-400);"></i> <%= item.getEmailCompany() != null ? item.getEmailCompany() : "" %><br>
-                                            <% if (item.getPhone() != null && !item.getPhone().trim().isEmpty()) { %>
-                                                <i class="fa-solid fa-phone" style="color: var(--slate-400); font-size: 0.75rem;"></i> <%= item.getPhone() %>
-                                            <% } %>
-                                        </div>
-                                    </td>
-                                    <td class="text-right">
-                                        <span class="salary-amount">
-                                            <%= item.getFormattedBaseSalary() %>
-                                        </span>
-                                        <span class="salary-unit">VNĐ</span>
-                                    </td>
-                                    <td>
-                                        <div class="status-dot">
-                                            <span class="dot <%= isActive ? "active" : "inactive" %>"></span>
-                                            <span style="color: <%= isActive ? "var(--slate-800)" : "var(--slate-400)" %>">
-                                                <%= isActive ? "Đang làm việc" : "Nghỉ việc" %>
-                                            </span>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <% } %>
-                        </tbody>
-                    </table>
-                <% } else { %>
-                    <div class="empty-state">
-                        <div class="empty-icon">
-                            <i class="fa-solid fa-folder-open"></i>
-                        </div>
-                        <h3>Không tìm thấy dữ liệu</h3>
-                        <p>Không tìm thấy bản ghi lương cơ bản nào phù hợp với bộ lọc tìm kiếm của bạn.</p>
-                        <div style="margin-top: 1rem;">
-                            <a href="base-salaries" class="btn btn-primary">
-                                <i class="fa-solid fa-rotate-left"></i> Xóa bộ lọc
-                            </a>
-                        </div>
-                    </div>
-                <% } %>
-            </div>
-        </section>
+      <!-- Dependents Stepper Input -->
+      <div class="modal-form-group">
+        <label>Số người phụ thuộc (NPT)</label>
+        <div class="stepper-control">
+          <button type="button" class="stepper-btn" onclick="changeNPT(-1)">-</button>
+          <input type="number" id="editDependentsCount" name="dependentsCount" class="stepper-input" value="2" min="0" readonly/>
+          <button type="button" class="stepper-btn" onclick="changeNPT(1)">+</button>
+        </div>
+      </div>
 
-        <!-- Footer -->
-        <footer class="footer">
-            <p>&copy; 2026 EMS - Employee Management System | View Base Salaries Module</p>
-        </footer>
-    </main>
+      <!-- Action Buttons -->
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-cancel" onclick="closeEditModal()">Huỷ</button>
+        <button type="submit" class="btn-modal-save">Lưu thay đổi</button>
+      </div>
+    </form>
+  </div>
+</div>
 
-    <script>
-        function toggleSortOrder() {
-            const sortOrderInput = document.getElementById('sortOrder');
-            if (sortOrderInput.value === 'ASC') {
-                sortOrderInput.value = 'DESC';
-            } else {
-                sortOrderInput.value = 'ASC';
-            }
-            document.getElementById('filterForm').submit();
-        }
-    </script>
+<%!
+  // Helper to construct pagination URLs cleanly
+  private String buildPageUrl(String search, Integer deptId, Integer posId, int page, int pageSize) {
+      StringBuilder sb = new StringBuilder("base-salaries?page=").append(page).append("&pageSize=").append(pageSize);
+      if (search != null && !search.trim().isEmpty()) {
+          try {
+              sb.append("&search=").append(java.net.URLEncoder.encode(search, "UTF-8"));
+          } catch (Exception ignored) {}
+      }
+      if (deptId != null && deptId > 0) {
+          sb.append("&departmentId=").append(deptId);
+      }
+      if (posId != null && posId > 0) {
+          sb.append("&positionId=").append(posId);
+      }
+      return sb.toString();
+  }
+%>
+
+<script>
+  // Topbar date script
+  function tick() {
+    var now = new Date();
+    var p = function(n){ return String(n).padStart(2,'0'); };
+    var el = document.getElementById('topbar-date');
+    if (el) {
+      el.textContent = p(now.getDate())+'/'+p(now.getMonth()+1)+'/'+now.getFullYear();
+    }
+  }
+  tick();
+
+  // Modal Functions
+  function openEditModal(userId, code, name, dept, pos, salary, dependents) {
+    document.getElementById('editUserId').value = userId;
+    document.getElementById('modalSubtitle').textContent = code + ' · ' + name;
+    document.getElementById('modalDept').textContent = dept || 'Chưa phân công';
+    document.getElementById('modalPos').textContent = pos || 'Chưa phân công';
+    document.getElementById('editBaseSalary').value = Math.round(salary);
+    document.getElementById('editDependentsCount').value = dependents || 0;
+    
+    var modal = document.getElementById('salaryModal');
+    modal.style.display = 'flex';
+  }
+
+  function closeEditModal() {
+    var modal = document.getElementById('salaryModal');
+    modal.style.display = 'none';
+  }
+
+  // Stepper function
+  function changeNPT(delta) {
+    var input = document.getElementById('editDependentsCount');
+    var val = parseInt(input.value) || 0;
+    val = Math.max(0, val + delta);
+    input.value = val;
+  }
+
+  // Change page size function
+  function changePageSize(newSize) {
+    var url = '<%= buildPageUrl(searchStr, selectedDeptId, selectedPosId, 1, 5) %>';
+    url = url.replace('pageSize=5', 'pageSize=' + newSize);
+    window.location.href = url;
+  }
+
+  // Close modal when clicking outside modal-card
+  window.onclick = function(event) {
+    var modal = document.getElementById('salaryModal');
+    if (event.target === modal) {
+      closeEditModal();
+    }
+  };
+</script>
+
 </body>
 </html>
