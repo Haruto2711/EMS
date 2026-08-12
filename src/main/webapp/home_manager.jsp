@@ -20,7 +20,7 @@
     <a href="#" class="nav-link">Lịch trình nhóm</a>
     <div class="nav-section-label">Quản lý</div>
     <a href="#" class="nav-link">Điểm danh phòng ban</a>
-    <a href="#" class="nav-link">Bảng lương nháp</a>
+    <a href="base-salaries" class="nav-link">Quản lý lương</a>
   </nav>
   <div class="sidebar-footer">
     <div class="user-block">

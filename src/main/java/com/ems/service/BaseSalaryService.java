@@ -41,4 +41,12 @@ public class BaseSalaryService {
     public List<Positions> getAllPositions() {
         return baseSalaryDAO.getAllPositions();
     }
+
+    public int getTotalEmployeeCount() {
+        return baseSalaryDAO.getTotalEmployeeCount();
+    }
+
+    public boolean updateBaseSalaryAndDependents(int userId, java.math.BigDecimal baseSalary, int dependentsCount) {
+        return baseSalaryDAO.updateBaseSalaryAndDependents(userId, baseSalary, dependentsCount);
+    }
 }
