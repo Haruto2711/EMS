@@ -13,8 +13,8 @@ public class WorkScheduleDAO {
         List<Shifts> list = new ArrayList<>();
         String sql = "select * from shifts where IsDefault = 1 order by DayOfweek asc";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql);
-             ResultSet rs = stmt.executeQuery()) {
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 list.add(mapResultSetToShift(rs));
             }
@@ -69,11 +69,27 @@ public class WorkScheduleDAO {
         return -1;
     }
 
+    private static String defaultShiftName(int dayOfWeek) {
+        return switch (dayOfWeek) {
+            case 2 -> "Thứ Hai";
+            case 3 -> "Thứ Ba";
+            case 4 -> "Thứ Tư";
+            case 5 -> "Thứ Năm";
+            case 6 -> "Thứ Sáu";
+            case 7 -> "Thứ Bảy";
+            case 1 -> "Chủ Nhật";
+            default -> "Ngày " + dayOfWeek;
+        };
+    }
+
     private static void insertShift(Connection conn, Shifts shifts) throws SQLException {
-        String sql = "Insert into shifts (Name, StartTime, EndTime, BreakStart, BreakEnd, IsActive, IsDefault, DayOfWeek) " +
+        String sql = "Insert into shifts (Name, StartTime, EndTime, BreakStart, BreakEnd, IsActive, IsDefault, DayOfWeek) "
+                +
                 "values (?, ?, ?, ?, ?, ?, 1, ?)";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, shifts.getName());
+            String name = shifts.getName() != null ? shifts.getName()
+                    : defaultShiftName(shifts.getDayOfweek());
+            stmt.setString(1, name);
             stmt.setObject(2, shifts.getStarttime());
             stmt.setObject(3, shifts.getEndtime());
             stmt.setObject(4, shifts.getBreakstart());
@@ -85,15 +101,14 @@ public class WorkScheduleDAO {
     }
 
     private static void updateShift(Connection conn, int id, Shifts shifts) throws SQLException {
-        String sql = "Update shifts set Name = ?, StartTime = ?, EndTime = ?, BreakStart = ?, BreakEnd = ?, IsActive = ? where Id = ?";
+        String sql = "Update shifts set StartTime = ?, EndTime = ?, BreakStart = ?, BreakEnd = ?, IsActive = ? where Id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, shifts.getName());
-            stmt.setObject(2, shifts.getStarttime());
-            stmt.setObject(3, shifts.getEndtime());
-            stmt.setObject(4, shifts.getBreakstart());
-            stmt.setObject(5, shifts.getBreakend());
-            stmt.setBoolean(6, Boolean.TRUE.equals(shifts.getIsactive()));
-            stmt.setInt(7, id);
+            stmt.setObject(1, shifts.getStarttime());
+            stmt.setObject(2, shifts.getEndtime());
+            stmt.setObject(3, shifts.getBreakstart());
+            stmt.setObject(4, shifts.getBreakend());
+            stmt.setBoolean(5, Boolean.TRUE.equals(shifts.getIsactive()));
+            stmt.setInt(6, id);
             stmt.executeUpdate();
         }
     }
@@ -101,7 +116,6 @@ public class WorkScheduleDAO {
     private static Shifts mapResultSetToShift(ResultSet rs) throws SQLException {
         Shifts shift = new Shifts();
         shift.setId(rs.getInt("Id"));
-        shift.setName(rs.getString("Name"));
         shift.setDayOfweek(rs.getInt("DayOfweek"));
         Time start = rs.getTime("StartTime");
         Time end = rs.getTime("EndTime");
