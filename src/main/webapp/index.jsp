@@ -11,13 +11,10 @@
 <a href="hello-servlet">Hello Servlet</a>
 <br/>
 <a href="base-salaries">Xem Lương Cơ Bản (Base Salaries)</a>
-<<<<<<< Updated upstream
-=======
 <br/>
 <a href="work-schedule">Lịch Làm Việc (Work Schedule)</a>
 <br/>
 <a href="attendance.jsp">Attendance</a>
-<br/>
 >>>>>>> Stashed changes
 </body>
 </html>
