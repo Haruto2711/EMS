@@ -15,6 +15,5 @@
 <a href="work-schedule">Lịch Làm Việc (Work Schedule)</a>
 <br/>
 <a href="attendance.jsp">Attendance</a>
->>>>>>> Stashed changes
 </body>
 </html>
