@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>EMS – Đăng nhập</title>
+  <title>EMS – Quên mật khẩu</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -16,14 +16,14 @@
     }
     .card {
       background: #fff;
-      width: 400px;
+      width: 420px;
       padding: 40px 36px 36px;
       border-radius: 12px;
       border: 1px solid #e5e7eb;
       box-shadow: 0 4px 16px rgba(0,0,0,0.07);
     }
     .brand {
-      display: flex; align-items: center; gap: 10px; margin-bottom: 28px;
+      display: flex; align-items: center; gap: 10px; margin-bottom: 24px;
     }
     .brand-dot {
       width: 32px; height: 32px; background: #2563eb; border-radius: 8px;
@@ -57,6 +57,7 @@
       cursor: pointer; font-family: 'Inter', sans-serif;
       transition: background 0.15s;
       margin-top: 4px;
+      margin-bottom: 16px;
     }
     button[type="submit"]:hover { background: #1d4ed8; }
     .error {
@@ -64,6 +65,11 @@
       color: #b91c1c; font-size: 13px;
       padding: 10px 13px; border-radius: 7px; margin-bottom: 16px;
     }
+    .back-link {
+      display: block; text-align: center; font-size: 13px; 
+      color: #2563eb; text-decoration: none; font-weight: 500;
+    }
+    .back-link:hover { text-decoration: underline; }
     .footer-note {
       font-size: 12px; color: #9ca3af;
       text-align: center; margin-top: 22px;
@@ -77,24 +83,28 @@
     <div class="brand-dot">E</div>
     <span class="brand-name">EMS</span>
   </div>
-  <div class="form-title">Đăng nhập</div>
-  <div class="form-sub">Nhập thông tin tài khoản để tiếp tục</div>
+  <div class="form-title">Quên mật khẩu</div>
+  <div class="form-sub">Nhập thông tin tài khoản để đặt lại mật khẩu</div>
 
   <% if (request.getAttribute("error") != null) { %>
     <div class="error"><%= request.getAttribute("error") %></div>
   <% } %>
-  <% if (request.getAttribute("success") != null) { %>
-    <div class="success" style="background: #ecfdf5; border: 1px solid #a7f3d0; color: #047857; font-size: 13px; padding: 10px 13px; border-radius: 7px; margin-bottom: 16px;"><%= request.getAttribute("success") %></div>
-  <% } %>
 
-  <form action="login" method="post">
+  <form action="forgot-password" method="post">
     <label for="username">Tên đăng nhập</label>
     <input type="text" id="username" name="username" placeholder="Nhập tên đăng nhập" required autocomplete="username"/>
-    <label for="password">Mật khẩu</label>
-    <input type="password" id="password" name="password" placeholder="Nhập mật khẩu" required autocomplete="current-password"/>
-    <a href="forgot-password" style="display: block; text-align: right; font-size: 13px; color: #2563eb; text-decoration: none; margin-top: -8px; margin-bottom: 16px;">Quên mật khẩu?</a>
-    <button type="submit">Đăng nhập</button>
+    
+
+    <label for="password">Mật khẩu mới</label>
+    <input type="password" id="password" name="password" placeholder="Nhập mật khẩu mới" required autocomplete="new-password"/>
+    
+    <label for="confirmPassword">Xác nhận mật khẩu mới</label>
+    <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Nhập lại mật khẩu mới" required autocomplete="new-password"/>
+    
+    <button type="submit">Đặt lại mật khẩu</button>
   </form>
+
+  <a href="login" class="back-link">Quay lại Đăng nhập</a>
 
   <hr/>
   <div class="footer-note">Hệ thống Quản lý Nhân sự · FPT University SWP391</div>
