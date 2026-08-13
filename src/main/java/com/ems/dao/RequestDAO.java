@@ -218,7 +218,7 @@ public class RequestDAO {
                         "CreatedByAccountId, " +
                         "CurrentApproverAccountId" +
                         ") " +
-                        "VALUES (?, ?, 'Pending', ?, ?, ?, ?, ?, ?, ?, ?)";
+                        "VALUES (?, ?, 'Pending', ?, ?, ?, ?, ?, ?, ?)";
 
         try (
                 PreparedStatement ps =

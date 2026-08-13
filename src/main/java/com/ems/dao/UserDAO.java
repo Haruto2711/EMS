@@ -8,6 +8,24 @@ import java.sql.SQLException;
 
 public class UserDAO {
 
+    /** Returns the account ID for the supplied username, or null when absent. */
+    public Integer findAccountIdByUsername(String username) {
+        String query = "SELECT Id FROM accounts WHERE Username = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(query)) {
+
+            ps.setString(1, username);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt("Id") : null;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     /**
      * Xác thực tài khoản đăng nhập từ database.
      * Trả về tên vai trò (Role Name) nếu thông tin đăng nhập đúng và tài khoản đang hoạt động.

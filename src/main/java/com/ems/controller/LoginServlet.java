@@ -37,6 +37,7 @@ public class LoginServlet extends HttpServlet {
             HttpSession session = request.getSession();
             session.setAttribute("username", username);
             session.setAttribute("role", role);
+            session.setAttribute("accountId", userDAO.findAccountIdByUsername(username));
 
             // Điều hướng sang HomeServlet để load dữ liệu động từ database
             response.sendRedirect(request.getContextPath() + "/home");

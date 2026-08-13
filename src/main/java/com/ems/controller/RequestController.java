@@ -5,15 +5,22 @@ import com.ems.dto.RequestDTO;
 import com.ems.util.DBConnection;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.*;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.sql.Connection;
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.UUID;
 
 @WebServlet("/requests")
+@MultipartConfig(maxFileSize = 5 * 1024 * 1024, maxRequestSize = 6 * 1024 * 1024)
 public class RequestController extends HttpServlet {
 
     @Override
@@ -183,7 +190,7 @@ public class RequestController extends HttpServlet {
         request.setAttribute("requests", list);
 
         request.getRequestDispatcher(
-                "/WEB-INF/views/request/my-requests.jsp"
+                "/requestList.jsp"
         ).forward(request, response);
     }
 
@@ -241,18 +248,12 @@ public class RequestController extends HttpServlet {
         String endDate =
                 request.getParameter("endDate");
 
-        double value =
-                Double.parseDouble(
-                        request.getParameter("value")
-                );
-
         int requestTypeId =
                 Integer.parseInt(
                         request.getParameter("requestTypeId")
                 );
 
-        String imageUrl =
-                request.getParameter("imageUrl");
+        String imageUrl = saveUploadedImage(request);
 
         RequestDTO dto = new RequestDTO();
 
@@ -271,7 +272,8 @@ public class RequestController extends HttpServlet {
                 )
         );
 
-        dto.setValue(value);
+        // The current database schema requires Value, although employees no longer enter it.
+        dto.setValue(1);
         dto.setImageUrl(imageUrl);
 
         dto.setRequestTypeId(requestTypeId);
@@ -286,6 +288,39 @@ public class RequestController extends HttpServlet {
                 request.getContextPath()
                         + "/requests?action=myRequests"
         );
+    }
+
+    private String saveUploadedImage(HttpServletRequest request)
+            throws IOException, ServletException {
+
+        Part imagePart = request.getPart("image");
+        if (imagePart == null || imagePart.getSize() == 0) {
+            return null;
+        }
+
+        String contentType = imagePart.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new ServletException("Tệp minh chứng phải là ảnh.");
+        }
+
+        String submittedFileName = Path.of(imagePart.getSubmittedFileName()).getFileName().toString();
+        String extension = "";
+        int extensionIndex = submittedFileName.lastIndexOf('.');
+        if (extensionIndex >= 0) {
+            extension = submittedFileName.substring(extensionIndex).toLowerCase();
+        }
+        if (!extension.matches("\\.(png|jpe?g|gif|webp)")) {
+            throw new ServletException("Định dạng ảnh không được hỗ trợ.");
+        }
+
+        Path uploadDirectory = Path.of(getServletContext().getRealPath("/uploads"));
+        Files.createDirectories(uploadDirectory);
+
+        String storedFileName = UUID.randomUUID() + extension;
+        try (InputStream input = imagePart.getInputStream()) {
+            Files.copy(input, uploadDirectory.resolve(storedFileName), StandardCopyOption.REPLACE_EXISTING);
+        }
+        return request.getContextPath() + "/uploads/" + storedFileName;
     }
 
     private void updateStatus(
