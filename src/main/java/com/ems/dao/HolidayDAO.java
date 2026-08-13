@@ -54,12 +54,12 @@ public class HolidayDAO {
         String sql = "SELECT Id, HolidayName, StartDate, EndDate FROM holidays " +
                      "WHERE HolidayName LIKE ? " +
                      "ORDER BY HolidayName " + orderDir + " " +
-                     "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+                     "LIMIT ? OFFSET ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stm = conn.prepareStatement(sql)) {
             stm.setString(1, "%" + keyword + "%");
-            stm.setInt(2, offset);
-            stm.setInt(3, pageSize);
+            stm.setInt(2, pageSize);
+            stm.setInt(3, offset);
             try (ResultSet rs = stm.executeQuery()) {
                 while (rs.next()) {
                     Holidays h = new Holidays();

@@ -855,7 +855,7 @@ footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 20px;
+  padding: 12px 20px;
   border-top: 1px solid var(--slate-100);
   flex-wrap: wrap;
   gap: 10px;
@@ -873,7 +873,7 @@ footer {
 .hol-page-btn {
   min-width: 36px;
   height: 36px;
-  padding: 0 8px;
+  padding: 0 10px;
   border: 1.5px solid var(--slate-200);
   border-radius: 8px;
   background: #fff;
@@ -884,8 +884,10 @@ footer {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 5px;
   text-decoration: none;
   transition: var(--transition);
+  white-space: nowrap;
 }
 .hol-page-btn:hover:not(.active):not(.disabled) {
   border-color: var(--primary);
@@ -904,6 +906,16 @@ footer {
   opacity: 0.38;
   cursor: not-allowed;
   pointer-events: none;
+}
+.hol-page-ellipsis {
+  min-width: 32px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--slate-400);
+  font-size: 0.9rem;
+  letter-spacing: 1px;
 }
 
 /* ── Trạng thái không có kết quả ── */
