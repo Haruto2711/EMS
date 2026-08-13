@@ -36,7 +36,7 @@
     <a href="work-schedule" class="nav-link">Lịch làm việc </a>
     <a href="holiday" class="nav-link">Quản lý ngày nghỉ lễ </a>
     <a href="#" class="nav-link">Điểm danh phòng ban</a>
-    <a href="base-salaries" class="nav-link">Quản lý lương</a>
+    <a href="salary-management" class="nav-link">Quản lý lương</a>
   </nav>
   <div class="sidebar-footer">
     <div class="user-block">
