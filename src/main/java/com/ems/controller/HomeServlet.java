@@ -188,6 +188,24 @@ public class HomeServlet extends HttpServlet {
             }
         }
         request.setAttribute("requestsList", requestsList);
+
+        // E. Notifications
+        List<Map<String, Object>> notificationsList = new ArrayList<>();
+        String notiQuery = "SELECT Title, Message, CreatedAt, IsRead FROM notifications WHERE UserId = ? ORDER BY CreatedAt DESC LIMIT 5";
+        try (PreparedStatement ps = conn.prepareStatement(notiQuery)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> noti = new HashMap<>();
+                    noti.put("title", rs.getString("Title"));
+                    noti.put("message", rs.getString("Message"));
+                    noti.put("createdAt", rs.getTimestamp("CreatedAt"));
+                    noti.put("isRead", rs.getBoolean("IsRead"));
+                    notificationsList.add(noti);
+                }
+            }
+        }
+        request.setAttribute("notificationsList", notificationsList);
     }
 
     private void loadManagerData(Connection conn, int userId, int accountId, int departmentId, HttpServletRequest request) throws SQLException {
@@ -267,6 +285,24 @@ public class HomeServlet extends HttpServlet {
         int totalSubordinates = departmentAttendance.size();
         int attendanceRate = totalSubordinates > 0 ? (presentCount * 100 / totalSubordinates) : 100;
         request.setAttribute("attendanceRate", attendanceRate + "%");
+
+        // D. Notifications for manager
+        List<Map<String, Object>> notificationsList = new ArrayList<>();
+        String notiQuery = "SELECT Title, Message, CreatedAt, IsRead FROM notifications WHERE UserId = ? ORDER BY CreatedAt DESC LIMIT 5";
+        try (PreparedStatement ps = conn.prepareStatement(notiQuery)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> noti = new HashMap<>();
+                    noti.put("title", rs.getString("Title"));
+                    noti.put("message", rs.getString("Message"));
+                    noti.put("createdAt", rs.getTimestamp("CreatedAt"));
+                    noti.put("isRead", rs.getBoolean("IsRead"));
+                    notificationsList.add(noti);
+                }
+            }
+        }
+        request.setAttribute("notificationsList", notificationsList);
     }
 
     private void loadAdminData(Connection conn, HttpServletRequest request) throws SQLException {

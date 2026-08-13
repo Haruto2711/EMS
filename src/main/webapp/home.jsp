@@ -14,6 +14,7 @@
     String todayCheckIn = (String) request.getAttribute("todayCheckIn");
     String todayCheckOut = (String) request.getAttribute("todayCheckOut");
     List<Map<String, Object>> requestsList = (List<Map<String, Object>>) request.getAttribute("requestsList");
+    List<Map<String, Object>> notificationsList = (List<Map<String, Object>>) request.getAttribute("notificationsList");
 %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -55,7 +56,32 @@
 <div class="main-content">
   <div class="topbar">
     <span class="topbar-left">Trang chủ</span>
-    <span class="topbar-right" id="topbar-date"></span>
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <span class="topbar-right" id="topbar-date"></span>
+      <div class="noti-dropdown-wrapper" style="position: relative; display: inline-block;">
+        <button class="btn-noti-bell" onclick="toggleNotiDropdown()" style="background: none; border: none; cursor: pointer; position: relative; padding: 4px; display: flex; align-items: center; outline: none;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #4b5563;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+
+        </button>
+        <div id="noti-dropdown" style="display: none; position: absolute; right: 0; top: 32px; width: 320px; background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); z-index: 100; max-height: 280px; overflow-y: auto;">
+          <div style="padding: 10px 14px; font-weight: 600; border-bottom: 1px solid #f3f4f6; font-size: 13px; color: #111;">Thông báo mới nhận</div>
+          <%
+            if (notificationsList != null && !notificationsList.isEmpty()) {
+              for (Map<String, Object> noti : notificationsList) {
+          %>
+                <div style="padding: 10px 14px; border-bottom: 1px solid #f9fafb; transition: background 0.1s; cursor: pointer;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='transparent'">
+                  <div style="font-weight: 500; font-size: 12.5px; color: #111;"><%= noti.get("title") %></div>
+                  <div style="font-size: 11.5px; color: #6b7280; margin-top: 2px;"><%= noti.get("message") %></div>
+                </div>
+          <%
+              }
+            } else {
+          %>
+            <div style="padding: 20px; text-align: center; color: #9ca3af; font-size: 12px;">Không có thông báo nào.</div>
+          <% } %>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="page-body">
@@ -81,33 +107,30 @@
 
     <div class="cards-row">
       <div class="card">
-        <div class="card-header">Điểm danh hôm nay</div>
-        <div class="clock-block">
-          <div class="clock-time" id="clock">00:00:00</div>
-          <div class="clock-date" id="clock-date"></div>
-          <div class="clock-actions">
-            <% if (todayCheckIn == null) { %>
-              <button class="btn-checkin">Check In</button>
-            <% } else { %>
-              <button class="btn-checkin" disabled style="opacity: 0.5; background: #9ca3af;">Đã Check In</button>
-            <% } %>
-            
-            <% if (todayCheckOut == null) { %>
-              <button class="btn-checkout">Check Out</button>
-            <% } else { %>
-              <button class="btn-checkout" disabled style="opacity: 0.5; background: #e5e7eb; color: #9ca3af;">Đã Check Out</button>
-            <% } %>
-          </div>
-          <div class="clock-note">
-            <% if (todayCheckIn == null) { %>
-              Hôm nay bạn chưa điểm danh vào.
-            <% } else if (todayCheckOut == null) { %>
-              Đã check in vào lúc: <strong><%= todayCheckIn %></strong>. Chưa check out.
-            <% } else { %>
-              Đã check in: <strong><%= todayCheckIn %></strong> | Check out: <strong><%= todayCheckOut %></strong>.
-            <% } %>
-          </div>
-        </div>
+        <div class="card-header">Thông báo mới nhất</div>
+        <%
+          if (notificationsList != null && !notificationsList.isEmpty()) {
+            for (Map<String, Object> noti : notificationsList) {
+              java.sql.Timestamp ts = (java.sql.Timestamp) noti.get("createdAt");
+              String timeStr = "";
+              if (ts != null) {
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm");
+                timeStr = sdf.format(ts);
+              }
+        %>
+              <div class="row-item">
+                <div>
+                  <div class="row-main"><%= noti.get("title") %></div>
+                  <div class="row-sub"><%= noti.get("message") %></div>
+                </div>
+                <span class="row-sub" style="font-size: 11px; white-space: nowrap; margin-left: 10px;"><%= timeStr %></span>
+              </div>
+        <%
+            }
+          } else {
+        %>
+          <div style="padding: 20px; text-align: center; color: #9ca3af; font-size: 13.5px;">Không có thông báo nào.</div>
+        <% } %>
       </div>
 
       <div class="card">
@@ -164,13 +187,25 @@
   function update() {
     var now = new Date();
     var p = function(n){ return String(n).padStart(2,'0'); };
-    document.getElementById('clock').textContent = p(now.getHours())+':'+p(now.getMinutes())+':'+p(now.getSeconds());
-    var days   = ['Chủ Nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
-    var months = ['tháng 1','tháng 2','tháng 3','tháng 4','tháng 5','tháng 6','tháng 7','tháng 8','tháng 9','tháng 10','tháng 11','tháng 12'];
-    document.getElementById('clock-date').textContent = days[now.getDay()]+', ngày '+now.getDate()+' '+months[now.getMonth()]+' năm '+now.getFullYear();
     document.getElementById('topbar-date').textContent = p(now.getDate())+'/'+p(now.getMonth()+1)+'/'+now.getFullYear();
   }
-  setInterval(update, 1000); update();
+  update();
+
+  function toggleNotiDropdown() {
+    var dd = document.getElementById('noti-dropdown');
+    if (dd.style.display === 'none' || dd.style.display === '') {
+      dd.style.display = 'block';
+    } else {
+      dd.style.display = 'none';
+    }
+  }
+  window.addEventListener('click', function(e) {
+    var dd = document.getElementById('noti-dropdown');
+    var wrapper = document.querySelector('.noti-dropdown-wrapper');
+    if (dd && wrapper && !wrapper.contains(e.target)) {
+      dd.style.display = 'none';
+    }
+  });
 </script>
 </body>
 </html>
