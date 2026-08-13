@@ -598,7 +598,7 @@
     <a href="#" class="nav-link">Lịch trình nhóm</a>
     <div class="nav-section-label">Quản lý</div>
     <a href="#" class="nav-link">Điểm danh phòng ban</a>
-    <a href="base-salaries" class="nav-link active">Quản lý lương</a>
+    <a href="salary-management" class="nav-link active">Quản lý lương</a>
   </nav>
   <div class="sidebar-footer">
     <div class="user-block">
@@ -618,7 +618,7 @@
 <div class="main-content">
   <!-- TOPBAR -->
   <div class="topbar">
-    <span class="topbar-left">Trang chủ / Quản lý lương cơ bản</span>
+    <span class="topbar-left"><a href="home_manager.jsp" style="color:inherit;text-decoration:none;">Trang chủ</a> / <a href="salary-management" style="color:inherit;text-decoration:none;">Quản lý lương</a> / Xem lương cơ bản</span>
     <span class="topbar-right" id="topbar-date"></span>
   </div>
 
