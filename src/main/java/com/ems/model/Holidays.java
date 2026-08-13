@@ -1,12 +1,13 @@
 package com.ems.model;
 
-// Model được tự động sinh từ bảng 'holidays'
+import java.time.LocalDate;
+
 public class Holidays {
 
     private Integer id;
-    private java.time.LocalDate holidaydate;
     private String holidayname;
-    private Integer year;
+    private LocalDate startdate;
+    private LocalDate enddate;
     private Integer createdby;
 
     public Integer getId() {
@@ -17,14 +18,6 @@ public class Holidays {
         this.id = id;
     }
 
-    public java.time.LocalDate getHolidaydate() {
-        return holidaydate;
-    }
-
-    public void setHolidaydate(java.time.LocalDate holidaydate) {
-        this.holidaydate = holidaydate;
-    }
-
     public String getHolidayname() {
         return holidayname;
     }
@@ -33,13 +26,22 @@ public class Holidays {
         this.holidayname = holidayname;
     }
 
-    public Integer getYear() {
-        return year;
+    public LocalDate getStartdate() {
+        return startdate;
     }
 
-    public void setYear(Integer year) {
-        this.year = year;
+    public void setStartdate(LocalDate startdate) {
+        this.startdate = startdate;
     }
+
+    public LocalDate getEnddate() {
+        return enddate;
+    }
+
+    public void setEnddate(LocalDate enddate) {
+        this.enddate = enddate;
+    }
+
 
     public Integer getCreatedby() {
         return createdby;
@@ -47,5 +49,9 @@ public class Holidays {
 
     public void setCreatedby(Integer createdby) {
         this.createdby = createdby;
+    }
+
+    public long getTotalDays() {
+        return java.time.temporal.ChronoUnit.DAYS.between(startdate, enddate) + 1;
     }
 }

@@ -19,6 +19,7 @@ public class BaseSalaryDTO {
     private Integer positionId;
     private String positionName;
     private String positionCode;
+    private Integer dependentsCount;
 
     public BaseSalaryDTO() {
     }
@@ -141,6 +142,14 @@ public class BaseSalaryDTO {
 
     public void setPositionCode(String positionCode) {
         this.positionCode = positionCode;
+    }
+
+    public Integer getDependentsCount() {
+        return dependentsCount != null ? dependentsCount : 0;
+    }
+
+    public void setDependentsCount(Integer dependentsCount) {
+        this.dependentsCount = dependentsCount;
     }
 
     public String getFormattedBaseSalary() {
