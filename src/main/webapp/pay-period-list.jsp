@@ -220,7 +220,6 @@
             <th>TÊN KỲ LƯƠNG</th>
             <th>NGÀY BẮT ĐẦU</th>
             <th>NGÀY KẾT THÚC</th>
-            <th>SỐ NGÀY</th>
             <th>TRẠNG THÁI</th>
             <th style="text-align: right; padding-right: 24px;">HÀNH ĐỘNG</th>
           </tr>
@@ -238,9 +237,6 @@
                 </td>
                 <td class="date-text"><%= p.getFormattedStartDate() %></td>
                 <td class="date-text"><%= p.getFormattedEndDate() %></td>
-                <td>
-                  <span class="days-badge"><%= p.getTotalDays() %> ngày</span>
-                </td>
                 <td>
                   <span class="badge-status-pill <%= p.getStatusBadgeClass() %>">
                     <span class="status-dot"></span>
@@ -300,7 +296,7 @@
             } else { 
           %>
               <tr>
-                <td colspan="7" style="text-align: center; padding: 40px; color: #64748b;">
+                <td colspan="6" style="text-align: center; padding: 40px; color: #64748b;">
                   Không tìm thấy kỳ lương nào phù hợp.
                 </td>
               </tr>
