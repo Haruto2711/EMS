@@ -99,12 +99,6 @@
         </option>
       </select>
 
-      <select name="pageSize" id="pageSizeSelect" class="hol-select" title="Số hàng mỗi trang">
-        <option value="5"  <c:if test="${pageSize == 5}">selected</c:if>>5 / trang</option>
-        <option value="10" <c:if test="${pageSize == 10}">selected</c:if>>10 / trang</option>
-        <option value="20" <c:if test="${pageSize == 20}">selected</c:if>>20 / trang</option>
-      </select>
-
       <button type="submit" class="btn-search" id="btnSearch">
         <i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm
       </button>
@@ -217,7 +211,7 @@
             </c:choose>
           </div>
 
-          <!-- Card footer: tổng kết -->
+          <!-- ── Card footer + Pagination luôn hiển thị ── -->
           <div class="hol-card-footer">
             <span>
               Tổng: <strong>${totalRecords}</strong> ngày nghỉ
@@ -228,79 +222,111 @@
                 </span>
               </c:if>
             </span>
-            <c:if test="${not empty holidays}">
-              <span>
-                Trang <strong>${currentPage}</strong> / <strong>${totalPages}</strong>
-              </span>
-            </c:if>
+            <c:choose>
+              <c:when test="${not empty holidays}">
+                <span>
+                  Hiển thị
+                  <strong>${(currentPage - 1) * pageSize + 1}</strong>
+                  &ndash;
+                  <strong>${(currentPage - 1) * pageSize + fn:length(holidays)}</strong>
+                  / <strong>${totalRecords}</strong>
+                </span>
+              </c:when>
+              <c:otherwise>
+                <span>Không có kết quả</span>
+              </c:otherwise>
+            </c:choose>
           </div>
 
-          <!-- ── Phân trang ── -->
-          <c:if test="${totalPages > 1}">
+          <!-- ── Phân trang (luôn hiển thị khi có dữ liệu) ── -->
+          <c:if test="${not empty holidays}">
             <div class="hol-pagination">
-              <div class="hol-page-info">
-                Hiển thị <strong>${(currentPage - 1) * pageSize + 1}</strong>
-                &ndash;
-                <strong>${(currentPage - 1) * pageSize + fn:length(holidays)}</strong>
-                trong tổng số <strong>${totalRecords}</strong> kết quả
-              </div>
 
+              <%-- Nút Trước --%>
+              <c:choose>
+                <c:when test="${currentPage <= 1}">
+                  <span class="hol-page-btn disabled"><i class="fa-solid fa-angle-left"></i> Trước</span>
+                </c:when>
+                <c:otherwise>
+                  <a class="hol-page-btn"
+                     href="${pageContext.request.contextPath}/holiday?search=${fn:escapeXml(keyword)}&sort=${sort}&pageSize=${pageSize}&page=${currentPage - 1}">
+                    <i class="fa-solid fa-angle-left"></i> Trước
+                  </a>
+                </c:otherwise>
+              </c:choose>
+
+              <%-- Dãy số trang với ellipsis --%>
               <div class="hol-page-btns">
-                <%-- Trang đầu & Trước --%>
+
+                <%-- Trang 1 luôn hiển thị --%>
                 <c:choose>
-                  <c:when test="${currentPage <= 1}">
-                    <span class="hol-page-btn disabled" title="Trang đầu"><i class="fa-solid fa-angles-left"></i></span>
-                    <span class="hol-page-btn disabled" title="Trang trước"><i class="fa-solid fa-angle-left"></i></span>
+                  <c:when test="${currentPage == 1}">
+                    <span class="hol-page-btn active">1</span>
                   </c:when>
                   <c:otherwise>
-                    <a class="hol-page-btn" title="Trang đầu"
-                       href="${pageContext.request.contextPath}/holiday?search=${fn:escapeXml(keyword)}&sort=${sort}&pageSize=${pageSize}&page=1">
-                      <i class="fa-solid fa-angles-left"></i>
-                    </a>
-                    <a class="hol-page-btn" title="Trang trước"
-                       href="${pageContext.request.contextPath}/holiday?search=${fn:escapeXml(keyword)}&sort=${sort}&pageSize=${pageSize}&page=${currentPage - 1}">
-                      <i class="fa-solid fa-angle-left"></i>
-                    </a>
+                    <a class="hol-page-btn"
+                       href="${pageContext.request.contextPath}/holiday?search=${fn:escapeXml(keyword)}&sort=${sort}&pageSize=${pageSize}&page=1">1</a>
                   </c:otherwise>
                 </c:choose>
 
-                <%-- Số trang (hiển thị tối đa 5 trang quanh trang hiện tại) --%>
-                <c:set var="startPage" value="${currentPage - 2 > 1 ? currentPage - 2 : 1}"/>
-                <c:set var="endPage"   value="${currentPage + 2 < totalPages ? currentPage + 2 : totalPages}"/>
-                <c:forEach var="p" begin="${startPage}" end="${endPage}">
+                <%-- Ellipsis trái nếu trang hiện tại > 4 --%>
+                <c:if test="${currentPage > 4}">
+                  <span class="hol-page-ellipsis">&hellip;</span>
+                </c:if>
+
+                <%-- Các trang ở giữa (window ±2 quanh currentPage, trừ trang 1 và totalPages) --%>
+                <c:set var="winStart" value="${currentPage - 2 > 2 ? currentPage - 2 : 2}"/>
+                <c:set var="winEnd"   value="${currentPage + 2 < totalPages - 1 ? currentPage + 2 : totalPages - 1}"/>
+                <c:if test="${totalPages > 2}">
+                  <c:forEach var="p" begin="${winStart}" end="${winEnd}">
+                    <c:choose>
+                      <c:when test="${p == currentPage}">
+                        <span class="hol-page-btn active">${p}</span>
+                      </c:when>
+                      <c:otherwise>
+                        <a class="hol-page-btn"
+                           href="${pageContext.request.contextPath}/holiday?search=${fn:escapeXml(keyword)}&sort=${sort}&pageSize=${pageSize}&page=${p}">${p}</a>
+                      </c:otherwise>
+                    </c:choose>
+                  </c:forEach>
+                </c:if>
+
+                <%-- Ellipsis phải nếu trang hiện tại < totalPages - 3 --%>
+                <c:if test="${currentPage < totalPages - 3}">
+                  <span class="hol-page-ellipsis">&hellip;</span>
+                </c:if>
+
+                <%-- Trang cuối luôn hiển thị (nếu có hơn 1 trang) --%>
+                <c:if test="${totalPages > 1}">
                   <c:choose>
-                    <c:when test="${p == currentPage}">
-                      <span class="hol-page-btn active">${p}</span>
+                    <c:when test="${currentPage == totalPages}">
+                      <span class="hol-page-btn active">${totalPages}</span>
                     </c:when>
                     <c:otherwise>
                       <a class="hol-page-btn"
-                         href="${pageContext.request.contextPath}/holiday?search=${fn:escapeXml(keyword)}&sort=${sort}&pageSize=${pageSize}&page=${p}">
-                        ${p}
-                      </a>
+                         href="${pageContext.request.contextPath}/holiday?search=${fn:escapeXml(keyword)}&sort=${sort}&pageSize=${pageSize}&page=${totalPages}">${totalPages}</a>
                     </c:otherwise>
                   </c:choose>
-                </c:forEach>
+                </c:if>
 
-                <%-- Tiếp & Trang cuối --%>
-                <c:choose>
-                  <c:when test="${currentPage >= totalPages}">
-                    <span class="hol-page-btn disabled" title="Trang tiếp"><i class="fa-solid fa-angle-right"></i></span>
-                    <span class="hol-page-btn disabled" title="Trang cuối"><i class="fa-solid fa-angles-right"></i></span>
-                  </c:when>
-                  <c:otherwise>
-                    <a class="hol-page-btn" title="Trang tiếp"
-                       href="${pageContext.request.contextPath}/holiday?search=${fn:escapeXml(keyword)}&sort=${sort}&pageSize=${pageSize}&page=${currentPage + 1}">
-                      <i class="fa-solid fa-angle-right"></i>
-                    </a>
-                    <a class="hol-page-btn" title="Trang cuối"
-                       href="${pageContext.request.contextPath}/holiday?search=${fn:escapeXml(keyword)}&sort=${sort}&pageSize=${pageSize}&page=${totalPages}">
-                      <i class="fa-solid fa-angles-right"></i>
-                    </a>
-                  </c:otherwise>
-                </c:choose>
-              </div>
-            </div>
+              </div><%-- /hol-page-btns --%>
+
+              <%-- Nút Tiếp --%>
+              <c:choose>
+                <c:when test="${currentPage >= totalPages}">
+                  <span class="hol-page-btn disabled">Tiếp <i class="fa-solid fa-angle-right"></i></span>
+                </c:when>
+                <c:otherwise>
+                  <a class="hol-page-btn"
+                     href="${pageContext.request.contextPath}/holiday?search=${fn:escapeXml(keyword)}&sort=${sort}&pageSize=${pageSize}&page=${currentPage + 1}">
+                    Tiếp <i class="fa-solid fa-angle-right"></i>
+                  </a>
+                </c:otherwise>
+              </c:choose>
+
+            </div><%-- /hol-pagination --%>
           </c:if>
+
 
         </div><%-- /holiday-card --%>
       </c:otherwise>
