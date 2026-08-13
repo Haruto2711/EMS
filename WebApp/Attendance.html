@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chấm Công Ca Làm Việc</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #f4f6f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .card {
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 420px;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .clock-box {
+            text-align: center;
+            background: #eef2f7;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .time {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #1d3557;
+        }
+
+        .date {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: #495057;
+            font-weight: 600;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: #457b9d;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-checkin {
+            background-color: #2a9d8f;
+        }
+
+        .btn-checkin:hover {
+            background-color: #218376;
+        }
+
+        .btn-checkout {
+            background-color: #e76f51;
+        }
+
+        .btn-checkout:hover {
+            background-color: #d45b3e;
+        }
+
+        .history {
+            margin-top: 25px;
+            border-top: 1px solid #dee2e6;
+            padding-top: 15px;
+        }
+
+        .history h3 {
+            font-size: 1rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .history-list {
+            list-style: none;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            padding: 8px 0;
+            border-bottom: 1px dashed #e9ecef;
+        }
+
+        .tag-in {
+            color: #2a9d8f;
+            font-weight: bold;
+        }
+
+        .tag-out {
+            color: #e76f51;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Điểm Danh Ca Làm</h2>
+
+    <!-- Đồng hồ thời gian thực -->
+    <div class="clock-box">
+        <div class="time" id="clock">00:00:00</div>
+        <div class="date" id="date">Đang tải ngày...</div>
+    </div>
+
+    <!-- Thông tin nhân viên -->
+    <div class="form-group">
+        <label for="employeeName">Họ và tên</label>
+        <input type="text" id="employeeName" placeholder="Nhập tên của bạn...">
+    </div>
+
+    <div class="form-group">
+        <label for="shift">Chọn ca làm việc</label>
+        <select id="shift">
+            <option value="Ca Sáng (08:00 - 12:00)">Ca Sáng (08:00 - 12:00)</option>
+            <option value="Ca Chiều (13:00 - 17:00)">Ca Chiều (13:00 - 17:00)</option>
+            <option value="Ca Tối (18:00 - 22:00)">Ca Tối (18:00 - 22:00)</option>
+        </select>
+    </div>
+
+    <!-- Nút hành động -->
+    <div class="btn-group">
+        <button class="btn-checkin" onclick="recordTime('Check-in')">Check-in</button>
+        <button class="btn-checkout" onclick="recordTime('Check-out')">Check-out</button>
+    </div>
+
+    <!-- Lịch sử thao tác -->
+    <div class="history">
+        <h3>Lịch sử hoạt động gần nhất</h3>
+        <ul class="history-list" id="historyList">
+            <!-- Nội dung được thêm tự động qua JavaScript -->
+        </ul>
+    </div>
+</div>
+
+<script>
+    // Cập nhật đồng hồ realtime
+    function updateClock() {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('vi-VN');
+        const dateOptions = { weekday: 'long', year: 'numeric', month: '2-digit', day: '2-digit' };
+        const dateStr = now.toLocaleDateString('vi-VN', dateOptions);
+
+        document.getElementById('clock').textContent = timeStr;
+        document.getElementById('date').textContent = dateStr;
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Xử lý ghi nhận Check-in/Check-out
+    function recordTime(type) {
+        const nameInput = document.getElementById('employeeName');
+        const name = nameInput.value.trim();
+        const shift = document.getElementById('shift').value;
+        const currentTime = new Date().toLocaleTimeString('vi-VN');
+
+        if (!name) {
+            alert('Vui lòng nhập Họ và tên trước khi điểm danh!');
+            nameInput.focus();
+            return;
+        }
+
+        const historyList = document.getElementById('historyList');
+        const li = document.createElement('li');
+        li.className = 'history-item';
+
+        const tagClass = type === 'Check-in' ? 'tag-in' : 'tag-out';
+
+        li.innerHTML = `
+            <span><strong>${name}</strong> (${shift})</span>
+            <span class="${tagClass}">${type} - ${currentTime}</span>
+        `;
+
+        // Thêm vào đầu danh sách
+        historyList.insertBefore(li, historyList.firstChild);
+
+        alert(`${type} thành công lúc ${currentTime}!`);
+    }
+</script>
+
+</body>
+</html>

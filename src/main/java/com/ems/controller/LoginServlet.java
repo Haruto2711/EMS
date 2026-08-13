@@ -38,18 +38,8 @@ public class LoginServlet extends HttpServlet {
             session.setAttribute("username", username);
             session.setAttribute("role", role);
 
-            // Điều hướng sang trang chủ tương ứng của từng vai trò
-            role = role.trim().toLowerCase();
-            if (role.equals("employee") || role.equals("nhân viên")) {
-                response.sendRedirect(request.getContextPath() + "/home.jsp");
-            } else if (role.equals("manager") || role.equals("quản lý")) {
-                response.sendRedirect(request.getContextPath() + "/home_manager.jsp");
-            } else if (role.equals("admin") || role.equals("quản trị viên")) {
-                response.sendRedirect(request.getContextPath() + "/home_admin.jsp");
-            } else {
-                // Mặc định trả về trang chủ nhân viên
-                response.sendRedirect(request.getContextPath() + "/home.jsp");
-            }
+            // Điều hướng sang HomeServlet để load dữ liệu động từ database
+            response.sendRedirect(request.getContextPath() + "/home");
         } else {
             // Sai thông tin đăng nhập, hiển thị thông báo lỗi
             request.setAttribute("error", "Tài khoản hoặc mật khẩu không chính xác, hoặc tài khoản đã bị khóa!");
