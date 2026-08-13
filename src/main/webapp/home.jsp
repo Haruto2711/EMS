@@ -1,4 +1,20 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page import="java.util.List, java.util.Map" %>
+<%
+    if (request.getAttribute("isLoaded") == null) {
+        response.sendRedirect(request.getContextPath() + "/home");
+        return;
+    }
+    String fullName = (String) request.getAttribute("fullName");
+    String deptName = (String) request.getAttribute("deptName");
+    Integer totalLeave = (Integer) request.getAttribute("totalLeave");
+    Integer remainingLeave = (Integer) request.getAttribute("remainingLeave");
+    String periodName = (String) request.getAttribute("periodName");
+    Integer actualWorkingDays = (Integer) request.getAttribute("actualWorkingDays");
+    String todayCheckIn = (String) request.getAttribute("todayCheckIn");
+    String todayCheckOut = (String) request.getAttribute("todayCheckOut");
+    List<Map<String, Object>> requestsList = (List<Map<String, Object>>) request.getAttribute("requestsList");
+%>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -10,13 +26,13 @@
 <body>
 
 <aside class="sidebar">
-  <a href="home.jsp" class="sidebar-brand">
+  <a href="home" class="sidebar-brand">
     <div class="brand-dot">E</div>
     <span class="brand-name">EMS</span>
   </a>
   <nav class="nav-group">
     <div class="nav-section-label">Menu chính</div>
-    <a href="home.jsp" class="nav-link active">Trang chủ</a>
+    <a href="home" class="nav-link active">Trang chủ</a>
     <a href="#" class="nav-link">Lịch trình</a>
     <div class="nav-section-label">Công việc</div>
     <a href="#" class="nav-link">Yêu cầu</a>
@@ -25,11 +41,11 @@
   <div class="sidebar-footer">
     <div class="user-block">
       <div class="user-avatar">
-        <%= session.getAttribute("username") != null ? session.getAttribute("username").toString().substring(0,1).toUpperCase() : "N" %>
+        <%= fullName != null && !fullName.isEmpty() ? fullName.substring(0,1).toUpperCase() : "N" %>
       </div>
       <div>
-        <div class="user-name"><%= session.getAttribute("username") != null ? session.getAttribute("username") : "Nhân viên" %></div>
-        <div class="user-role">Nhân viên</div>
+        <div class="user-name"><%= fullName != null ? fullName : "Nhân viên" %></div>
+        <div class="user-role"><%= deptName != null ? deptName : "Nhân viên" %></div>
       </div>
     </div>
     <button class="btn-logout" onclick="window.location='login'">Đăng xuất</button>
@@ -44,22 +60,22 @@
 
   <div class="page-body">
     <div class="page-header">
-      <h1>Chào mừng, <%= session.getAttribute("username") != null ? session.getAttribute("username") : "Nhân viên" %></h1>
+      <h1>Chào mừng, <%= fullName != null ? fullName : "Nhân viên" %></h1>
       <p>Dưới đây là tổng quan hoạt động trong ngày của bạn.</p>
     </div>
 
     <div class="stats-row">
       <div class="stat-card">
-        <div class="stat-label">Ngày công định mức</div>
-        <div class="stat-value">22</div>
+        <div class="stat-label">Chu kỳ công</div>
+        <div class="stat-value" style="font-size: 16px; margin-top: 10px;"><%= periodName != null ? periodName : "Không có" %></div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Số ngày đã đi làm</div>
-        <div class="stat-value">18</div>
+        <div class="stat-value"><%= actualWorkingDays != null ? actualWorkingDays : 0 %> <span class="stat-unit">ngày</span></div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Ngày phép còn lại</div>
-        <div class="stat-value">12 <span class="stat-unit">ngày</span></div>
+        <div class="stat-value"><%= remainingLeave != null ? remainingLeave : 12 %> <span class="stat-unit">ngày</span></div>
       </div>
     </div>
 
@@ -70,29 +86,73 @@
           <div class="clock-time" id="clock">00:00:00</div>
           <div class="clock-date" id="clock-date"></div>
           <div class="clock-actions">
-            <button class="btn-checkin">Check In</button>
-            <button class="btn-checkout">Check Out</button>
+            <% if (todayCheckIn == null) { %>
+              <button class="btn-checkin">Check In</button>
+            <% } else { %>
+              <button class="btn-checkin" disabled style="opacity: 0.5; background: #9ca3af;">Đã Check In</button>
+            <% } %>
+            
+            <% if (todayCheckOut == null) { %>
+              <button class="btn-checkout">Check Out</button>
+            <% } else { %>
+              <button class="btn-checkout" disabled style="opacity: 0.5; background: #e5e7eb; color: #9ca3af;">Đã Check Out</button>
+            <% } %>
           </div>
-          <div class="clock-note">Hôm nay bạn chưa điểm danh.</div>
+          <div class="clock-note">
+            <% if (todayCheckIn == null) { %>
+              Hôm nay bạn chưa điểm danh vào.
+            <% } else if (todayCheckOut == null) { %>
+              Đã check in vào lúc: <strong><%= todayCheckIn %></strong>. Chưa check out.
+            <% } else { %>
+              Đã check in: <strong><%= todayCheckIn %></strong> | Check out: <strong><%= todayCheckOut %></strong>.
+            <% } %>
+          </div>
         </div>
       </div>
 
       <div class="card">
         <div class="card-header">Yêu cầu nghỉ phép gần đây</div>
-        <div class="row-item">
-          <div>
-            <div class="row-main">Nghỉ phép năm (3 ngày)</div>
-            <div class="row-sub">15/08/2026 – 17/08/2026</div>
-          </div>
-          <span class="badge badge-pending">Chờ duyệt</span>
-        </div>
-        <div class="row-item">
-          <div>
-            <div class="row-main">Nghỉ ốm (1 ngày)</div>
-            <div class="row-sub">05/08/2026</div>
-          </div>
-          <span class="badge badge-approved">Đã duyệt</span>
-        </div>
+        <% 
+          if (requestsList != null && !requestsList.isEmpty()) {
+            for (Map<String, Object> req : requestsList) {
+              String status = (String) req.get("status");
+              String badgeClass = "badge-pending";
+              String statusVN = "Chờ duyệt";
+              if ("Approved".equalsIgnoreCase(status)) {
+                badgeClass = "badge-approved";
+                statusVN = "Đã duyệt";
+              } else if ("Rejected".equalsIgnoreCase(status)) {
+                badgeClass = "badge-rejected";
+                statusVN = "Từ chối";
+              }
+        %>
+              <%
+                Object valObj = req.get("value");
+                String valStr = "0";
+                if (valObj instanceof Number) {
+                  double val = ((Number) valObj).doubleValue();
+                  if (val == (int) val) {
+                    valStr = String.valueOf((int) val);
+                  } else {
+                    valStr = String.valueOf(val);
+                  }
+                } else if (valObj != null) {
+                  valStr = valObj.toString();
+                }
+              %>
+              <div class="row-item">
+                <div>
+                  <div class="row-main"><%= req.get("title") %> (<%= valStr %> ngày)</div>
+                  <div class="row-sub"><%= req.get("startDate") %> – <%= req.get("endDate") %></div>
+                </div>
+                <span class="badge <%= badgeClass %>"><%= statusVN %></span>
+              </div>
+        <% 
+            }
+          } else {
+        %>
+          <div style="padding: 20px; text-align: center; color: #9ca3af; font-size: 13.5px;">Chưa có yêu cầu nào.</div>
+        <% } %>
       </div>
     </div>
   </div>
