@@ -36,12 +36,29 @@
     int startItem = totalFilteredItems > 0 ? (currentPage - 1) * pageSize + 1 : 0;
     int endItem = Math.min(currentPage * pageSize, totalFilteredItems);
 %>
+<%!
+    private String buildPageUrl(String search, Integer deptId, Integer posId, int page, int pageSize) {
+        StringBuilder sb = new StringBuilder("base-salaries?page=").append(page).append("&pageSize=").append(pageSize);
+        if (search != null && !search.trim().isEmpty()) {
+            try {
+                sb.append("&search=").append(java.net.URLEncoder.encode(search.trim(), "UTF-8"));
+            } catch (Exception ignored) {}
+        }
+        if (deptId != null && deptId > 0) {
+            sb.append("&departmentId=").append(deptId);
+        }
+        if (posId != null && posId > 0) {
+            sb.append("&positionId=").append(posId);
+        }
+        return sb.toString();
+    }
+%>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Lương hợp đồng & Người phụ thuộc – EMS</title>
+  <title>Lương hợp đồng &amp; Người phụ thuộc – EMS</title>
   <link rel="stylesheet" href="ems.css"/>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -378,7 +395,7 @@
       pointer-events: none;
     }
 
-    /* Modal Styling (Image 2) */
+    /* Modal Styling (Image 2 UI) */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -657,30 +674,36 @@
         <span class="bs-filter-label">Phòng ban</span>
         <select name="departmentId" class="bs-select" onchange="document.getElementById('filterForm').submit()">
           <option value="">Tất cả</option>
-          <% if (departments != null) {
-              for (Departments dept : departments) {
-                  boolean isSelected = selectedDeptId != null && selectedDeptId.equals(dept.getId());
+          <% 
+              if (departments != null) {
+                  for (Departments dept : departments) {
+                      boolean isSelected = selectedDeptId != null && selectedDeptId.equals(dept.getId());
           %>
-              <option value="<%= dept.getId() %>" <%= isSelected ? "selected" : "" %>>
-                <%= dept.getName() %>
-              </option>
-          <%  }
-          } %>
+                      <option value="<%= dept.getId() %>" <%= isSelected ? "selected" : "" %>>
+                        <%= dept.getName() %>
+                      </option>
+          <% 
+                  }
+              } 
+          %>
         </select>
 
         <!-- Position Filter -->
         <span class="bs-filter-label">Chức vụ</span>
         <select name="positionId" class="bs-select" onchange="document.getElementById('filterForm').submit()">
           <option value="">Tất cả</option>
-          <% if (positions != null) {
-              for (Positions pos : positions) {
-                  boolean isSelected = selectedPosId != null && selectedPosId.equals(pos.getId());
+          <% 
+              if (positions != null) {
+                  for (Positions pos : positions) {
+                      boolean isSelected = selectedPosId != null && selectedPosId.equals(pos.getId());
           %>
-              <option value="<%= pos.getId() %>" <%= isSelected ? "selected" : "" %>>
-                <%= pos.getName() %>
-              </option>
-          <%  }
-          } %>
+                      <option value="<%= pos.getId() %>" <%= isSelected ? "selected" : "" %>>
+                        <%= pos.getName() %>
+                      </option>
+          <% 
+                  }
+              } 
+          %>
         </select>
         
         <!-- Hidden Page preservation -->
@@ -819,7 +842,7 @@
     </div>
 
     <!-- Form -->
-    <form action="base-salaries" method="POST" id="editForm">
+    <form action="base-salaries" method="POST" id="editForm" onsubmit="return confirm('Bạn có chắc chắn muốn thay đổi không?');">
       <input type="hidden" name="userId" id="editUserId" value=""/>
       <input type="hidden" name="search" value="<%= searchStr %>"/>
       <% if (selectedDeptId != null) { %><input type="hidden" name="departmentId" value="<%= selectedDeptId %>"/><% } %>
@@ -853,25 +876,6 @@
     </form>
   </div>
 </div>
-
-<%!
-  // Helper to construct pagination URLs cleanly
-  private String buildPageUrl(String search, Integer deptId, Integer posId, int page, int pageSize) {
-      StringBuilder sb = new StringBuilder("base-salaries?page=").append(page).append("&pageSize=").append(pageSize);
-      if (search != null && !search.trim().isEmpty()) {
-          try {
-              sb.append("&search=").append(java.net.URLEncoder.encode(search, "UTF-8"));
-          } catch (Exception ignored) {}
-      }
-      if (deptId != null && deptId > 0) {
-          sb.append("&departmentId=").append(deptId);
-      }
-      if (posId != null && posId > 0) {
-          sb.append("&positionId=").append(posId);
-      }
-      return sb.toString();
-  }
-%>
 
 <script>
   // Topbar date script
@@ -913,8 +917,13 @@
 
   // Change page size function
   function changePageSize(newSize) {
-    var url = '<%= buildPageUrl(searchStr, selectedDeptId, selectedPosId, 1, 5) %>';
-    url = url.replace('pageSize=5', 'pageSize=' + newSize);
+    var search = encodeURIComponent('<%= searchStr %>');
+    var deptId = '<%= selectedDeptId != null ? selectedDeptId : "" %>';
+    var posId = '<%= selectedPosId != null ? selectedPosId : "" %>';
+    var url = 'base-salaries?page=1&pageSize=' + newSize;
+    if (search) url += '&search=' + search;
+    if (deptId) url += '&departmentId=' + deptId;
+    if (posId) url += '&positionId=' + posId;
     window.location.href = url;
   }
 
