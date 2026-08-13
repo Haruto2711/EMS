@@ -30,9 +30,10 @@
   </a>
   <nav class="nav-group">
     <div class="nav-section-label">Menu chính</div>
-    <a href="home" class="nav-link active">Trang chủ</a>
-    <a href="#" class="nav-link">Lịch trình nhóm</a>
+    <a href="home_manager.jsp" class="nav-link active">Trang chủ</a>
     <div class="nav-section-label">Quản lý</div>
+    <a href="work-schedule" class="nav-link">Lịch làm việc </a>
+    <a href="holiday" class="nav-link">Quản lý ngày nghỉ lễ </a>
     <a href="#" class="nav-link">Điểm danh phòng ban</a>
     <a href="base-salaries" class="nav-link">Quản lý lương</a>
   </nav>
