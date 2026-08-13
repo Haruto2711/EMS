@@ -46,4 +46,61 @@ public class HolidayDAO {
         }
         return holidays;
     }
+
+    public static List<Holidays> searchHolidays(String keyword, String sort, int offset, int pageSize) {
+        List<Holidays> holidays = new ArrayList<>();
+        // Chỉ chấp nhận ASC hoặc DESC để tránh SQL injection
+        String orderDir = "DESC".equalsIgnoreCase(sort) ? "DESC" : "ASC";
+        String sql = "SELECT Id, HolidayName, StartDate, EndDate FROM holidays " +
+                     "WHERE HolidayName LIKE ? " +
+                     "ORDER BY HolidayName " + orderDir + " " +
+                     "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stm = conn.prepareStatement(sql)) {
+            stm.setString(1, "%" + keyword + "%");
+            stm.setInt(2, offset);
+            stm.setInt(3, pageSize);
+            try (ResultSet rs = stm.executeQuery()) {
+                while (rs.next()) {
+                    Holidays h = new Holidays();
+                    h.setId(rs.getInt("Id"));
+                    h.setHolidayname(rs.getString("HolidayName"));
+                    h.setStartdate(rs.getObject("StartDate", LocalDate.class));
+                    h.setEnddate(rs.getObject("EndDate", LocalDate.class));
+                    holidays.add(h);
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return holidays;
+    }
+
+    public static int countHolidays(String keyword) {
+        String sql = "SELECT COUNT(*) FROM holidays WHERE HolidayName LIKE ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stm = conn.prepareStatement(sql)) {
+            stm.setString(1, "%" + keyword + "%");
+            try (ResultSet rs = stm.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return 0;
+    }
+
+    public static void updateHoliday(Holidays h, int id) {
+        String sql = "update holidays set HolidayName = ?, StartDate = ?, EndDate = ? where Id = ?";
+        try(Connection conn = DBConnection.getConnection();
+        PreparedStatement stm = conn.prepareStatement(sql)) {
+            stm.setString(1, h.getHolidayname());
+            stm.setObject(2, h.getStartdate());
+            stm.setObject(3, h.getEnddate());
+            stm.setInt(4, id);
+            stm.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
