@@ -33,6 +33,16 @@
       gap: 20px;
       margin-bottom: 30px;
     }
+    @media (max-width: 1024px) {
+      .sm-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    @media (max-width: 640px) {
+      .sm-grid {
+        grid-template-columns: 1fr;
+      }
+    }
     .sm-card {
       background: #ffffff;
       border: 1px solid #e2e8f0;
@@ -63,6 +73,7 @@
     }
     .icon-blue { background: #eff6ff; color: #2563eb; }
     .icon-indigo { background: #eef2ff; color: #4f46e5; }
+    .icon-emerald { background: #ecfdf5; color: #059669; }
     .icon-amber { background: #fffbeb; color: #d97706; }
 
     .sm-card-title {
@@ -82,7 +93,7 @@
     .sm-card-footer {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-end;
       padding-top: 16px;
       border-top: 1px solid #f1f5f9;
     }
@@ -107,6 +118,13 @@
     .btn-action-primary:hover {
       background: #1d4ed8;
     }
+    .btn-action-emerald {
+      background: #059669;
+      color: #ffffff;
+    }
+    .btn-action-emerald:hover {
+      background: #047857;
+    }
     .btn-action-indigo {
       background: #4f46e5;
       color: #ffffff;
@@ -114,20 +132,6 @@
     .btn-action-indigo:hover {
       background: #4338ca;
     }
-    .btn-action-disabled {
-      background: #f1f5f9;
-      color: #94a3b8;
-      cursor: not-allowed;
-    }
-
-    .badge-status {
-      font-size: 11.5px;
-      font-weight: 600;
-      padding: 3px 8px;
-      border-radius: 6px;
-    }
-    .badge-ready { background: #dcfce7; color: #15803d; }
-    .badge-soon-card { background: #fef3c7; color: #b45309; }
   </style>
 </head>
 <body>
@@ -194,17 +198,16 @@
           </div>
         </div>
         <div class="sm-card-footer">
-          <span class="badge-status badge-ready">Sẵn sàng</span>
           <a href="base-salaries" class="btn-sm-action btn-action-primary">
             Truy cập ngay →
           </a>
         </div>
       </div>
 
-      <!-- Option Card 2: Xem các kỳ lương -->
+      <!-- Option Card 2: Quản lý các kỳ lương -->
       <div class="sm-card">
         <div>
-          <div class="sm-card-icon-wrapper icon-indigo">
+          <div class="sm-card-icon-wrapper icon-emerald">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
               <line x1="16" y1="2" x2="16" y2="6"></line>
@@ -212,42 +215,45 @@
               <line x1="3" y1="10" x2="21" y2="10"></line>
             </svg>
           </div>
-          <div class="sm-card-title">Xem các kỳ lương</div>
+          <div class="sm-card-title">Quản lý kỳ lương</div>
           <div class="sm-card-desc">
-            Lựa chọn từng kỳ lương để kiểm tra toàn bộ bảng lương đã tính toán, phụ cấp, OT, khoản trừ bảo hiểm và thuế TNCN.
+            Tạo mới, chỉnh sửa chu kỳ thời gian, chốt sổ/khóa hoặc mở khóa các kỳ tính lương nhân viên.
           </div>
         </div>
         <div class="sm-card-footer">
-          <span class="badge-status badge-ready">Sẵn sàng</span>
-          <a href="manager-payslips" class="btn-sm-action btn-action-indigo">
-            Xem kỳ lương →
+          <a href="pay-periods" class="btn-sm-action btn-action-emerald">
+            Quản lý kỳ lương →
           </a>
         </div>
       </div>
 
-      <!-- Option Card 3: Tính toán lương -->
+      <!-- Option Card 3: Xem Bảng lương các kỳ -->
       <div class="sm-card">
         <div>
-          <div class="sm-card-icon-wrapper icon-amber">
+          <div class="sm-card-icon-wrapper icon-indigo">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
             </svg>
           </div>
-          <div class="sm-card-title">Tính toán lương</div>
+          <div class="sm-card-title">Xem bảng lương chi tiết</div>
           <div class="sm-card-desc">
-            Chạy thuật toán tự động tính toán tổng lương, ngày công, OT, các khoản bảo hiểm và kết xuất bảng lương mới.
+            Lựa chọn từng kỳ lương để kiểm tra toàn bộ phiếu lương nhân viên, phụ cấp, OT, BHXH và thuế TNCN.
           </div>
         </div>
         <div class="sm-card-footer">
-          <span class="badge-status badge-soon-card">Sẽ làm sau</span>
-          <button type="button" class="btn-sm-action btn-action-disabled" disabled title="Chức năng đang phát triển">
-            Tính toán (Sắp có)
-          </button>
+          <a href="manager-payslips" class="btn-sm-action btn-action-indigo">
+            Xem bảng lương →
+          </a>
         </div>
       </div>
 
     </div>
   </div>
+
 
   <!-- FOOTER -->
   <footer>© 2026 Hệ thống Quản lý Nhân sự (EMS) · FPT University SWP391</footer>
