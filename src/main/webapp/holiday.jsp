@@ -10,7 +10,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ngày Nghỉ Lễ | EMS</title>
   <meta name="description" content="Quản lý danh sách ngày nghỉ lễ theo quy định nhà nước">
-  <link rel="stylesheet" href="ems.css"/>
+  <link rel="stylesheet" href="css/ems.css"/>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
