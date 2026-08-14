@@ -333,7 +333,7 @@ public class HomeServlet extends HttpServlet {
 
         // B. Recent system accounts
         List<Map<String, Object>> recentAccounts = new ArrayList<>();
-        String accQuery = "SELECT u.FullName, a.Username, r.Name as RoleName, a.Status FROM accounts a " +
+        String accQuery = "SELECT u.FullName, a.Username, r.Name as RoleName, a.Status, u.EmailCompany FROM accounts a " +
                           "JOIN users u ON a.UserId = u.Id " +
                           "LEFT JOIN accountroles ar ON a.Id = ar.AccountId " +
                           "LEFT JOIN roles r ON ar.RoleId = r.Id " +
@@ -346,6 +346,7 @@ public class HomeServlet extends HttpServlet {
                 acc.put("username", rs.getString("Username"));
                 acc.put("roleName", rs.getString("RoleName"));
                 acc.put("status", rs.getBoolean("Status"));
+                acc.put("emailCompany", rs.getString("EmailCompany"));
                 recentAccounts.add(acc);
             }
         }

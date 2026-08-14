@@ -89,7 +89,7 @@
 
   <form action="login" method="post">
     <label for="username">Tên đăng nhập</label>
-    <input type="text" id="username" name="username" placeholder="Nhập tên đăng nhập" required autocomplete="username"/>
+    <input type="text" id="username" name="username" placeholder="Nhập tên đăng nhập" required autocomplete="username" value="<%= request.getParameter("username") != null ? request.getParameter("username") : "" %>"/>
     <label for="password">Mật khẩu</label>
     <input type="password" id="password" name="password" placeholder="Nhập mật khẩu" required autocomplete="current-password"/>
     <a href="forgot-password" style="display: block; text-align: right; font-size: 13px; color: #2563eb; text-decoration: none; margin-top: -8px; margin-bottom: 16px;">Quên mật khẩu?</a>
