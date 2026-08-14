@@ -20,7 +20,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EMS – Quản lý</title>
-  <link rel="stylesheet" href="ems.css"/>
+  <link rel="stylesheet" href="css/ems.css"/>
 </head>
 <body>
 
