@@ -21,6 +21,57 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EMS – Admin</title>
   <link rel="stylesheet" href="css/ems.css"/>
+  <style>
+    .user-avatar-circle {
+      width: 32px; height: 32px;
+      background: #dbeafe;
+      color: #1e40af;
+      border-radius: 50%;
+      display: flex;
+      align-items: center; justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+    .badge-role {
+      background: #eff6ff;
+      color: #2563eb;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 11.5px;
+      font-weight: 600;
+      text-transform: lowercase;
+      display: inline-block;
+    }
+    .badge-active {
+      background: #ecfdf5;
+      color: #065f46;
+      padding: 4px 8px;
+      border-radius: 9999px;
+      font-size: 11.5px;
+      font-weight: 500;
+      display: inline-block;
+    }
+    .badge-locked {
+      background: #fef2f2;
+      color: #991b1b;
+      padding: 4px 8px;
+      border-radius: 9999px;
+      font-size: 11.5px;
+      font-weight: 500;
+      display: inline-block;
+    }
+    .dashboard-table th {
+      padding: 10px 12px;
+      font-size: 10px;
+      background: #fff;
+      border-bottom: 1.5px solid #f3f4f6;
+    }
+    .dashboard-table td {
+      padding: 10px 12px;
+      font-size: 12.5px;
+    }
+  </style>
 </head>
 <body>
 
@@ -79,27 +130,58 @@
 
     <div class="cards-row">
       <div class="card">
-        <div class="card-header">Tài khoản mới tạo gần đây</div>
-        <%
-          if (recentAccounts != null && !recentAccounts.isEmpty()) {
-            for (Map<String, Object> acc : recentAccounts) {
-              Boolean status = (Boolean) acc.get("status");
-              String badgeClass = (status != null && status) ? "badge-approved" : "badge-locked";
-              String statusText = (status != null && status) ? "Hoạt động" : "Khóa";
-        %>
-              <div class="row-item">
-                <div>
-                  <div class="row-main"><%= acc.get("fullName") %> (<%= acc.get("username") %>)</div>
-                  <div class="row-sub">Vai trò: <%= acc.get("roleName") != null ? acc.get("roleName") : "Chưa phân" %></div>
-                </div>
-                <span class="badge <%= badgeClass %>"><%= statusText %></span>
-              </div>
-        <%
-            }
-          } else {
-        %>
-          <div style="padding: 20px; text-align: center; color: #9ca3af; font-size: 13.5px;">Chưa có tài khoản nào.</div>
-        <% } %>
+        <div class="card-header" style="font-weight: 700; font-size: 14px; color: #111827;">
+          Danh sách tài khoản
+        </div>
+        
+        <div style="overflow-x: auto;">
+          <table class="dashboard-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+              <tr style="border-bottom: 1.5px solid #f3f4f6; color: #6b7280; text-transform: uppercase; font-size: 10px; font-weight: 700; letter-spacing: 0.5px;">
+                <th style="padding: 10px 12px;">Người dùng</th>
+                <th style="padding: 10px 12px;">Email</th>
+                <th style="padding: 10px 12px;">Vai trò</th>
+                <th style="padding: 10px 12px;">Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              <%
+                if (recentAccounts != null && !recentAccounts.isEmpty()) {
+                  for (Map<String, Object> acc : recentAccounts) {
+                    String name = (String) acc.get("fullName");
+                    String username = (String) acc.get("username");
+                    
+                    Boolean status = (Boolean) acc.get("status");
+                    boolean isCurrentStatus = (status != null && status);
+              %>
+                    <tr style="border-bottom: 1px solid #f3f4f6; transition: background 0.1s;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='transparent'">
+                      <td style="padding: 10px 12px;">
+                        <div style="font-weight: 600; color: #111827; font-size: 12.5px;"><%= name %></div>
+                        <div style="font-size: 11px; color: #6b7280;">@<%= username %></div>
+                      </td>
+                      <td style="padding: 10px 12px; color: #4b5563; font-size: 12px;"><%= acc.get("emailCompany") != null ? acc.get("emailCompany") : "" %></td>
+                      <td style="padding: 10px 12px;">
+                        <span class="badge-role">
+                          <%= (acc.get("roleName") != null ? (String) acc.get("roleName") : "employee").toLowerCase() %>
+                        </span>
+                      </td>
+                      <td style="padding: 10px 12px;">
+                        <span class="<%= isCurrentStatus ? "badge-active" : "badge-locked" %>">
+                          <%= isCurrentStatus ? "Hoạt động" : "Bị khóa" %>
+                        </span>
+                      </td>
+                    </tr>
+              <%
+                  }
+                } else {
+              %>
+                <tr>
+                  <td colspan="4" style="padding: 20px; text-align: center; color: #9ca3af;">Chưa có tài khoản nào.</td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div class="card">
