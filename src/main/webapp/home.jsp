@@ -36,7 +36,7 @@
     <a href="home" class="nav-link active">Trang chủ</a>
     <a href="#" class="nav-link">Lịch trình</a>
     <div class="nav-section-label">Công việc</div>
-    <a href="#" class="nav-link">Yêu cầu</a>
+    <a href="${pageContext.request.contextPath}/request.jsp" class="nav-link">Yêu cầu</a>
     <a href="#" class="nav-link">Bảng lương</a>
   </nav>
   <div class="sidebar-footer">
