@@ -253,7 +253,11 @@ public class RequestController extends HttpServlet {
                         request.getParameter("requestTypeId")
                 );
 
-        String imageUrl = saveUploadedImage(request);
+        String imageUrl = null;
+        String contentType = request.getContentType();
+        if (contentType != null && contentType.toLowerCase().startsWith("multipart/")) {
+            imageUrl = saveUploadedImage(request);
+        }
 
         RequestDTO dto = new RequestDTO();
 
@@ -272,8 +276,8 @@ public class RequestController extends HttpServlet {
                 )
         );
 
-        // The current database schema requires Value, although employees no longer enter it.
-        dto.setValue(1);
+        String value = request.getParameter("value");
+        dto.setValue(value == null || value.isBlank() ? 1 : Double.parseDouble(value));
         dto.setImageUrl(imageUrl);
 
         dto.setRequestTypeId(requestTypeId);
