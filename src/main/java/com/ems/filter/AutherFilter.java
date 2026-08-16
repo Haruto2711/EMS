@@ -50,7 +50,7 @@ public class AutherFilter implements Filter {
         HttpServletResponse resp = (HttpServletResponse) response;
         HttpSession session = req.getSession(false);
 
-        if (session == null || session.getAttribute("user") == null) {
+        if (session == null || (session.getAttribute("user") == null && session.getAttribute("username") == null)) {
             resp.sendRedirect(req.getContextPath() + "/login.jsp");
             return;
         }
@@ -59,7 +59,7 @@ public class AutherFilter implements Filter {
         String path = uri.substring(req.getContextPath().length());
         // admin
         boolean isAdminPage = path.equals("/home_admin") || path.equals("/home_admin.jsp");
-        if (isAdminPage && !"admin".equals(role)) {
+        if (isAdminPage && !"admin".equalsIgnoreCase(role)) {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND);
             return;
         }
@@ -76,7 +76,7 @@ public class AutherFilter implements Filter {
                 || path.equals("/pay-period") || path.equals("/pay_period")
                 || path.equals("/pay-period-list.jsp")
                 || path.equals("/salary-management") || path.equals("/salary-management.jsp");
-        if (isManagerPage && !"manager".equals(role)) {
+        if (isManagerPage && !"manager".equalsIgnoreCase(role)) {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND);
             return;
         }
