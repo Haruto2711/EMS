@@ -283,11 +283,6 @@
                       Sửa
                     </button>
 
-                    <!-- Delete button -->
-                    <button type="button" class="btn-action-delete" onclick="openDeleteModal(<%= p.getId() %>, '<%= p.getName().replace("'", "\\'") %>')">
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                    </button>
-
                   </div>
                 </td>
               </tr>
@@ -440,29 +435,6 @@
 </div>
 
 
-<!-- MODAL: XÁC NHẬN XÓA KỲ LƯƠNG -->
-<div class="modal-overlay" id="deleteModal">
-  <div class="modal-card">
-    <button type="button" class="modal-close-btn" onclick="closeDeleteModal()">✕</button>
-    <div class="modal-title" style="color:#ef4444;">Xác nhận xóa kỳ lương</div>
-    <div class="modal-subtitle" style="margin-bottom:16px;">Bạn có chắc chắn muốn xóa kỳ lương <strong id="deletePeriodName" style="color:#0f172a;"></strong>? Hành động này không thể hoàn tác.</div>
-
-    <form action="pay-periods" method="POST" id="deleteForm">
-      <input type="hidden" name="action" value="delete"/>
-      <input type="hidden" name="id" id="deleteId"/>
-      <input type="hidden" name="search" value="<%= searchStr %>"/>
-      <input type="hidden" name="status" value="<%= selectedStatus %>"/>
-      <input type="hidden" name="page" value="<%= currentPage %>"/>
-      <input type="hidden" name="pageSize" value="<%= pageSize %>"/>
-
-      <div class="modal-footer">
-        <button type="button" class="btn-modal-cancel" onclick="closeDeleteModal()">Hủy bỏ</button>
-        <button type="submit" class="btn-modal-danger">Xóa kỳ lương</button>
-      </div>
-    </form>
-  </div>
-</div>
-
 
 <script>
   function tick() {
@@ -531,17 +503,6 @@
     document.getElementById('editModal').style.display = 'none';
   }
 
-  // Delete Modal Controls
-  function openDeleteModal(id, name) {
-    document.getElementById('deleteId').value = id;
-    document.getElementById('deletePeriodName').textContent = name;
-    document.getElementById('deleteModal').style.display = 'flex';
-  }
-
-  function closeDeleteModal() {
-    document.getElementById('deleteModal').style.display = 'none';
-  }
-
   // Toggle Lock Confirm
   function confirmToggleLock(id, name, shouldLock) {
     var msg = shouldLock 
@@ -556,10 +517,8 @@
   window.onclick = function(event) {
     var createM = document.getElementById('createModal');
     var editM = document.getElementById('editModal');
-    var deleteM = document.getElementById('deleteModal');
     if (event.target === createM) closeCreateModal();
     if (event.target === editM) closeEditModal();
-    if (event.target === deleteM) closeDeleteModal();
   }
 </script>
 
