@@ -1,4 +1,5 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page contentType="text/html;charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page import="java.util.List, java.util.Map" %>
 <%
     if (request.getAttribute("isLoaded") == null) {
@@ -24,33 +25,34 @@
 </head>
 <body>
 
-<aside class="sidebar">
-  <a href="home" class="sidebar-brand">
-    <div class="brand-dot">E</div>
-    <span class="brand-name">EMS</span>
-  </a>
-  <nav class="nav-group">
-    <div class="nav-section-label">Menu chính</div>
-    <a href="home_manager.jsp" class="nav-link active">Trang chủ</a>
-    <div class="nav-section-label">Quản lý</div>
-    <a href="work-schedule" class="nav-link">Lịch làm việc </a>
-    <a href="holiday" class="nav-link">Quản lý ngày nghỉ lễ </a>
-    <a href="#" class="nav-link">Điểm danh phòng ban</a>
-    <a href="salary-management" class="nav-link">Quản lý lương</a>
-  </nav>
-  <div class="sidebar-footer">
-    <div class="user-block">
-      <div class="user-avatar">
-        <%= fullName != null && !fullName.isEmpty() ? fullName.substring(0,1).toUpperCase() : "M" %>
-      </div>
-      <div>
-        <div class="user-name"><%= fullName != null ? fullName : "Manager" %></div>
-        <div class="user-role"><%= deptName != null ? deptName : "Quản lý" %></div>
-      </div>
-    </div>
-    <button class="btn-logout" onclick="window.location='login'">Đăng xuất</button>
-  </div>
-</aside>
+<%@ include file="/WEB-INF/jspf/sidebar.jsp" %>
+<%--<aside class="sidebar">--%>
+<%--  <a href="home" class="sidebar-brand">--%>
+<%--    <div class="brand-dot">E</div>--%>
+<%--    <span class="brand-name">EMS</span>--%>
+<%--  </a>--%>
+<%--  <nav class="nav-group">--%>
+<%--    <div class="nav-section-label">Menu chính</div>--%>
+<%--    <a href="home_manager.jsp" class="nav-link active">Trang chủ</a>--%>
+<%--    <div class="nav-section-label">Quản lý</div>--%>
+<%--    <a href="work-schedule" class="nav-link">Lịch làm việc </a>--%>
+<%--    <a href="holiday" class="nav-link">Quản lý ngày nghỉ lễ </a>--%>
+<%--    <a href="#" class="nav-link">Điểm danh phòng ban</a>--%>
+<%--    <a href="salary-management" class="nav-link">Quản lý lương</a>--%>
+<%--  </nav>--%>
+<%--  <div class="sidebar-footer">--%>
+<%--    <div class="user-block">--%>
+<%--      <div class="user-avatar">--%>
+<%--        <%= fullName != null && !fullName.isEmpty() ? fullName.substring(0,1).toUpperCase() : "M" %>--%>
+<%--      </div>--%>
+<%--      <div>--%>
+<%--        <div class="user-name"><%= fullName != null ? fullName : "Manager" %></div>--%>
+<%--        <div class="user-role"><%= deptName != null ? deptName : "Quản lý" %></div>--%>
+<%--      </div>--%>
+<%--    </div>--%>
+<%--    <button class="btn-logout" onclick="window.location='login'">Đăng xuất</button>--%>
+<%--  </div>--%>
+<%--</aside>--%>
 
 <div class="main-content">
   <div class="topbar">
