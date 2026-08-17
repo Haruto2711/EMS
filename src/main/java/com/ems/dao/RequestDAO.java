@@ -319,6 +319,20 @@ public class RequestDAO {
         }
     }
 
+    /** Updates a pending request only when it belongs to the acting manager. */
+    public boolean updateStatusForApprover(int requestId, int approverAccountId, String status)
+            throws SQLException {
+        String sql = "UPDATE Requests SET Status = ? WHERE Id = ? "
+                + "AND CurrentApproverAccountId = ? AND Status = 'Pending'";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, status);
+            ps.setInt(2, requestId);
+            ps.setInt(3, approverAccountId);
+            return ps.executeUpdate() > 0;
+        }
+    }
+
     /**
      * Delete request
      */

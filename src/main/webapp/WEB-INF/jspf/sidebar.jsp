@@ -30,6 +30,11 @@
                 Quản lý ngày nghỉ lễ
             </a>
 
+            <a href="${pageContext.request.contextPath}/requests?action=pending"
+               class="nav-link ${pageContext.request.servletPath == '/request-manager.jsp' ? 'active' : ''}">
+                Xử lý đơn
+            </a>
+
             <a href="${pageContext.request.contextPath}/salary-management"
                class="nav-link ${pageContext.request.servletPath == '/salary-management.jsp' ? 'active' : ''}">
                 Quản lý lương

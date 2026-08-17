@@ -210,13 +210,19 @@ public class RequestController extends HttpServlet {
             return;
         }
 
+        String role = (String) session.getAttribute("role");
+        if (role == null || !"manager".equalsIgnoreCase(role)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
         List<RequestDTO> list =
                 dao.getPendingRequests(accountId);
 
         request.setAttribute("requests", list);
 
         request.getRequestDispatcher(
-                "/WEB-INF/views/request/pending.jsp"
+                "/request-manager.jsp"
         ).forward(request, response);
     }
 
@@ -334,11 +340,21 @@ public class RequestController extends HttpServlet {
             String status
     ) throws Exception {
 
-        int id = Integer.parseInt(
-                request.getParameter("id")
-        );
+        HttpSession session = request.getSession(false);
+        Integer accountId = session == null ? null : (Integer) session.getAttribute("accountId");
+        String role = session == null ? null : (String) session.getAttribute("role");
 
-        dao.updateStatus(id, status);
+        if (accountId == null || role == null || !"manager".equalsIgnoreCase(role)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+
+        int id = Integer.parseInt(request.getParameter("id"));
+
+        if (!dao.updateStatusForApprover(id, accountId, status)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
 
         response.sendRedirect(
                 request.getContextPath()
