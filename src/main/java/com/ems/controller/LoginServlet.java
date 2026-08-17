@@ -35,6 +35,7 @@ public class LoginServlet extends HttpServlet {
 
         if (role != null) {
             HttpSession session = request.getSession();
+            session.setAttribute("user", username);
             session.setAttribute("username", username);
             session.setAttribute("role", role);
             session.setAttribute("accountId", userDAO.findAccountIdByUsername(username));

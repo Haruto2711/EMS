@@ -203,26 +203,7 @@ public class PayPeriodServlet extends HttpServlet {
                     }
                     break;
                 }
-                case "delete": {
-                    String idStr = request.getParameter("id");
-                    if (idStr != null) {
-                        int id = Integer.parseInt(idStr);
-                        if (periodService.hasAssociatedPayslips(id)) {
-                            session.setAttribute("toastMessage", "Không thể xóa kỳ lương đã có bảng lương phát sinh! Vui lòng chọn Khóa kỳ lương.");
-                            session.setAttribute("toastType", "error");
-                        } else {
-                            boolean success = periodService.deletePeriod(id);
-                            if (success) {
-                                session.setAttribute("toastMessage", "Xóa kỳ lương thành công!");
-                                session.setAttribute("toastType", "success");
-                            } else {
-                                session.setAttribute("toastMessage", "Xóa kỳ lương thất bại!");
-                                session.setAttribute("toastType", "error");
-                            }
-                        }
-                    }
-                    break;
-                }
+
                 default:
                     break;
             }

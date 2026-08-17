@@ -19,33 +19,7 @@
 <body>
 
 <!-- ── Sidebar ── -->
-<aside class="sidebar">
-  <a href="home_manager.jsp" class="sidebar-brand">
-    <div class="brand-dot">E</div>
-    <span class="brand-name">EMS</span>
-  </a>
-  <nav class="nav-group">
-    <div class="nav-section-label">Menu chính</div>
-    <a href="home_manager.jsp" class="nav-link">Trang chủ</a>
-    <div class="nav-section-label">Quản lý</div>
-    <a href="work-schedule" class="nav-link">Lịch làm việc</a>
-    <a href="holiday" class="nav-link active">Quản lý ngày nghỉ lễ</a>
-    <a href="#" class="nav-link">Điểm danh phòng ban</a>
-    <a href="base-salaries" class="nav-link">Quản lý lương</a>
-  </nav>
-  <div class="sidebar-footer">
-    <div class="user-block">
-      <div class="user-avatar">
-        <%= session.getAttribute("username") != null ? session.getAttribute("username").toString().substring(0,1).toUpperCase() : "M" %>
-      </div>
-      <div>
-        <div class="user-name"><%= session.getAttribute("username") != null ? session.getAttribute("username") : "Manager" %></div>
-        <div class="user-role">Quản lý</div>
-      </div>
-    </div>
-    <button class="btn-logout" onclick="window.location='login'">Đăng xuất</button>
-  </div>
-</aside>
+<%@include file="/WEB-INF/jspf/sidebar.jsp"%>
 
 <!-- ── Main content ── -->
 <div class="main-content">
