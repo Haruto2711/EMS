@@ -21,57 +21,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EMS – Admin</title>
   <link rel="stylesheet" href="css/ems.css"/>
-  <style>
-    .user-avatar-circle {
-      width: 32px; height: 32px;
-      background: #dbeafe;
-      color: #1e40af;
-      border-radius: 50%;
-      display: flex;
-      align-items: center; justify-content: center;
-      font-size: 11px;
-      font-weight: 600;
-      flex-shrink: 0;
-    }
-    .badge-role {
-      background: #eff6ff;
-      color: #2563eb;
-      padding: 4px 10px;
-      border-radius: 9999px;
-      font-size: 11.5px;
-      font-weight: 600;
-      text-transform: lowercase;
-      display: inline-block;
-    }
-    .badge-active {
-      background: #ecfdf5;
-      color: #065f46;
-      padding: 4px 8px;
-      border-radius: 9999px;
-      font-size: 11.5px;
-      font-weight: 500;
-      display: inline-block;
-    }
-    .badge-locked {
-      background: #fef2f2;
-      color: #991b1b;
-      padding: 4px 8px;
-      border-radius: 9999px;
-      font-size: 11.5px;
-      font-weight: 500;
-      display: inline-block;
-    }
-    .dashboard-table th {
-      padding: 10px 12px;
-      font-size: 10px;
-      background: #fff;
-      border-bottom: 1.5px solid #f3f4f6;
-    }
-    .dashboard-table td {
-      padding: 10px 12px;
-      font-size: 12.5px;
-    }
-  </style>
+  <link rel="stylesheet" href="css/home-admin.css"/>
 </head>
 <body>
 

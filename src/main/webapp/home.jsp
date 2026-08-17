@@ -68,10 +68,23 @@
           <%
             if (notificationsList != null && !notificationsList.isEmpty()) {
               for (Map<String, Object> noti : notificationsList) {
+                String notiTitle = (String) noti.get("title");
+                if ("Request Submitted".equalsIgnoreCase(notiTitle)) {
+                  notiTitle = "Yêu cầu đã được gửi";
+                } else if ("Request Approved".equalsIgnoreCase(notiTitle)) {
+                  notiTitle = "Yêu cầu đã được duyệt";
+                } else if ("Request Rejected".equalsIgnoreCase(notiTitle)) {
+                  notiTitle = "Yêu cầu bị từ chối";
+                }
+
+                String notiMessage = (String) noti.get("message");
+                if ("Your leave request has been submitted successfully.".equalsIgnoreCase(notiMessage)) {
+                  notiMessage = "Yêu cầu nghỉ phép của bạn đã được gửi thành công.";
+                }
           %>
                 <div style="padding: 10px 14px; border-bottom: 1px solid #f9fafb; transition: background 0.1s; cursor: pointer;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='transparent'">
-                  <div style="font-weight: 500; font-size: 12.5px; color: #111;"><%= noti.get("title") %></div>
-                  <div style="font-size: 11.5px; color: #6b7280; margin-top: 2px;"><%= noti.get("message") %></div>
+                  <div style="font-weight: 500; font-size: 12.5px; color: #111;"><%= notiTitle %></div>
+                  <div style="font-size: 11.5px; color: #6b7280; margin-top: 2px;"><%= notiMessage %></div>
                 </div>
           <%
               }
@@ -117,11 +130,25 @@
                 java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm");
                 timeStr = sdf.format(ts);
               }
+              
+              String notiTitle = (String) noti.get("title");
+              if ("Request Submitted".equalsIgnoreCase(notiTitle)) {
+                notiTitle = "Yêu cầu đã được gửi";
+              } else if ("Request Approved".equalsIgnoreCase(notiTitle)) {
+                notiTitle = "Yêu cầu đã được duyệt";
+              } else if ("Request Rejected".equalsIgnoreCase(notiTitle)) {
+                notiTitle = "Yêu cầu bị từ chối";
+              }
+
+              String notiMessage = (String) noti.get("message");
+              if ("Your leave request has been submitted successfully.".equalsIgnoreCase(notiMessage)) {
+                notiMessage = "Yêu cầu nghỉ phép của bạn đã được gửi thành công.";
+              }
         %>
               <div class="row-item">
                 <div>
-                  <div class="row-main"><%= noti.get("title") %></div>
-                  <div class="row-sub"><%= noti.get("message") %></div>
+                  <div class="row-main"><%= notiTitle %></div>
+                  <div class="row-sub"><%= notiMessage %></div>
                 </div>
                 <span class="row-sub" style="font-size: 11px; white-space: nowrap; margin-left: 10px;"><%= timeStr %></span>
               </div>
@@ -165,7 +192,13 @@
               %>
               <div class="row-item">
                 <div>
-                  <div class="row-main"><%= req.get("title") %> (<%= valStr %> ngày)</div>
+                  <%
+                    String reqTitle = (String) req.get("title");
+                    if (reqTitle != null) {
+                      reqTitle = reqTitle.replace("Leave Request", "Yêu cầu nghỉ phép");
+                    }
+                  %>
+                  <div class="row-main"><%= reqTitle %> (<%= valStr %> ngày)</div>
                   <div class="row-sub"><%= req.get("startDate") %> – <%= req.get("endDate") %></div>
                 </div>
                 <span class="badge <%= badgeClass %>"><%= statusVN %></span>

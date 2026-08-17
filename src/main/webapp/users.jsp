@@ -18,194 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EMS – Quản lý tài khoản</title>
   <link rel="stylesheet" href="css/ems.css"/>
-  <style>
-    /* Custom style matching image 2 */
-    .user-avatar-circle {
-      width: 32px;
-      height: 32px;
-      background: #dbeafe;
-      color: #1e40af;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: 600;
-      flex-shrink: 0;
-    }
-    
-    .badge-role-select {
-      background: #eff6ff;
-      color: #2563eb;
-      padding: 4px 12px;
-      border-radius: 9999px;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: lowercase;
-      border: none;
-      outline: none;
-      cursor: pointer;
-      appearance: none;
-      -webkit-appearance: none;
-      text-align-last: center;
-      display: inline-block;
-      min-width: 80px;
-    }
-    .badge-role-select:hover {
-      background: #dbeafe;
-    }
-
-    .badge-active {
-      background: #ecfdf5;
-      color: #065f46;
-      padding: 4px 12px;
-      border-radius: 9999px;
-      font-size: 12px;
-      font-weight: 600;
-      display: inline-block;
-      border: none;
-      cursor: pointer;
-    }
-    .badge-active:hover {
-      background: #d1fae5;
-    }
-
-    .badge-locked {
-      background: #fef2f2;
-      color: #991b1b;
-      padding: 4px 12px;
-      border-radius: 9999px;
-      font-size: 12px;
-      font-weight: 600;
-      display: inline-block;
-      border: none;
-      cursor: pointer;
-    }
-    .badge-locked:hover {
-      background: #fee2fee2;
-    }
-
-    /* Modal Styling */
-    .modal-backdrop {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(4px);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-    }
-    .modal-content {
-      background: #fff;
-      border-radius: 12px;
-      width: 100%;
-      max-width: 500px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-      overflow: hidden;
-      animation: modalFadeIn 0.2s ease-out;
-    }
-    @keyframes modalFadeIn {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-    .modal-header {
-      padding: 16px 20px;
-      border-bottom: 1px solid #f3f4f6;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .modal-title {
-      font-size: 16px;
-      font-weight: 700;
-      color: #111827;
-    }
-    .modal-close {
-      background: none;
-      border: none;
-      font-size: 20px;
-      color: #9ca3af;
-      cursor: pointer;
-    }
-    .modal-body {
-      padding: 20px;
-      max-height: 70vh;
-      overflow-y: auto;
-    }
-    .form-group {
-      margin-bottom: 16px;
-    }
-    .form-label {
-      display: block;
-      font-size: 12.5px;
-      font-weight: 600;
-      color: #374151;
-      margin-bottom: 6px;
-    }
-    .form-input {
-      width: 100%;
-      padding: 8px 12px;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
-      font-size: 13.5px;
-      color: #1f2937;
-      outline: none;
-      box-sizing: border-box;
-    }
-    .form-input:focus {
-      border-color: #0d9488;
-      box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.2);
-    }
-    .modal-footer {
-      padding: 12px 20px;
-      border-top: 1px solid #f3f4f6;
-      background: #f9fafb;
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-    }
-    .btn-secondary {
-      background: #fff;
-      border: 1px solid #d1d5db;
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: 500;
-      color: #374151;
-      cursor: pointer;
-    }
-    .btn-secondary:hover { background: #f9fafb; }
-    .btn-primary {
-      background: #0d9488;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: 500;
-      color: #fff;
-      cursor: pointer;
-    }
-    .btn-primary:hover { background: #0f766e; }
-
-    .btn-add-acc {
-      background: #0d9488;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 8px 14px;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      transition: background 0.1s;
-    }
-    .btn-add-acc:hover {
-      background: #0f766e;
-    }
-  </style>
+  <link rel="stylesheet" href="css/users.css"/>
 </head>
 <body>
 
@@ -284,6 +97,7 @@
               <th style="padding: 14px 16px;">Email</th>
               <th style="padding: 14px 16px;">Vai trò</th>
               <th style="padding: 14px 16px;">Trạng thái</th>
+              <th style="padding: 14px 16px;">Thao tác</th>
             </tr>
           </thead>
           <tbody>
@@ -303,32 +117,23 @@
                     </td>
                     <td style="padding: 12px 16px; color: #4b5563;"><%= u.get("emailCompany") %></td>
                     <td style="padding: 12px 16px;">
-                      <!-- Styled Dropdown Pill Badge for Role Update -->
-                      <form action="users" method="post" style="display:inline;">
-                        <input type="hidden" name="action" value="updateRole"/>
-                        <input type="hidden" name="accountId" value="<%= u.get("accountId") %>"/>
-                        <select name="roleName" class="badge-role-select" onchange="this.form.submit()" title="Click để đổi vai trò">
-                          <%
-                            if (rolesList != null) {
-                              for (String r : rolesList) {
-                                boolean isSel = r.equalsIgnoreCase((String) u.get("roleName"));
-                          %>
-                                <option value="<%= r %>" <%= isSel ? "selected" : "" %>><%= r.toLowerCase() %></option>
-                          <%
-                              }
-                            }
-                          %>
-                        </select>
-                      </form>
+                      <span class="badge-role">
+                        <%= ((String) u.get("roleName") != null ? (String) u.get("roleName") : "employee").toLowerCase() %>
+                      </span>
                     </td>
                     <td style="padding: 12px 16px;">
-                      <!-- Interactive Pill Badge for Lock/Unlock Action -->
+                      <span class="<%= isCurrentStatus ? "badge-active" : "badge-locked" %>">
+                        <%= isCurrentStatus ? "Hoạt động" : "Bị khóa" %>
+                      </span>
+                    </td>
+                    <td style="padding: 12px 16px;">
+                      <a href="javascript:void(0)" onclick="openEditModal(<%= u.get("accountId") %>, '<%= username %>', '<%= name %>', '<%= u.get("emailCompany") %>', '<%= u.get("roleName") %>', <%= u.get("departmentId") %>, <%= u.get("positionId") %>)" style="color: #0d9488; text-decoration: none; font-weight: 600; margin-right: 12px;">Sửa</a>
                       <form action="users" method="post" style="display:inline;">
                         <input type="hidden" name="action" value="toggleStatus"/>
                         <input type="hidden" name="accountId" value="<%= u.get("accountId") %>"/>
                         <input type="hidden" name="currentStatus" value="<%= isCurrentStatus %>"/>
-                        <button type="submit" class="<%= isCurrentStatus ? "badge-active" : "badge-locked" %>" title="Click để thay đổi trạng thái">
-                          <%= isCurrentStatus ? "Hoạt động" : "Bị khóa" %>
+                        <button type="submit" style="background: none; border: none; color: #dc2626; cursor: pointer; font-size: 13.5px; font-weight: 600; padding: 0; font-family: inherit;">
+                          <%= isCurrentStatus ? "Ẩn" : "Hiện" %>
                         </button>
                       </form>
                     </td>
@@ -338,13 +143,87 @@
               } else {
             %>
               <tr>
-                <td colspan="4" style="padding: 30px; text-align: center; color: #9ca3af;">Không có người dùng nào được tìm thấy.</td>
+                <td colspan="5" style="padding: 30px; text-align: center; color: #9ca3af;">Không có người dùng nào được tìm thấy.</td>
               </tr>
             <% } %>
           </tbody>
         </table>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Modal Edit Account -->
+<div class="modal-backdrop" id="editModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span class="modal-title">Chỉnh sửa tài khoản</span>
+      <button class="modal-close" onclick="closeEditModal()">&times;</button>
+    </div>
+    <form action="users" method="post">
+      <input type="hidden" name="action" value="update"/>
+      <input type="hidden" name="accountId" id="editAccountId"/>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Tên tài khoản (Username)</label>
+          <input type="text" id="editUsername" class="form-input" readonly style="background: #f3f4f6; color: #6b7280; cursor: not-allowed;"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Họ và tên</label>
+          <input type="text" name="fullName" id="editFullName" class="form-input" required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email công ty</label>
+          <input type="email" name="email" id="editEmail" class="form-input" required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Vai trò</label>
+          <select name="role" id="editRole" class="form-input" style="height: 38px;">
+            <%
+              if (rolesList != null) {
+                for (String r : rolesList) {
+            %>
+                  <option value="<%= r %>"><%= r %></option>
+            <%
+                }
+              }
+            %>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phòng ban</label>
+          <select name="departmentId" id="editDept" class="form-input" style="height: 38px;">
+            <%
+              if (deptsList != null) {
+                for (Map<String, Object> d : deptsList) {
+            %>
+                  <option value="<%= d.get("id") %>"><%= d.get("name") %></option>
+            <%
+                }
+              }
+            %>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Chức vụ</label>
+          <select name="positionId" id="editPos" class="form-input" style="height: 38px;">
+            <%
+              if (positionsList != null) {
+                for (Map<String, Object> p : positionsList) {
+            %>
+                  <option value="<%= p.get("id") %>"><%= p.get("name") %></option>
+            <%
+                }
+              }
+            %>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" onclick="closeEditModal()">Hủy</button>
+        <button type="submit" class="btn-primary">Lưu thay đổi</button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -441,10 +320,29 @@
 
   // Close modal when clicking outside content
   window.onclick = function(event) {
-    const modal = document.getElementById("addModal");
-    if (event.target == modal) {
+    const addModal = document.getElementById("addModal");
+    const editModal = document.getElementById("editModal");
+    if (event.target == addModal) {
       closeAddModal();
     }
+    if (event.target == editModal) {
+      closeEditModal();
+    }
+  }
+
+  function openEditModal(accountId, username, fullName, email, role, departmentId, positionId) {
+    document.getElementById("editAccountId").value = accountId;
+    document.getElementById("editUsername").value = username;
+    document.getElementById("editFullName").value = fullName;
+    document.getElementById("editEmail").value = email;
+    document.getElementById("editRole").value = role;
+    document.getElementById("editDept").value = departmentId;
+    document.getElementById("editPos").value = positionId;
+    document.getElementById("editModal").style.display = "flex";
+  }
+
+  function closeEditModal() {
+    document.getElementById("editModal").style.display = "none";
   }
 </script>
 </body>

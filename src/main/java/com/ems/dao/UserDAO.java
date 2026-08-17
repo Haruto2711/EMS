@@ -58,7 +58,7 @@ public class UserDAO {
     /** Lấy tất cả người dùng trong hệ thống */
     public java.util.List<java.util.Map<String, Object>> getAllUsers() {
         java.util.List<java.util.Map<String, Object>> list = new java.util.ArrayList<>();
-        String query = "SELECT a.Id as accountId, a.Username, a.Status as accountStatus, u.FullName, u.EmailCompany, r.Name as roleName " +
+        String query = "SELECT a.Id as accountId, a.Username, a.Status as accountStatus, u.FullName, u.EmailCompany, r.Name as roleName, u.DepartmentId, u.PositionId " +
                        "FROM accounts a " +
                        "JOIN users u ON a.UserId = u.Id " +
                        "LEFT JOIN accountroles ar ON a.Id = ar.AccountId " +
@@ -75,6 +75,8 @@ public class UserDAO {
                 map.put("fullName", rs.getString("FullName"));
                 map.put("emailCompany", rs.getString("EmailCompany"));
                 map.put("roleName", rs.getString("roleName"));
+                map.put("departmentId", rs.getInt("DepartmentId"));
+                map.put("positionId", rs.getInt("PositionId"));
                 list.add(map);
             }
         } catch (SQLException e) {
@@ -243,6 +245,51 @@ public class UserDAO {
                     ps.executeUpdate();
                 }
 
+                conn.commit();
+                return true;
+            } catch (SQLException e) {
+                conn.rollback();
+                throw e;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /** Cập nhật toàn bộ thông tin tài khoản và thông tin nhân viên đi kèm */
+    public boolean updateAccountWithUser(int accountId, String fullName, String email, String role, int departmentId, int positionId) {
+        String updateUser = "UPDATE users u " +
+                             "JOIN accounts a ON a.UserId = u.Id " +
+                             "SET u.FullName = ?, u.EmailCompany = ?, u.DepartmentId = ?, u.PositionId = ? " +
+                             "WHERE a.Id = ?";
+        String deleteRole = "DELETE FROM accountroles WHERE AccountId = ?";
+        String insertRole = "INSERT INTO accountroles (AccountId, RoleId) VALUES (?, (SELECT Id FROM roles WHERE Name = ?))";
+
+        try (Connection conn = DBConnection.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                // 1. Cập nhật thông tin User
+                try (PreparedStatement ps = conn.prepareStatement(updateUser)) {
+                    ps.setString(1, fullName);
+                    ps.setString(2, email);
+                    ps.setInt(3, departmentId);
+                    ps.setInt(4, positionId);
+                    ps.setInt(5, accountId);
+                    ps.executeUpdate();
+                }
+                
+                // 2. Xóa và thêm mới quyền trong bảng trung gian
+                try (PreparedStatement ps = conn.prepareStatement(deleteRole)) {
+                    ps.setInt(1, accountId);
+                    ps.executeUpdate();
+                }
+                try (PreparedStatement ps = conn.prepareStatement(insertRole)) {
+                    ps.setInt(1, accountId);
+                    ps.setString(2, role);
+                    ps.executeUpdate();
+                }
+                
                 conn.commit();
                 return true;
             } catch (SQLException e) {

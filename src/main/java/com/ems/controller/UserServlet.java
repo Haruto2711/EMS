@@ -137,6 +137,19 @@ public class UserServlet extends HttpServlet {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        } else if ("update".equalsIgnoreCase(action)) {
+            try {
+                int accountId = Integer.parseInt(request.getParameter("accountId"));
+                String fullName = request.getParameter("fullName");
+                String email = request.getParameter("email");
+                String role = request.getParameter("role");
+                int departmentId = Integer.parseInt(request.getParameter("departmentId"));
+                int positionId = Integer.parseInt(request.getParameter("positionId"));
+
+                userDAO.updateAccountWithUser(accountId, fullName, email, role, departmentId, positionId);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         response.sendRedirect(request.getContextPath() + "/users");
