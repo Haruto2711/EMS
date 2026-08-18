@@ -10,6 +10,26 @@
     }
     SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
     String username = (String) session.getAttribute("username");
+
+    Integer totalFilteredItems = (Integer) request.getAttribute("totalFilteredItems");
+    if (totalFilteredItems == null) totalFilteredItems = (requests != null ? requests.size() : 0);
+
+    Integer currentPage = (Integer) request.getAttribute("currentPage");
+    if (currentPage == null) currentPage = 1;
+
+    Integer pageSize = (Integer) request.getAttribute("pageSize");
+    if (pageSize == null) pageSize = 5;
+
+    Integer totalPages = (Integer) request.getAttribute("totalPages");
+    if (totalPages == null) totalPages = 1;
+
+    int startItem = totalFilteredItems > 0 ? (currentPage - 1) * pageSize + 1 : 0;
+    int endItem = Math.min(currentPage * pageSize, totalFilteredItems);
+%>
+<%!
+    private String buildPageUrl(String contextPath, int page, int pageSize) {
+        return contextPath + "/requests?action=myRequests&page=" + page + "&pageSize=" + pageSize;
+    }
 %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -17,7 +37,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EMS - Yêu cầu của tôi</title>
-    <link rel="stylesheet" href="ems.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/ems.css">
     <style>
         .request-actions { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; }
         .btn-create { display: inline-block; padding: 9px 16px; border-radius: 7px; background: #2563eb; color: #fff; text-decoration: none; font-size: 13px; font-weight: 600; }
@@ -60,7 +80,7 @@
             <a class="btn-create" href="request.jsp">+ Tạo yêu cầu</a>
         </div>
         <section class="card">
-            <div class="card-header"><span>Tất cả yêu cầu</span><span class="badge badge-active"><%= requests.size() %> yêu cầu</span></div>
+            <div class="card-header"><span>Tất cả yêu cầu</span><span class="badge badge-active"><%= totalFilteredItems %> yêu cầu</span></div>
             <% if (requests.isEmpty()) { %>
                 <div class="empty-state"><strong>Bạn chưa gửi yêu cầu nào.</strong><p>Tạo yêu cầu mới để bắt đầu.</p><a class="btn-create" href="request.jsp">Tạo yêu cầu</a></div>
             <% } else { %>
@@ -85,6 +105,51 @@
                     <% } %>
                     </tbody>
                 </table></div>
+
+                <!-- Thanh phân trang -->
+                <div class="hol-pagination" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-top: 1px solid #e5e7eb; flex-wrap: wrap; gap: 10px;">
+                    <div class="hol-page-info" style="font-size: 0.84rem; color: #6b7280;">
+                        <span>Hiển thị <strong><%= startItem %>-<%= endItem %></strong> / <%= totalFilteredItems %> yêu cầu</span>
+                    </div>
+                    <% if (totalPages > 1) { %>
+                    <div class="hol-page-btns" style="display: flex; align-items: center; gap: 4px;">
+                        <%-- Nút Trước --%>
+                        <a href="<%= buildPageUrl(request.getContextPath(), currentPage - 1, pageSize) %>"
+                           class="hol-page-btn <%= currentPage <= 1 ? "disabled" : "" %>">&lt; Trước</a>
+
+                        <%-- Các số trang --%>
+                        <%
+                            int winStart = Math.max(2, currentPage - 2);
+                            int winEnd = Math.min(totalPages - 1, currentPage + 2);
+                        %>
+
+                        <a href="<%= buildPageUrl(request.getContextPath(), 1, pageSize) %>"
+                           class="hol-page-btn <%= currentPage == 1 ? "active" : "" %>">1</a>
+
+                        <% if (currentPage > 4) { %>
+                            <span class="hol-page-ellipsis" style="color: #6b7280; padding: 0 4px;">&hellip;</span>
+                        <% } %>
+
+                        <% for (int p = winStart; p <= winEnd; p++) { %>
+                            <a href="<%= buildPageUrl(request.getContextPath(), p, pageSize) %>"
+                               class="hol-page-btn <%= p == currentPage ? "active" : "" %>"><%= p %></a>
+                        <% } %>
+
+                        <% if (currentPage < totalPages - 3) { %>
+                            <span class="hol-page-ellipsis" style="color: #6b7280; padding: 0 4px;">&hellip;</span>
+                        <% } %>
+
+                        <% if (totalPages > 1) { %>
+                            <a href="<%= buildPageUrl(request.getContextPath(), totalPages, pageSize) %>"
+                               class="hol-page-btn <%= currentPage == totalPages ? "active" : "" %>"><%= totalPages %></a>
+                        <% } %>
+
+                        <%-- Nút Tiếp --%>
+                        <a href="<%= buildPageUrl(request.getContextPath(), currentPage + 1, pageSize) %>"
+                           class="hol-page-btn <%= currentPage >= totalPages ? "disabled" : "" %>">Tiếp &gt;</a>
+                    </div>
+                    <% } %>
+                </div>
             <% } %>
         </section>
     </div>

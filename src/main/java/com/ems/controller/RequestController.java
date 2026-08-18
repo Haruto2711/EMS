@@ -187,7 +187,42 @@ public class RequestController extends HttpServlet {
         List<RequestDTO> list =
                 dao.getByCreatedByAccountId(accountId);
 
-        request.setAttribute("requests", list);
+        // Pagination handling
+        int page = 1;
+        String pageParam = request.getParameter("page");
+        if (pageParam != null && !pageParam.trim().isEmpty()) {
+            try {
+                page = Integer.parseInt(pageParam);
+            } catch (NumberFormatException ignored) {}
+        }
+        if (page < 1) page = 1;
+
+        int pageSize = 5;
+        String pageSizeParam = request.getParameter("pageSize");
+        if (pageSizeParam != null && !pageSizeParam.trim().isEmpty()) {
+            try {
+                pageSize = Integer.parseInt(pageSizeParam);
+            } catch (NumberFormatException ignored) {}
+        }
+        if (pageSize < 1) pageSize = 5;
+
+        int totalFilteredItems = list.size();
+        int totalPages = (int) Math.ceil((double) totalFilteredItems / pageSize);
+        if (totalPages < 1) totalPages = 1;
+        if (page > totalPages) page = totalPages;
+
+        int fromIndex = (page - 1) * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, totalFilteredItems);
+
+        List<RequestDTO> pagedRequests = (fromIndex < totalFilteredItems)
+                ? list.subList(fromIndex, toIndex)
+                : java.util.Collections.emptyList();
+
+        request.setAttribute("requests", pagedRequests);
+        request.setAttribute("totalFilteredItems", totalFilteredItems);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("pageSize", pageSize);
+        request.setAttribute("totalPages", totalPages);
 
         request.getRequestDispatcher(
                 "/requestList.jsp"
