@@ -121,19 +121,39 @@
                 boolean isActive = (status != null && status);
                 String phone = (String) emp.get("phone");
                 if (phone == null || phone.isEmpty()) phone = "—";
+
+                // Format giới tính
+                Object genderObj = emp.get("gender");
+                String genderStr = "—";
+                if (genderObj != null) {
+                    genderStr = ((Boolean) genderObj) ? "Nam" : "Nữ";
+                }
+                // Format ngày sinh
+                java.sql.Date dob = (java.sql.Date) emp.get("dateOfBirth");
+                String dobStr = "—";
+                if (dob != null) {
+                    java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy");
+                    dobStr = sdf.format(dob);
+                }
+                String deptStr = emp.get("departmentName") != null ? (String) emp.get("departmentName") : "—";
+                String posStr  = emp.get("positionName")   != null ? (String) emp.get("positionName")   : "—";
           %>
             <tr class="emp-row"
                 data-name="<%= emp.get("fullName") %>"
                 data-code="<%= emp.get("employeeCode") %>"
-                data-dept="<%= emp.get("departmentName") != null ? emp.get("departmentName") : "" %>"
-                data-status="<%= isActive ? "active" : "locked" %>">
+                data-dept="<%= deptStr %>"
+                data-status="<%= isActive ? "active" : "locked" %>"
+                data-dob="<%= dobStr %>"
+                data-gender="<%= genderStr %>"
+                data-phone="<%= phone.equals("—") ? "—" : phone %>"
+                data-pos="<%= posStr %>">
               <td><span class="emp-code"><%= emp.get("employeeCode") %></span></td>
               <td>
                 <div class="emp-name"><%= emp.get("fullName") %></div>
                 <div class="emp-email-sub"><%= emp.get("emailCompany") %></div>
               </td>
-              <td><%= emp.get("departmentName") != null ? emp.get("departmentName") : "—" %></td>
-              <td><%= emp.get("positionName")   != null ? emp.get("positionName")   : "—" %></td>
+              <td><%= deptStr %></td>
+              <td><%= posStr %></td>
               <td><%= emp.get("emailCompany") %></td>
               <td><%= phone %></td>
               <td>
@@ -142,6 +162,8 @@
                 </span>
               </td>
               <td>
+                <a href="javascript:void(0)" onclick="openViewEmpModal(this)"
+                   style="color:#6366f1; text-decoration:none; font-weight:600; margin-right:12px;">Xem</a>
                 <a href="javascript:void(0)"
                    onclick="openEditEmpModal(<%= emp.get("userId") %>, '<%= emp.get("fullName") %>', '<%= emp.get("emailCompany") %>', '<%= emp.get("phone") != null ? emp.get("phone") : "" %>')"
                    style="color:#0d9488; text-decoration:none; font-weight:600; margin-right:12px;">Sửa</a>
@@ -168,6 +190,61 @@
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- Modal Xem hồ sơ nhân viên -->
+<div id="viewEmpModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); backdrop-filter:blur(4px); z-index:1000; align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:12px; width:420px; max-width:94vw; box-shadow:0 20px 60px rgba(0,0,0,0.15);">
+    <!-- Header -->
+    <div style="padding:18px 22px; border-bottom:1px solid #f3f4f6; display:flex; justify-content:space-between; align-items:center;">
+      <span style="font-weight:700; font-size:16px; color:#111827;">Hồ sơ nhân viên</span>
+      <button onclick="closeViewEmpModal()" style="background:none; border:none; font-size:20px; cursor:pointer; color:#6b7280; line-height:1;">&times;</button>
+    </div>
+    <!-- Body -->
+    <div style="padding:22px;">
+      <!-- Mã NV + Tên -->
+      <div style="display:flex; align-items:center; gap:14px; margin-bottom:22px;">
+        <div>
+          <div style="font-size:12px; color:#9ca3af; font-weight:500;" id="viewEmpCode">EMP001</div>
+          <div style="font-size:16px; font-weight:700; color:#111827;" id="viewEmpName">Nguyễn Văn An</div>
+        </div>
+      </div>
+
+      <!-- Thông tin cá nhân -->
+      <div style="font-size:12px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;">— Thông tin cá nhân —</div>
+      <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px;">
+        <div style="display:flex; justify-content:space-between; font-size:13.5px;">
+          <span style="color:#6b7280;">Ngày sinh:</span>
+          <span style="color:#111827; font-weight:500;" id="viewEmpDob">—</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:13.5px;">
+          <span style="color:#6b7280;">Giới tính:</span>
+          <span style="color:#111827; font-weight:500;" id="viewEmpGender">—</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:13.5px;">
+          <span style="color:#6b7280;">SĐT:</span>
+          <span style="color:#111827; font-weight:500;" id="viewEmpPhone">—</span>
+        </div>
+      </div>
+
+      <!-- Thông tin công việc -->
+      <div style="font-size:12px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;">— Thông tin công việc —</div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div style="display:flex; justify-content:space-between; font-size:13.5px;">
+          <span style="color:#6b7280;">Phòng ban:</span>
+          <span style="color:#111827; font-weight:500;" id="viewEmpDept">—</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:13.5px;">
+          <span style="color:#6b7280;">Chức vụ:</span>
+          <span style="color:#111827; font-weight:500;" id="viewEmpPos">—</span>
+        </div>
+      </div>
+    </div>
+    <!-- Footer -->
+    <div style="padding:14px 22px; border-top:1px solid #f3f4f6; display:flex; justify-content:flex-end;">
+      <button onclick="closeViewEmpModal()" style="padding:9px 20px; border:1px solid #e5e7eb; border-radius:8px; background:#fff; font-size:13.5px; cursor:pointer; color:#374151;">Đóng</button>
+    </div>
   </div>
 </div>
 
@@ -245,6 +322,26 @@
   document.getElementById('editEmpModal').addEventListener('click', function(e) {
     if (e.target === this) closeEditEmpModal();
   });
+  document.getElementById('viewEmpModal').addEventListener('click', function(e) {
+    if (e.target === this) closeViewEmpModal();
+  });
+
+  function openViewEmpModal(btn) {
+    var row = btn.closest('tr');
+    var name = row.dataset.name;
+    document.getElementById('viewEmpCode').textContent   = row.dataset.code;
+    document.getElementById('viewEmpName').textContent   = name;
+    document.getElementById('viewEmpDob').textContent    = row.dataset.dob    || '—';
+    document.getElementById('viewEmpGender').textContent = row.dataset.gender || '—';
+    document.getElementById('viewEmpPhone').textContent  = row.dataset.phone  || '—';
+    document.getElementById('viewEmpDept').textContent   = row.dataset.dept   || '—';
+    document.getElementById('viewEmpPos').textContent    = row.dataset.pos    || '—';
+    document.getElementById('viewEmpModal').style.display = 'flex';
+  }
+
+  function closeViewEmpModal() {
+    document.getElementById('viewEmpModal').style.display = 'none';
+  }
 </script>
 </body>
 </html>
