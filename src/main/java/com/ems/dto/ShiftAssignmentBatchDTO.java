@@ -2,6 +2,7 @@ package com.ems.dto;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class ShiftAssignmentBatchDTO {
@@ -25,6 +26,15 @@ public class ShiftAssignmentBatchDTO {
     private List<Integer> employeeIds;
     private List<String> employeeNames;
 
+    private static final DateTimeFormatter VN_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+    public String getStartDateStr() {
+        return startDate != null ? startDate.format(VN_DATE) : null;
+    }
+
+    public String getEndDateStr() {
+        return endDate != null ? endDate.format(VN_DATE) : null;
+    }
     // Getters & Setters
     public Integer getId() {
         return id;
