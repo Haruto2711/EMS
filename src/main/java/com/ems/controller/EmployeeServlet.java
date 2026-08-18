@@ -67,11 +67,14 @@ public class EmployeeServlet extends HttpServlet {
 
         // Lấy danh sách phòng ban để lọc
         List<Map<String, Object>> deptsList = userDAO.getDepartments();
+        // Lấy danh sách chức vụ để sửa
+        List<Map<String, Object>> positionsList = userDAO.getPositions();
 
         request.setAttribute("employeeList", employeeList);
         request.setAttribute("totalEmp", totalEmp);
         request.setAttribute("activeEmp", activeEmp);
         request.setAttribute("deptsList", deptsList);
+        request.setAttribute("positionsList", positionsList);
         request.setAttribute("fullName", adminFullName);
         request.setAttribute("deptName", adminDeptName);
 
@@ -92,18 +95,40 @@ public class EmployeeServlet extends HttpServlet {
         String action = request.getParameter("action");
 
         if ("update".equals(action)) {
-            // Cập nhật thông tin cá nhân nhân viên
-            int userId       = Integer.parseInt(request.getParameter("userId"));
-            String fullName  = request.getParameter("fullName");
-            String email     = request.getParameter("email");
-            String phone     = request.getParameter("phone");
-            userDAO.updateEmployeeInfo(userId, fullName, email, phone);
+            try {
+                int userId       = Integer.parseInt(request.getParameter("userId"));
+                String fullName  = request.getParameter("fullName");
+                String email     = request.getParameter("email");
+                String phone     = request.getParameter("phone");
+                
+                Boolean genderVal = null;
+                String genderParam = request.getParameter("gender");
+                if (genderParam != null && !genderParam.trim().isEmpty()) {
+                    genderVal = Boolean.parseBoolean(genderParam);
+                }
+
+                java.sql.Date dobDate = null;
+                String dobParam = request.getParameter("dob");
+                if (dobParam != null && !dobParam.trim().isEmpty()) {
+                    dobDate = java.sql.Date.valueOf(dobParam.trim());
+                }
+
+                int departmentId = Integer.parseInt(request.getParameter("departmentId"));
+                int positionId   = Integer.parseInt(request.getParameter("positionId"));
+
+                userDAO.updateEmployeeInfo(userId, fullName, email, phone, genderVal, dobDate, departmentId, positionId);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
         } else if ("toggleStatus".equals(action)) {
-            // Bật/Tắt trạng thái nhân viên (bảng users)
-            int userId         = Integer.parseInt(request.getParameter("userId"));
-            boolean currStatus = Boolean.parseBoolean(request.getParameter("currentStatus"));
-            userDAO.updateEmployeeStatus(userId, !currStatus);
+            try {
+                int userId         = Integer.parseInt(request.getParameter("userId"));
+                boolean currStatus = Boolean.parseBoolean(request.getParameter("currentStatus"));
+                userDAO.updateEmployeeStatus(userId, !currStatus);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         response.sendRedirect(request.getContextPath() + "/employees");
