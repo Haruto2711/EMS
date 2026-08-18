@@ -34,8 +34,9 @@
     <div class="nav-section-label">Tổng quan</div>
     <a href="home" class="nav-link active">Trang chủ</a>
     <div class="nav-section-label">Quản trị</div>
-    <a href="users" class="nav-link">Tài khoản</a>
-    <a href="#" class="nav-link">Phân quyền</a>
+    <a href="users"     class="nav-link">Tài khoản</a>
+    <a href="employees" class="nav-link">Nhân viên</a>
+    <a href="#"         class="nav-link">Phân quyền</a>
   </nav>
   <div class="sidebar-footer">
     <div class="user-block">
