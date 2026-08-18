@@ -301,4 +301,68 @@ public class UserDAO {
         }
         return false;
     }
+
+    /** Lấy danh sách nhân viên đầy đủ thông tin (cho màn Quản lý thông tin nhân viên) */
+    public java.util.List<java.util.Map<String, Object>> getAllEmployees() {
+        java.util.List<java.util.Map<String, Object>> list = new java.util.ArrayList<>();
+        String query =
+            "SELECT u.Id as userId, u.EmployeeCode, u.FullName, u.EmailCompany, u.Phone, " +
+            "       u.Gender, u.DateOfBirth, u.Status as userStatus, u.DependentsCount, " +
+            "       d.Name as departmentName, p.Name as positionName, p.JobLevel " +
+            "FROM users u " +
+            "LEFT JOIN departments d ON u.DepartmentId = d.Id " +
+            "LEFT JOIN positions p ON u.PositionId = p.Id " +
+            "ORDER BY LENGTH(u.EmployeeCode) ASC, u.EmployeeCode ASC";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(query);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                java.util.Map<String, Object> map = new java.util.HashMap<>();
+                map.put("userId",         rs.getInt("userId"));
+                map.put("employeeCode",   rs.getString("EmployeeCode"));
+                map.put("fullName",       rs.getString("FullName"));
+                map.put("emailCompany",   rs.getString("EmailCompany"));
+                map.put("phone",          rs.getString("Phone"));
+                map.put("gender",         rs.getObject("Gender"));
+                map.put("dateOfBirth",    rs.getDate("DateOfBirth"));
+                map.put("userStatus",     rs.getBoolean("userStatus"));
+                map.put("dependentsCount",rs.getInt("DependentsCount"));
+                map.put("departmentName", rs.getString("departmentName"));
+                map.put("positionName",   rs.getString("positionName"));
+                map.put("jobLevel",       rs.getInt("JobLevel"));
+                list.add(map);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    /** Cập nhật thông tin cá nhân nhân viên (Họ tên, Email, SĐT) */
+    public void updateEmployeeInfo(int userId, String fullName, String email, String phone) {
+        String query = "UPDATE users SET FullName = ?, EmailCompany = ?, Phone = ? WHERE Id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setString(1, fullName);
+            ps.setString(2, email);
+            ps.setString(3, (phone != null && !phone.trim().isEmpty()) ? phone.trim() : null);
+            ps.setInt(4, userId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /** Bật/Tắt trạng thái nhân viên trong bảng users */
+    public void updateEmployeeStatus(int userId, boolean status) {
+        String query = "UPDATE users SET Status = ? WHERE Id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setBoolean(1, status);
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }
