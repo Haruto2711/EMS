@@ -71,7 +71,7 @@
           </div>
           <div class="sm-card-title">Xem lương cơ bản</div>
           <div class="sm-card-desc">
-            Quản lý mức lương cơ bản (Base Salary) hợp đồng và thiết lập số người phụ thuộc (NPT) cho toàn bộ nhân viên.
+            Quản lý mức lương cơ bản (Base Salary) hợp đồng cho toàn bộ nhân viên.
           </div>
         </div>
         <div class="sm-card-footer">
