@@ -30,9 +30,14 @@
                 Quản lý ngày nghỉ lễ
             </a>
 
-            <a href="${pageContext.request.contextPath}/requests?action=pending"
-               class="nav-link ${pageContext.request.servletPath == '/request-manager.jsp' ? 'active' : ''}">
-                Xử lý đơn
+            <a href="${pageContext.request.contextPath}/shift-management"
+               class="nav-link ${pageContext.request.servletPath == '/shift-management.jsp' ? 'active' : ''}">
+                Ca làm việc
+            </a>
+
+            <a href="${pageContext.request.contextPath}/shift-assignment"
+               class="nav-link ${pageContext.request.servletPath == '/shift-assignment.jsp' ? 'active' : ''}">
+                Phân ca làm việc
             </a>
 
             <a href="${pageContext.request.contextPath}/salary-management"

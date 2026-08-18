@@ -71,13 +71,13 @@ public class WorkScheduleDAO {
 
     private static String defaultShiftName(int dayOfWeek) {
         return switch (dayOfWeek) {
-            case 2 -> "Thứ Hai";
-            case 3 -> "Thứ Ba";
-            case 4 -> "Thứ Tư";
-            case 5 -> "Thứ Năm";
-            case 6 -> "Thứ Sáu";
-            case 7 -> "Thứ Bảy";
-            case 1 -> "Chủ Nhật";
+            case 1 -> "Thứ Hai";
+            case 2 -> "Thứ Ba";
+            case 3 -> "Thứ Tư";
+            case 4 -> "Thứ Năm";
+            case 5 -> "Thứ Sáu";
+            case 6 -> "Thứ Bảy";
+            case 7 -> "Chủ Nhật";
             default -> "Ngày " + dayOfWeek;
         };
     }
