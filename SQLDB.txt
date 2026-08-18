@@ -226,29 +226,95 @@ create table notifications
             on delete cascade
 );
 
-create table payslips
-(
-    Id                 int auto_increment
-        primary key,
-    BaseSalary         decimal(18, 2)                           not null,
-    OtSalary           decimal(18, 2) default 0.00              not null,
-    Allowances         decimal(18, 2) default 0.00              not null,
-    InsuranceDeduction decimal(18, 2) default 0.00              not null,
-    DependentDeduction decimal(18, 2) default 0.00              not null,
-    TaxDeduction       decimal(18, 2) default 0.00              not null,
-    OtherDeductions    decimal(18, 2) default 0.00              not null,
-    GrossAmount        decimal(18, 2)                           not null,
-    NetAmount          decimal(18, 2)                           not null,
-    Status             varchar(20)    default 'Draft'           not null,
-    Note               varchar(255)                             null,
-    CreatedAt          datetime       default CURRENT_TIMESTAMP not null,
-    UserId             int                                      not null,
-    PeriodId           int                                      not null,
-    constraint FK_Payslips_Periods
-        foreign key (PeriodId) references timesheetperiods (Id),
-    constraint FK_Payslips_Users
-        foreign key (UserId) references users (Id)
+CREATE TABLE payrollconfigs (
+    Id                      INT AUTO_INCREMENT PRIMARY KEY,
+    ConfigName              VARCHAR(100) NOT NULL,
+    EffectiveDate           DATE NOT NULL,
+    BhxhPercent             DECIMAL(5, 2) DEFAULT 8.00 NOT NULL,  -- 8% BHXH
+    BhytPercent             DECIMAL(5, 2) DEFAULT 1.50 NOT NULL,  -- 1.5% BHYT
+    BhtnPercent             DECIMAL(5, 2) DEFAULT 1.00 NOT NULL,  -- 1% BHTN
+    MaxInsuranceSalary      DECIMAL(18, 2) NULL,                  -- Lương đóng BH trần
+    PersonalTaxDeduction    DECIMAL(18, 2) DEFAULT 11000000.00 NOT NULL,
+    DependentTaxDeduction   DECIMAL(18, 2) DEFAULT 4400000.00 NOT NULL,
+    StandardWorkingDays     INT DEFAULT 22 NOT NULL,              -- Số ngày công chuẩn trong tháng
+    OtWeekdayRate           DECIMAL(3, 2) DEFAULT 1.50 NOT NULL,  -- Hệ số OT ngày thường (150%)
+    OtWeekendRate           DECIMAL(3, 2) DEFAULT 2.00 NOT NULL,  -- Hệ số OT cuối tuần (200%)
+    OtHolidayRate           DECIMAL(3, 2) DEFAULT 3.00 NOT NULL,  -- Hệ số OT ngày lễ (300%)
+    IsActive                BIT DEFAULT b'1' NOT NULL,
+    CreatedByAccountId      INT NULL,
+    CreatedAt               DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    CONSTRAINT FK_PayrollConfigs_Accounts FOREIGN KEY (CreatedByAccountId) REFERENCES accounts (Id)
 );
+
+CREATE TABLE allowancetypes (
+    Id                  INT AUTO_INCREMENT PRIMARY KEY,
+    Code                VARCHAR(20) NOT NULL,                 -- VD: PC_AN_TRUA, PC_XANG_XE
+    Name                VARCHAR(100) CHARSET utf8mb3 NOT NULL,
+    Type                VARCHAR(20) DEFAULT 'Allowance' NOT NULL, -- 'Allowance' (Phụ cấp cộng thêm) hoặc 'Deduction' (Giảm trừ)
+    CalculationMethod   VARCHAR(30) DEFAULT 'Fixed' NOT NULL, -- 'Fixed' (Cố định tháng) hoặc 'ByWorkDay' (Theo ngày đi làm)
+    DefaultAmount       DECIMAL(18, 2) DEFAULT 0.00 NOT NULL,
+    IsTaxable           BIT DEFAULT b'1' NOT NULL,            -- Có tính thuế TNCN không
+    TaxExemptLimit      DECIMAL(18, 2) DEFAULT 0.00 NOT NULL, -- Hạn mức miễn thuế 
+    IsInsuranceSalary   BIT DEFAULT b'0' NOT NULL,            -- Có tính vào lương đóng BHXH không
+    IsActive            BIT DEFAULT b'1' NOT NULL,
+    CONSTRAINT UQ_AllowanceTypes_Code UNIQUE (Code)
+);
+
+
+CREATE TABLE payslips
+(
+    Id                      INT AUTO_INCREMENT PRIMARY KEY,
+    UserId                  INT NOT NULL,           
+    PeriodId                INT NOT NULL,     
+    
+    -- 1. Ngày công & Giờ làm việc
+    StandardWorkDays        INT DEFAULT 22 NOT NULL, 
+    ActualWorkDays          DECIMAL(4, 1) DEFAULT 0.0 NOT NULL,
+    OtHours                 DECIMAL(5, 2) DEFAULT 0.00 NOT NULL,
+    
+    -- 2. Lương cơ bản & Lương theo ngày công
+    BaseSalary              DECIMAL(18, 2) NOT NULL,
+    ActualBaseSalary        DECIMAL(18, 2) DEFAULT 0.00 NOT NULL,      -- Lương thực tế = (BaseSalary / Standard) * Actual
+    OtSalary                DECIMAL(18, 2) DEFAULT 0.00 NOT NULL,
+    
+    -- 3. BA KHOẢN PHỤ CẤP CỐ ĐỊNH
+    LunchAllowance          DECIMAL(18, 2) DEFAULT 0.00 NOT NULL,      -- Phụ cấp ăn trưa (Miễn thuế tối đa 730k)
+    TransportAllowance      DECIMAL(18, 2) DEFAULT 0.00 NOT NULL,      -- Phụ cấp xăng xe, đi lại
+    PhoneAllowance          DECIMAL(18, 2) DEFAULT 0.00 NOT NULL,      -- Phụ cấp điện thoại, liên lạc
+    
+    -- 4. Thưởng & Tổng thu nhập Gross
+    BonusAmount             DECIMAL(18, 2) DEFAULT 0.00 NOT NULL,
+    GrossAmount             DECIMAL(18, 2) NOT NULL,                   -- Tổng Gross = ActualBaseSalary + OtSalary + 3 Phụ cấp + Bonus
+    
+    -- 5. Các khoản giảm trừ & Thuế TNCN
+    BhxhAmount DECIMAL(18, 2) DEFAULT 0.00 NOT NULL, -- BHXH (8.0%)
+    BhytAmount DECIMAL(18, 2) DEFAULT 0.00 NOT NULL, -- BHYT (1.5%)
+    BhtnAmount DECIMAL(18, 2) DEFAULT 0.00 NOT NULL, -- BHTN (1.0%)
+    TotalInsuranceDeduction DECIMAL(18, 2) DEFAULT 0.00 NOT NULL, -- Tổng trừ BH = Bhxh + Bhyt + Bhtn
+
+    DependentsCount         INT DEFAULT 0 NOT NULL,                    -- Số người phụ thuộc tại thời điểm tính
+    DependentDeduction      DECIMAL(18, 2) DEFAULT 0.00 NOT NULL,      -- Mức giảm trừ gia cảnh (11Tr + Người PT * 4.4Tr)
+    TaxableIncome           DECIMAL(18, 2) DEFAULT 0.00 NOT NULL,      -- Thu nhập tính thuế
+    TaxDeduction            DECIMAL(18, 2) DEFAULT 0.00 NOT NULL,      -- Tiền thuế TNCN khấu trừ
+    PenaltyAmount           DECIMAL(18, 2) DEFAULT 0.00 NOT NULL,      -- Tiền phạt vi phạm
+    AdvanceAmount           DECIMAL(18, 2) DEFAULT 0.00 NOT NULL,      -- Tạm ứng trừ lại
+    OtherDeductions         DECIMAL(18, 2) DEFAULT 0.00 NOT NULL,      -- Khấu trừ khác
+    
+    -- 6. Thực lĩnh & Trạng thái
+    NetAmount               DECIMAL(18, 2) NOT NULL,
+    Status                  VARCHAR(20) DEFAULT 'Draft' NOT NULL,      -- 'Draft', 'Confirmed', 'Paid'
+    Note                    VARCHAR(255) NULL,
+    
+    AdjustedByAccountId     INT NULL,
+    CreatedAt               DATETIME DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    UpdatedAt               DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+    
+    CONSTRAINT UQ_Payslips_User_Period UNIQUE (UserId, PeriodId),
+    CONSTRAINT FK_Payslips_Users FOREIGN KEY (UserId) REFERENCES users (Id) ON DELETE CASCADE,
+    CONSTRAINT FK_Payslips_Periods FOREIGN KEY (PeriodId) REFERENCES timesheetperiods (Id),
+    CONSTRAINT FK_Payslips_Accounts FOREIGN KEY (AdjustedByAccountId) REFERENCES accounts (Id)
+);
+
 
 create table shiftassignments
 (
@@ -286,4 +352,61 @@ CREATE TABLE salaryhistories
     CONSTRAINT FK_SalaryHistories_Accounts 
         FOREIGN KEY (UpdatedByAccountId) REFERENCES accounts (Id)
 );
+
+create table shiftassignmentbatches
+(
+    Id                int auto_increment
+        primary key,
+    Name              varchar(100)                                                 not null,
+    ShiftId           int                                                          not null,
+    StartDate         date                                                         not null,
+    EndDate           date                                                         null,
+    RecurType         enum ('NONE', 'WEEKLY', 'MONTHLY') default 'WEEKLY'          not null,
+    RecurInterval     tinyint                            default 1                 not null,
+    MonthlyType       enum ('WEEKDAY', 'DATE')                                     null,
+    MonthlyWeekday    tinyint                                                      null,
+    MonthlyOccurrence tinyint                                                      null,
+    MonthlyDay        tinyint                                                      null,
+    CreatedBy         int                                                          null,
+    CreatedAt         datetime                           default CURRENT_TIMESTAMP not null,
+    constraint FK_SAB_Accounts
+        foreign key (CreatedBy) references accounts (Id),
+    constraint FK_SAB_Shifts
+        foreign key (ShiftId) references shifts (Id),
+    constraint CHK_SAB_DateRange
+        check ((`EndDate` is null) or (`StartDate` <= `EndDate`))
+);
+
+create table shiftassignmentbatch_employees
+(
+    BatchId    int not null,
+    EmployeeId int not null,
+    primary key (BatchId, EmployeeId),
+    constraint FK_SABE_Batches
+        foreign key (BatchId) references shiftassignmentbatches (Id)
+            on delete cascade,
+    constraint FK_SABE_Users
+        foreign key (EmployeeId) references users (Id)
+            on delete cascade
+);
+
+
+create table shiftassignmentbatch_weekdays
+(
+    BatchId   int     not null,
+    DayOfWeek tinyint not null,
+    primary key (BatchId, DayOfWeek),
+    constraint FK_SABW_Batches
+        foreign key (BatchId) references shiftassignmentbatches (Id)
+            on delete cascade
+);
+
+
+
+create index idx_sab_dates
+    on shiftassignmentbatches (StartDate, EndDate);
+
+create index idx_sab_shift
+    on shiftassignmentbatches (ShiftId);
+
 
