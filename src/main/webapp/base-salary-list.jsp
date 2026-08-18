@@ -58,7 +58,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Lương hợp đồng &amp; Người phụ thuộc – EMS</title>
+  <title>Lương hợp đồng – EMS</title>
   <link rel="stylesheet" href="css/ems.css"/>
   <link rel="stylesheet" href="css/base-salary-list.css"/>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -107,8 +107,8 @@
   <div class="page-body">
     <!-- Header Section -->
     <div class="bs-header">
-      <h1>Lương hợp đồng &amp; Người phụ thuộc</h1>
-      <p>Thiết lập mức lương cơ bản (Base Salary) và số người phụ thuộc cho từng nhân viên</p>
+      <h1>Lương hợp đồng</h1>
+      <p>Thiết lập mức lương cơ bản (Base Salary) cho từng nhân viên</p>
     </div>
 
     <!-- Summary Metrics Grid -->
@@ -203,7 +203,6 @@
             <th>PHÒNG BAN <span class="sort-caret">^</span></th>
             <th>CHỨC VỤ <span class="sort-caret">^</span></th>
             <th>LƯƠNG CƠ BẢN <span class="sort-caret">^</span></th>
-            <th>SỐ NPT <span class="sort-caret">^</span></th>
             <th>HÀNH ĐỘNG</th>
           </tr>
         </thead>
@@ -222,7 +221,6 @@
                     String pos = item.getPositionName() != null ? item.getPositionName() : "Chưa phân công";
                     String formattedSalary = item.getFormattedBaseSalary() + " đ";
                     double rawSalary = item.getBaseSalary() != null ? item.getBaseSalary().doubleValue() : 0;
-                    int npt = item.getDependentsCount();
           %>
               <tr>
                 <td class="emp-code-text"><%= code %></td>
@@ -240,11 +238,8 @@
                 <td class="pos-text"><%= pos %></td>
                 <td class="salary-text"><%= formattedSalary %></td>
                 <td>
-                  <span class="npt-badge"><%= npt %></span>
-                </td>
-                <td>
                   <button type="button" class="btn-edit-outline" 
-                          onclick="openEditModal(<%= item.getUserId() %>, '<%= code %>', '<%= fullName.replace("'", "\\'") %>', '<%= dept.replace("'", "\\'") %>', '<%= pos.replace("'", "\\'") %>', <%= rawSalary %>, <%= npt %>)">
+                          onclick="openEditModal(<%= item.getUserId() %>, '<%= code %>', '<%= fullName.replace("'", "\\'") %>', '<%= dept.replace("'", "\\'") %>', '<%= pos.replace("'", "\\'") %>', <%= rawSalary %>)">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <path d="M12 20h9"></path>
                       <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
@@ -258,7 +253,7 @@
             } else { 
           %>
               <tr>
-                <td colspan="7" style="text-align: center; padding: 40px; color: #64748b;">
+                <td colspan="6" style="text-align: center; padding: 40px; color: #64748b;">
                   Không tìm thấy dữ liệu nhân viên nào phù hợp.
                 </td>
               </tr>
@@ -339,16 +334,6 @@
         </div>
       </div>
 
-      <!-- Dependents Stepper Input -->
-      <div class="modal-form-group">
-        <label>Số người phụ thuộc (NPT)</label>
-        <div class="stepper-control">
-          <button type="button" class="stepper-btn" onclick="changeNPT(-1)">-</button>
-          <input type="number" id="editDependentsCount" name="dependentsCount" class="stepper-input" value="2" min="0" readonly/>
-          <button type="button" class="stepper-btn" onclick="changeNPT(1)">+</button>
-        </div>
-      </div>
-
       <!-- Action Buttons -->
       <div class="modal-footer">
         <button type="button" class="btn-modal-cancel" onclick="closeEditModal()">Huỷ</button>
@@ -371,13 +356,12 @@
   tick();
 
   // Modal Functions
-  function openEditModal(userId, code, name, dept, pos, salary, dependents) {
+  function openEditModal(userId, code, name, dept, pos, salary) {
     document.getElementById('editUserId').value = userId;
     document.getElementById('modalSubtitle').textContent = code + ' · ' + name;
     document.getElementById('modalDept').textContent = dept || 'Chưa phân công';
     document.getElementById('modalPos').textContent = pos || 'Chưa phân công';
     document.getElementById('editBaseSalary').value = Math.round(salary);
-    document.getElementById('editDependentsCount').value = dependents || 0;
     
     var modal = document.getElementById('salaryModal');
     modal.style.display = 'flex';
@@ -386,14 +370,6 @@
   function closeEditModal() {
     var modal = document.getElementById('salaryModal');
     modal.style.display = 'none';
-  }
-
-  // Stepper function
-  function changeNPT(delta) {
-    var input = document.getElementById('editDependentsCount');
-    var val = parseInt(input.value) || 0;
-    val = Math.max(0, val + delta);
-    input.value = val;
   }
 
   // Change page size function
