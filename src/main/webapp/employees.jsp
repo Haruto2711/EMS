@@ -5,6 +5,7 @@
     Integer totalEmp   = (Integer) request.getAttribute("totalEmp");
     Integer activeEmp  = (Integer) request.getAttribute("activeEmp");
     List<Map<String, Object>> deptsList = (List<Map<String, Object>>) request.getAttribute("deptsList");
+    List<Map<String, Object>> positionsList = (List<Map<String, Object>>) request.getAttribute("positionsList");
     String fullName = (String) request.getAttribute("fullName");
     String deptName = (String) request.getAttribute("deptName");
 %>
@@ -28,10 +29,10 @@
   <nav class="nav-group">
     <div class="nav-section-label">Tổng quan</div>
     <a href="home" class="nav-link">Trang chủ</a>
-    <div class="nav-section-label">Quản lý</div>
-    <a href="users"     class="nav-link">Tài khoản</a>
-    <a href="employees" class="nav-link active">Nhân viên</a>
-    <a href="#"         class="nav-link">Phân quyền</a>
+    <div class="nav-section-label">Quản trị</div>
+    <a href="users"       class="nav-link">Tài khoản</a>
+    <a href="employees"   class="nav-link active">Nhân viên</a>
+    <a href="departments" class="nav-link">Phòng ban</a>
   </nav>
   <div class="sidebar-footer">
     <div class="user-block">
@@ -43,7 +44,7 @@
         <div class="user-role"><%= deptName != null ? deptName : "Quản trị viên" %></div>
       </div>
     </div>
-    <button class="btn-logout" onclick="window.location='login'">Đăng xuất</button>
+    <button class="btn-logout" onclick="window.location='logout'">Đăng xuất</button>
   </div>
 </aside>
 
@@ -139,14 +140,20 @@
                 String posStr  = emp.get("positionName")   != null ? (String) emp.get("positionName")   : "—";
           %>
             <tr class="emp-row"
+                data-user-id="<%= emp.get("userId") %>"
                 data-name="<%= emp.get("fullName") %>"
                 data-code="<%= emp.get("employeeCode") %>"
+                data-email="<%= emp.get("emailCompany") %>"
                 data-dept="<%= deptStr %>"
                 data-status="<%= isActive ? "active" : "locked" %>"
                 data-dob="<%= dobStr %>"
+                data-dob-raw="<%= dob != null ? dob.toString() : "" %>"
                 data-gender="<%= genderStr %>"
-                data-phone="<%= phone.equals("—") ? "—" : phone %>"
-                data-pos="<%= posStr %>">
+                data-gender-raw="<%= genderObj != null ? genderObj.toString() : "" %>"
+                data-phone="<%= phone.equals("—") ? "" : phone %>"
+                data-pos="<%= posStr %>"
+                data-dept-id="<%= emp.get("departmentId") != null ? emp.get("departmentId") : "" %>"
+                data-pos-id="<%= emp.get("positionId") != null ? emp.get("positionId") : "" %>">
               <td><span class="emp-code"><%= emp.get("employeeCode") %></span></td>
               <td>
                 <div class="emp-name"><%= emp.get("fullName") %></div>
@@ -164,8 +171,7 @@
               <td>
                 <a href="javascript:void(0)" onclick="openViewEmpModal(this)"
                    style="color:#6366f1; text-decoration:none; font-weight:600; margin-right:12px;">Xem</a>
-                <a href="javascript:void(0)"
-                   onclick="openEditEmpModal(<%= emp.get("userId") %>, '<%= emp.get("fullName") %>', '<%= emp.get("emailCompany") %>', '<%= emp.get("phone") != null ? emp.get("phone") : "" %>')"
+                <a href="javascript:void(0)" onclick="openEditEmpModal(this)"
                    style="color:#0d9488; text-decoration:none; font-weight:600; margin-right:12px;">Sửa</a>
                 <form action="employees" method="post" style="display:inline;">
                   <input type="hidden" name="action" value="toggleStatus"/>
@@ -258,7 +264,7 @@
     <form action="employees" method="post">
       <input type="hidden" name="action" value="update"/>
       <input type="hidden" name="userId" id="editEmpUserId"/>
-      <div class="modal-body" style="padding:20px 22px; display:flex; flex-direction:column; gap:14px;">
+      <div class="modal-body" style="padding:20px 22px; display:flex; flex-direction:column; gap:14px; max-height: 55vh; overflow-y: auto;">
         <div class="form-group">
           <label class="form-label" style="font-size:13px; font-weight:600; color:#374151; margin-bottom:5px; display:block;">Họ và tên</label>
           <input type="text" name="fullName" id="editEmpFullName" class="form-input" required
@@ -273,6 +279,34 @@
           <label class="form-label" style="font-size:13px; font-weight:600; color:#374151; margin-bottom:5px; display:block;">Số điện thoại</label>
           <input type="text" name="phone" id="editEmpPhone" class="form-input"
                  style="width:100%; padding:9px 12px; border:1px solid #e5e7eb; border-radius:8px; font-size:13.5px; outline:none; box-sizing:border-box;"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="font-size:13px; font-weight:600; color:#374151; margin-bottom:5px; display:block;">Giới tính</label>
+          <select name="gender" id="editEmpGender" class="form-input" style="width:100%; padding:9px 12px; border:1px solid #e5e7eb; border-radius:8px; font-size:13.5px; outline:none; box-sizing:border-box; height: 38px;">
+            <option value="true">Nam</option>
+            <option value="false">Nữ</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="font-size:13px; font-weight:600; color:#374151; margin-bottom:5px; display:block;">Ngày sinh</label>
+          <input type="date" name="dob" id="editEmpDob" class="form-input"
+                 style="width:100%; padding:9px 12px; border:1px solid #e5e7eb; border-radius:8px; font-size:13.5px; outline:none; box-sizing:border-box;"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="font-size:13px; font-weight:600; color:#374151; margin-bottom:5px; display:block;">Phòng ban</label>
+          <select name="departmentId" id="editEmpDept" class="form-input" style="width:100%; padding:9px 12px; border:1px solid #e5e7eb; border-radius:8px; font-size:13.5px; outline:none; box-sizing:border-box; height: 38px;">
+            <% if (deptsList != null) { for (Map<String, Object> d : deptsList) { %>
+              <option value="<%= d.get("id") %>"><%= d.get("name") %></option>
+            <% }} %>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" style="font-size:13px; font-weight:600; color:#374151; margin-bottom:5px; display:block;">Chức vụ</label>
+          <select name="positionId" id="editEmpPos" class="form-input" style="width:100%; padding:9px 12px; border:1px solid #e5e7eb; border-radius:8px; font-size:13.5px; outline:none; box-sizing:border-box; height: 38px;">
+            <% if (positionsList != null) { for (Map<String, Object> p : positionsList) { %>
+              <option value="<%= p.get("id") %>"><%= p.get("name") %></option>
+            <% }} %>
+          </select>
         </div>
       </div>
       <div style="padding:14px 22px; border-top:1px solid #f3f4f6; display:flex; justify-content:flex-end; gap:10px;">
@@ -305,11 +339,16 @@
     });
   }
 
-  function openEditEmpModal(userId, fullName, email, phone) {
-    document.getElementById('editEmpUserId').value  = userId;
-    document.getElementById('editEmpFullName').value = fullName;
-    document.getElementById('editEmpEmail').value   = email;
-    document.getElementById('editEmpPhone').value   = phone;
+  function openEditEmpModal(btn) {
+    var row = btn.closest('tr');
+    document.getElementById('editEmpUserId').value    = row.dataset.userId;
+    document.getElementById('editEmpFullName').value  = row.dataset.name;
+    document.getElementById('editEmpEmail').value     = row.dataset.email;
+    document.getElementById('editEmpPhone').value     = row.dataset.phone || '';
+    document.getElementById('editEmpGender').value    = row.dataset.genderRaw || 'true';
+    document.getElementById('editEmpDob').value       = row.dataset.dobRaw || '';
+    document.getElementById('editEmpDept').value      = row.dataset.deptId || '';
+    document.getElementById('editEmpPos').value       = row.dataset.posId || '';
     var modal = document.getElementById('editEmpModal');
     modal.style.display = 'flex';
   }

@@ -308,6 +308,7 @@ public class UserDAO {
         String query =
             "SELECT u.Id as userId, u.EmployeeCode, u.FullName, u.EmailCompany, u.Phone, " +
             "       u.Gender, u.DateOfBirth, u.Status as userStatus, u.DependentsCount, " +
+            "       u.DepartmentId, u.PositionId, " +
             "       d.Name as departmentName, p.Name as positionName, p.JobLevel " +
             "FROM users u " +
             "LEFT JOIN departments d ON u.DepartmentId = d.Id " +
@@ -327,6 +328,8 @@ public class UserDAO {
                 map.put("dateOfBirth",    rs.getDate("DateOfBirth"));
                 map.put("userStatus",     rs.getBoolean("userStatus"));
                 map.put("dependentsCount",rs.getInt("DependentsCount"));
+                map.put("departmentId",   rs.getInt("DepartmentId"));
+                map.put("positionId",     rs.getInt("PositionId"));
                 map.put("departmentName", rs.getString("departmentName"));
                 map.put("positionName",   rs.getString("positionName"));
                 map.put("jobLevel",       rs.getInt("JobLevel"));
@@ -338,15 +341,23 @@ public class UserDAO {
         return list;
     }
 
-    /** Cập nhật thông tin cá nhân nhân viên (Họ tên, Email, SĐT) */
-    public void updateEmployeeInfo(int userId, String fullName, String email, String phone) {
-        String query = "UPDATE users SET FullName = ?, EmailCompany = ?, Phone = ? WHERE Id = ?";
+    /** Cập nhật thông tin chi tiết nhân viên (Họ tên, Email, SĐT, Giới tính, Ngày sinh, Phòng ban, Chức vụ) */
+    public void updateEmployeeInfo(int userId, String fullName, String email, String phone, Boolean gender, java.sql.Date dateOfBirth, int departmentId, int positionId) {
+        String query = "UPDATE users SET FullName = ?, EmailCompany = ?, Phone = ?, Gender = ?, DateOfBirth = ?, DepartmentId = ?, PositionId = ? WHERE Id = ?";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(query)) {
             ps.setString(1, fullName);
             ps.setString(2, email);
             ps.setString(3, (phone != null && !phone.trim().isEmpty()) ? phone.trim() : null);
-            ps.setInt(4, userId);
+            if (gender != null) {
+                ps.setBoolean(4, gender);
+            } else {
+                ps.setNull(4, java.sql.Types.BIT);
+            }
+            ps.setDate(5, dateOfBirth);
+            ps.setInt(6, departmentId);
+            ps.setInt(7, positionId);
+            ps.setInt(8, userId);
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
