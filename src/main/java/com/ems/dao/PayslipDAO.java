@@ -44,8 +44,8 @@ public class PayslipDAO {
         List<ManagerPayslipDTO> list = new ArrayList<>();
 
         StringBuilder sql = new StringBuilder();
-        sql.append("SELECT p.Id AS PayslipId, p.BaseSalary, p.OtSalary, p.Allowances, ")
-           .append("p.InsuranceDeduction, p.DependentDeduction, p.TaxDeduction, p.OtherDeductions, ")
+        sql.append("SELECT p.Id AS PayslipId, p.BaseSalary, p.OtSalary, p.TotalAllowanceAmount, ")
+           .append("p.TotalInsuranceDeduction, p.DependentDeduction, p.TaxDeduction, p.OtherDeductions, ")
            .append("p.GrossAmount, p.NetAmount, p.Status, p.Note, p.CreatedAt, ")
            .append("u.Id AS UserId, u.EmployeeCode, u.FullName, ")
            .append("d.Name AS DepartmentName, pos.Name AS PositionName, ")
@@ -99,8 +99,8 @@ public class PayslipDAO {
 
                     dto.setBaseSalary(rs.getBigDecimal("BaseSalary"));
                     dto.setOtSalary(rs.getBigDecimal("OtSalary"));
-                    dto.setAllowances(rs.getBigDecimal("Allowances"));
-                    dto.setInsuranceDeduction(rs.getBigDecimal("InsuranceDeduction"));
+                    dto.setAllowances(rs.getBigDecimal("TotalAllowanceAmount"));
+                    dto.setInsuranceDeduction(rs.getBigDecimal("TotalInsuranceDeduction"));
                     dto.setDependentDeduction(rs.getBigDecimal("DependentDeduction"));
                     dto.setTaxDeduction(rs.getBigDecimal("TaxDeduction"));
                     dto.setOtherDeductions(rs.getBigDecimal("OtherDeductions"));
@@ -180,9 +180,9 @@ public class PayslipDAO {
                 }
 
                 if (!periodIds.isEmpty() && !userSalaries.isEmpty()) {
-                    String insertPayslip = "INSERT INTO payslips (BaseSalary, OtSalary, Allowances, InsuranceDeduction, " +
-                            "DependentDeduction, TaxDeduction, OtherDeductions, GrossAmount, NetAmount, Status, Note, UserId, PeriodId) " +
-                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    String insertPayslip = "INSERT INTO payslips (BaseSalary, OtSalary, TotalAllowanceAmount, TotalInsuranceDeduction, " +
+                            "DependentDeduction, TaxDeduction, OtherDeductions, GrossAmount, NetAmount, Status, Note, UserId, PeriodId, DependentsCount) " +
+                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
                     try (PreparedStatement ps = conn.prepareStatement(insertPayslip)) {
                         for (Integer pid : periodIds) {
@@ -222,6 +222,7 @@ public class PayslipDAO {
                                 ps.setString(11, "Đã tính toán tự động");
                                 ps.setInt(12, uid);
                                 ps.setInt(13, pid);
+                                ps.setInt(14, npt);
                                 ps.addBatch();
                             }
                         }

@@ -62,6 +62,7 @@
 .icon-indigo { background: #eef2ff; color: #4f46e5; }
 .icon-emerald { background: #ecfdf5; color: #059669; }
 .icon-amber { background: #fffbeb; color: #d97706; }
+.icon-purple { background: #faf5ff; color: #9333ea; }
 
 .sm-card-title {
   font-size: 17px;
@@ -118,4 +119,18 @@
 }
 .btn-action-indigo:hover {
   background: #4338ca;
+}
+.btn-action-amber {
+  background: #d97706;
+  color: #ffffff;
+}
+.btn-action-amber:hover {
+  background: #b45309;
+}
+.btn-action-purple {
+  background: #9333ea;
+  color: #ffffff;
+}
+.btn-action-purple:hover {
+  background: #7e22ce;
 }
