@@ -23,6 +23,12 @@
                     <i data-lucide="upload" class="w-4 h-4"></i>
                     <span>Upload file Excel</span>
                 </label>
+
+                <a href="${pageContext.request.contextPath}/export-excel"
+                           class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2.5 rounded-lg flex items-center space-x-2 text-sm shadow-sm transition">
+                            <i data-lucide="download" class="w-4 h-4"></i>
+                            <span>Export Excel</span>
+                        </a>
             </div>
 
             <% if (request.getAttribute("error") != null) { %>

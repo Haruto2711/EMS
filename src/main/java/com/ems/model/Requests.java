@@ -15,6 +15,7 @@ public class Requests {
     private Integer requesttypeid;
     private Integer createdbyaccountid;
     private Integer currentapproveraccountid;
+    private String rejectionreason;
 
     public Integer getId() {
         return id;
@@ -110,5 +111,13 @@ public class Requests {
 
     public void setCurrentapproveraccountid(Integer currentapproveraccountid) {
         this.currentapproveraccountid = currentapproveraccountid;
+    }
+
+    public String getRejectionreason() {
+        return rejectionreason;
+    }
+
+    public void setRejectionreason(String rejectionreason) {
+        this.rejectionreason = rejectionreason;
     }
 }

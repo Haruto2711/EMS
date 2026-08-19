@@ -1,0 +1,179 @@
+/* ===================================================================
+   ATTENDANCE PAGE
+   =================================================================== */
+
+.att-page-header {
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.att-page-header h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--dark);
+    letter-spacing: -0.02em;
+}
+
+.att-page-header p {
+    color: var(--slate-500);
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+}
+
+.att-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.att-header-actions .btn {
+    white-space: nowrap;
+}
+
+.att-header-actions i {
+    width: 16px;
+    height: 16px;
+}
+
+
+/* Upload input */
+
+.att-file-input {
+    display: none;
+}
+
+
+/* Upload card */
+
+.att-upload-card {
+    background: #fff;
+    border: 1px solid var(--slate-200);
+    border-radius: 20px;
+    box-shadow: var(--card-shadow);
+
+    min-height: 440px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    text-align: center;
+
+    padding: 5rem 2rem;
+
+    cursor: pointer;
+
+    transition: var(--transition);
+}
+
+.att-upload-card:hover {
+    border-color: var(--primary);
+    background: var(--slate-50);
+    transform: translateY(-1px);
+}
+
+
+/* Upload icon */
+
+.att-upload-icon {
+    width: 90px;
+    height: 90px;
+
+    background: linear-gradient(
+            135deg,
+            var(--primary-light),
+            #e0f2fe
+    );
+
+    border-radius: 24px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: var(--primary);
+
+    margin-bottom: 1.5rem;
+
+    box-shadow:
+            0 8px 20px rgba(79,70,229,0.15);
+}
+
+.att-upload-icon svg {
+    width: 40px;
+    height: 40px;
+}
+
+
+/* Upload title */
+
+.att-upload-card h2 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--dark);
+
+    margin-bottom: 0.5rem;
+}
+
+.att-upload-card p {
+    color: var(--slate-500);
+    font-size: 0.95rem;
+
+    max-width: 430px;
+
+    margin-bottom: 1.5rem;
+}
+
+
+/* Upload button */
+
+.att-upload-card .btn {
+    margin-bottom: 1.5rem;
+}
+
+.att-upload-card .btn svg {
+    width: 17px;
+    height: 17px;
+}
+
+
+/* File requirements */
+
+.att-file-hint {
+    font-size: 0.78rem;
+    color: var(--slate-400);
+
+    max-width: 650px;
+}
+
+
+/* Responsive */
+
+@media (max-width: 768px) {
+
+    .att-page-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .att-header-actions {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .att-header-actions .btn {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .att-upload-card {
+        min-height: 360px;
+        padding: 3rem 1.5rem;
+    }
+
+}

@@ -1,4 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
+
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
@@ -24,7 +25,10 @@
                class="nav-link ${pageContext.request.servletPath == '/work-schedule.jsp' ? 'active' : ''}">
                 Lịch làm việc
             </a>
-
+            <a href="${pageContext.request.contextPath}/requests?action=pending"
+                           class="nav-link ${pageContext.request.servletPath == '/request-manager.jsp' ? 'active' : ''}">
+                            Xử lý đơn
+                        </a>
             <a href="${pageContext.request.contextPath}/holiday"
                class="nav-link ${pageContext.request.servletPath == '/holiday.jsp' ? 'active' : ''}">
                 Quản lý ngày nghỉ lễ
@@ -93,6 +97,6 @@
                 <div class="user-role">Quản lý</div>
             </div>
         </div>
-        <button class="btn-logout" onclick="window.location='login'">Đăng xuất</button>
+        <button class="btn-logout" onclick="window.location='${pageContext.request.contextPath}/logout'">Đăng xuất</button>
     </div>
 </aside>

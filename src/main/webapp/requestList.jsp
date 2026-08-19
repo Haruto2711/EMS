@@ -10,6 +10,35 @@
     }
     SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
     String username = (String) session.getAttribute("username");
+
+    Integer totalFilteredItems = (Integer) request.getAttribute("totalFilteredItems");
+    if (totalFilteredItems == null) totalFilteredItems = (requests != null ? requests.size() : 0);
+
+    Integer currentPage = (Integer) request.getAttribute("currentPage");
+    if (currentPage == null) currentPage = 1;
+
+    Integer pageSize = (Integer) request.getAttribute("pageSize");
+    if (pageSize == null) pageSize = 5;
+
+    Integer totalPages = (Integer) request.getAttribute("totalPages");
+    if (totalPages == null) totalPages = 1;
+
+    int startItem = totalFilteredItems > 0 ? (currentPage - 1) * pageSize + 1 : 0;
+    int endItem = Math.min(currentPage * pageSize, totalFilteredItems);
+%>
+<%!
+    private String buildPageUrl(String contextPath, int page, int pageSize) {
+        return contextPath + "/requests?action=myRequests&page=" + page + "&pageSize=" + pageSize;
+    }
+
+    private String escapeAttr(String str) {
+        if (str == null) return "";
+        return str.replace("&", "&amp;")
+                  .replace("<", "&lt;")
+                  .replace(">", "&gt;")
+                  .replace("\"", "&quot;")
+                  .replace("'", "&#x27;");
+    }
 %>
 <!DOCTYPE html>
 <html lang="vi">
@@ -17,7 +46,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EMS - Yêu cầu của tôi</title>
-    <link rel="stylesheet" href="ems.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/ems.css">
     <style>
         .request-actions { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; }
         .btn-create { display: inline-block; padding: 9px 16px; border-radius: 7px; background: #2563eb; color: #fff; text-decoration: none; font-size: 13px; font-weight: 600; }
@@ -29,6 +58,8 @@
         .delete-form { display: inline; }
         .btn-delete { border: 0; background: transparent; color: #dc2626; font: inherit; font-size: 12px; cursor: pointer; }
         .btn-delete:hover { text-decoration: underline; }
+        .btn-view { border: 0; background: transparent; color: #2563eb; font: inherit; font-size: 12px; cursor: pointer; text-decoration: none; margin-right: 8px; }
+        .btn-view:hover { text-decoration: underline; }
         @media (max-width: 800px) { .sidebar { position: static; width: 100%; min-height: auto; } body { display: block; } .main-content { margin-left: 0; } .table-wrap { overflow-x: auto; } th, td { white-space: nowrap; } }
     </style>
 </head>
@@ -60,7 +91,7 @@
             <a class="btn-create" href="request.jsp">+ Tạo yêu cầu</a>
         </div>
         <section class="card">
-            <div class="card-header"><span>Tất cả yêu cầu</span><span class="badge badge-active"><%= requests.size() %> yêu cầu</span></div>
+            <div class="card-header"><span>Tất cả yêu cầu</span><span class="badge badge-active"><%= totalFilteredItems %> yêu cầu</span></div>
             <% if (requests.isEmpty()) { %>
                 <div class="empty-state"><strong>Bạn chưa gửi yêu cầu nào.</strong><p>Tạo yêu cầu mới để bắt đầu.</p><a class="btn-create" href="request.jsp">Tạo yêu cầu</a></div>
             <% } else { %>
@@ -73,25 +104,224 @@
                         if ("Approved".equalsIgnoreCase(status)) badgeClass = "badge-approved";
                         else if ("Rejected".equalsIgnoreCase(status)) badgeClass = "badge-rejected";
                     %>
-                    <tr>
+                    <tr style="cursor: pointer;" onclick="showRequestDetail(this)"
+                        data-id="<%= item.getId() %>"
+                        data-title="<%= escapeAttr(item.getTitle()) %>"
+                        data-type="<%= escapeAttr(item.getRequestTypeName()) %>"
+                        data-time="<%= item.getStartDate() != null ? dateFormat.format(item.getStartDate()) : "-" %> đến <%= item.getEndDate() != null ? dateFormat.format(item.getEndDate()) : "-" %>"
+                        data-value="<%= item.getValue() %>"
+                        data-approver="<%= escapeAttr(item.getCurrentApproverName() != null ? item.getCurrentApproverName() : "Chưa phân công") %>"
+                        data-status="<%= "Approved".equalsIgnoreCase(status) ? "Đã duyệt" : "Rejected".equalsIgnoreCase(status) ? "Từ chối" : "Chờ duyệt" %>"
+                        data-status-class="<%= badgeClass %>"
+                        data-reason="<%= escapeAttr(item.getReason()) %>"
+                        data-image-url="<%= escapeAttr(item.getImageUrl()) %>"
+                        data-created-at="<%= item.getCreatedAt() != null ? dateFormat.format(item.getCreatedAt()) : "-" %>">
                         <td><div class="request-title"><%= item.getTitle() %></div><div class="request-reason" title="<%= item.getReason() == null ? "" : item.getReason() %>"><%= item.getReason() == null ? "" : item.getReason() %></div></td>
                         <td><%= item.getRequestTypeName() %></td>
                         <td><%= item.getStartDate() != null ? dateFormat.format(item.getStartDate()) : "-" %><br><span style="color:#9ca3af; font-size:12px;">đến <%= item.getEndDate() != null ? dateFormat.format(item.getEndDate()) : "-" %></span></td>
                         <td><%= item.getValue() %></td>
                         <td><%= item.getCurrentApproverName() != null ? item.getCurrentApproverName() : "Chưa phân công" %></td>
                         <td><span class="badge <%= badgeClass %>"><%= "Approved".equalsIgnoreCase(status) ? "Đã duyệt" : "Rejected".equalsIgnoreCase(status) ? "Từ chối" : "Chờ duyệt" %></span></td>
-                        <td><% if ("Pending".equalsIgnoreCase(status)) { %><form class="delete-form" method="post" action="<%= request.getContextPath() %>/requests" onsubmit="return confirm('Bạn có muốn hủy yêu cầu này?');"><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<%= item.getId() %>"><button class="btn-delete" type="submit">Hủy</button></form><% } %></td>
+                        <td onclick="event.stopPropagation();">
+                            <a href="javascript:void(0)" class="btn-view" onclick="showRequestDetail(this.closest('tr'))">Xem</a>
+                            <% if ("Pending".equalsIgnoreCase(status)) { %>
+                                <form class="delete-form" method="post" action="<%= request.getContextPath() %>/requests" onsubmit="return confirm('Bạn có muốn hủy yêu cầu này?');">
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="id" value="<%= item.getId() %>">
+                                    <button class="btn-delete" type="submit">Hủy</button>
+                                </form>
+                            <% } %>
+                        </td>
                     </tr>
                     <% } %>
                     </tbody>
                 </table></div>
+
+                <!-- Thanh phân trang -->
+                <div class="hol-pagination" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-top: 1px solid #e5e7eb; flex-wrap: wrap; gap: 10px;">
+                    <div class="hol-page-info" style="font-size: 0.84rem; color: #6b7280;">
+                        <span>Hiển thị <strong><%= startItem %>-<%= endItem %></strong> / <%= totalFilteredItems %> yêu cầu</span>
+                    </div>
+                    <% if (totalPages > 1) { %>
+                    <div class="hol-page-btns" style="display: flex; align-items: center; gap: 4px;">
+                        <%-- Nút Trước --%>
+                        <a href="<%= buildPageUrl(request.getContextPath(), currentPage - 1, pageSize) %>"
+                           class="hol-page-btn <%= currentPage <= 1 ? "disabled" : "" %>">&lt; Trước</a>
+
+                        <%-- Các số trang --%>
+                        <%
+                            int winStart = Math.max(2, currentPage - 2);
+                            int winEnd = Math.min(totalPages - 1, currentPage + 2);
+                        %>
+
+                        <a href="<%= buildPageUrl(request.getContextPath(), 1, pageSize) %>"
+                           class="hol-page-btn <%= currentPage == 1 ? "active" : "" %>">1</a>
+
+                        <% if (currentPage > 4) { %>
+                            <span class="hol-page-ellipsis" style="color: #6b7280; padding: 0 4px;">&hellip;</span>
+                        <% } %>
+
+                        <% for (int p = winStart; p <= winEnd; p++) { %>
+                            <a href="<%= buildPageUrl(request.getContextPath(), p, pageSize) %>"
+                               class="hol-page-btn <%= p == currentPage ? "active" : "" %>"><%= p %></a>
+                        <% } %>
+
+                        <% if (currentPage < totalPages - 3) { %>
+                            <span class="hol-page-ellipsis" style="color: #6b7280; padding: 0 4px;">&hellip;</span>
+                        <% } %>
+
+                        <% if (totalPages > 1) { %>
+                            <a href="<%= buildPageUrl(request.getContextPath(), totalPages, pageSize) %>"
+                               class="hol-page-btn <%= currentPage == totalPages ? "active" : "" %>"><%= totalPages %></a>
+                        <% } %>
+
+                        <%-- Nút Tiếp --%>
+                        <a href="<%= buildPageUrl(request.getContextPath(), currentPage + 1, pageSize) %>"
+                           class="hol-page-btn <%= currentPage >= totalPages ? "disabled" : "" %>">Tiếp &gt;</a>
+                    </div>
+                    <% } %>
+                </div>
             <% } %>
         </section>
     </div>
     <footer>© 2026 Hệ thống Quản lý Nhân sự (EMS) · FPT University SWP391</footer>
 </main>
+
+<!-- Modal Chi tiết Yêu cầu -->
+<div class="modal-overlay" id="requestDetailModal" style="display: none;">
+  <div class="modal" style="max-width: 600px; display: flex; flex-direction: column;">
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <div class="modal-header-icon" style="display: flex; align-items: center; justify-content: center;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+        </div>
+        <div>
+          <div class="modal-title">Chi tiết yêu cầu</div>
+          <div class="modal-subtitle" id="detailModalSubtitle">Mã đơn và thông tin gửi</div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeDetailModal()">✕</button>
+    </div>
+    <div class="modal-body" style="padding: 20px; overflow-y: auto;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 10px 0; font-weight: 600; color: #475569; width: 150px;">Tiêu đề:</td>
+          <td style="padding: 10px 0; color: #1e293b;" id="detTitle">-</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 10px 0; font-weight: 600; color: #475569;">Loại đơn:</td>
+          <td style="padding: 10px 0; color: #1e293b;" id="detType">-</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 10px 0; font-weight: 600; color: #475569;">Thời gian:</td>
+          <td style="padding: 10px 0; color: #1e293b;" id="detTime">-</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 10px 0; font-weight: 600; color: #475569;">Giá trị / Số ngày:</td>
+          <td style="padding: 10px 0; color: #1e293b;" id="detValue">-</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 10px 0; font-weight: 600; color: #475569;">Trạng thái:</td>
+          <td style="padding: 10px 0;" id="detStatusContainer"><span class="badge" id="detStatus">-</span></td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 10px 0; font-weight: 600; color: #475569;">Người phê duyệt:</td>
+          <td style="padding: 10px 0; color: #1e293b;" id="detApprover">-</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 10px 0; font-weight: 600; color: #475569;">Ngày tạo:</td>
+          <td style="padding: 10px 0; color: #1e293b;" id="detCreatedAt">-</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 10px 0; font-weight: 600; color: #475569; vertical-align: top;">Lý do / Nội dung:</td>
+          <td style="padding: 10px 0; color: #1e293b; white-space: pre-wrap;" id="detReason">-</td>
+        </tr>
+        <tr id="detImageRow" style="border-bottom: 1px solid #f1f5f9; display: none;">
+          <td style="padding: 10px 0; font-weight: 600; color: #475569; vertical-align: top;">Minh chứng:</td>
+          <td style="padding: 10px 0; color: #1e293b;">
+            <a id="detImageLink" href="#" target="_blank" style="color: #2563eb; text-decoration: underline; display: block; margin-bottom: 5px;">Xem ảnh gốc</a>
+            <img id="detImagePreview" src="" alt="Minh chứng" style="max-width: 100%; max-height: 200px; border-radius: 8px; border: 1px solid #e2e8f0; display: block; margin-top: 5px;">
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" onclick="closeDetailModal()">Đóng</button>
+    </div>
+  </div>
+</div>
+
 <script>
     (function () { var now = new Date(), pad = function (n) { return String(n).padStart(2, '0'); }; document.getElementById('topbar-date').textContent = pad(now.getDate()) + '/' + pad(now.getMonth() + 1) + '/' + now.getFullYear(); }());
+
+    function showRequestDetail(row) {
+        var id = row.getAttribute('data-id');
+        var title = row.getAttribute('data-title');
+        var type = row.getAttribute('data-type');
+        var time = row.getAttribute('data-time');
+        var value = row.getAttribute('data-value');
+        var approver = row.getAttribute('data-approver');
+        var status = row.getAttribute('data-status');
+        var statusClass = row.getAttribute('data-status-class');
+        var reason = row.getAttribute('data-reason');
+        var imageUrl = row.getAttribute('data-image-url');
+        var createdAt = row.getAttribute('data-created-at');
+
+        document.getElementById('detailModalSubtitle').textContent = 'Mã đơn #' + id + ' · Gửi lúc ' + createdAt;
+        document.getElementById('detTitle').textContent = title;
+        document.getElementById('detType').textContent = type;
+        document.getElementById('detTime').textContent = time;
+        document.getElementById('detValue').textContent = value;
+        
+        var statusBadge = document.getElementById('detStatus');
+        statusBadge.className = 'badge ' + statusClass;
+        statusBadge.textContent = status;
+
+        document.getElementById('detApprover').textContent = approver;
+        document.getElementById('detCreatedAt').textContent = createdAt;
+        document.getElementById('detReason').textContent = reason ? reason : "Không có nội dung";
+
+        var imgRow = document.getElementById('detImageRow');
+        if (imageUrl && imageUrl.trim() !== '') {
+            imgRow.style.display = '';
+            document.getElementById('detImageLink').href = imageUrl;
+            document.getElementById('detImagePreview').src = imageUrl;
+        } else {
+            imgRow.style.display = 'none';
+        }
+
+        var modal = document.getElementById('requestDetailModal');
+        modal.style.display = 'flex';
+        modal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeDetailModal() {
+        var modal = document.getElementById('requestDetailModal');
+        modal.style.display = 'none';
+        modal.classList.remove('open');
+        document.body.style.overflow = '';
+    }
+
+    // Đóng modal khi click ra ngoài card
+    window.addEventListener('click', function(event) {
+        var modal = document.getElementById('requestDetailModal');
+        if (event.target === modal) {
+            closeDetailModal();
+        }
+    });
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeDetailModal();
+        }
+    });
 </script>
 </body>
 </html>
