@@ -119,3 +119,10 @@
 .btn-action-indigo:hover {
   background: #4338ca;
 }
+.btn-action-amber {
+  background: #d97706;
+  color: #ffffff;
+}
+.btn-action-amber:hover {
+  background: #b45309;
+}
