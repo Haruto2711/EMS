@@ -20,6 +20,7 @@
   <title>EMS – Quản lý phòng ban</title>
   <link rel="stylesheet" href="css/ems.css"/>
   <link rel="stylesheet" href="css/users.css"/>
+  <link rel="stylesheet" href="css/departments.css"/>
 </head>
 <body>
 
@@ -86,9 +87,9 @@
 
     <!-- Main Card -->
     <div class="card">
-      <div class="card-header" style="display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; color: #111827; border-bottom: 1px solid #f3f4f6; padding: 14px 18px;">
+      <div class="card-header">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0d9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="9" y1="22" x2="9" y2="22.01"></line><line x1="15" y1="22" x2="15" y2="22.01"></line><line x1="9" y1="6" x2="9" y2="6.01"></line><line x1="15" y1="6" x2="15" y2="6.01"></line><line x1="9" y1="10" x2="9" y2="10.01"></line><line x1="15" y1="10" x2="15" y2="10.01"></line><line x1="9" y1="14" x2="9" y2="14.01"></line><line x1="15" y1="14" x2="15" y2="14.01"></line><line x1="9" y1="18" x2="9" y2="18.01"></line><line x1="15" y1="18" x2="15" y2="18.01"></line></svg>
-        Danh sách phòng ban
+        <span>Danh sách phòng ban</span>
       </div>
 
       <!-- Filter / Search Bar -->
@@ -128,10 +129,7 @@
               </td>
               <td style="padding: 12px 16px;">
                 <% if (headName != null && !headName.isEmpty()) { %>
-                  <div class="head-manager-cell">
-                    <div class="head-avatar-circle"><%= headName.substring(0,1).toUpperCase() %></div>
-                    <span style="font-weight: 500; color: #1f2937;"><%= headName %></span>
-                  </div>
+                  <span style="font-weight: 500; color: #111827;"><%= headName %></span>
                 <% } else { %>
                   <span class="badge-unassigned">Chưa bổ nhiệm</span>
                 <% } %>
