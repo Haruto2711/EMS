@@ -12,9 +12,7 @@ public class Payslips {
     private java.math.BigDecimal basesalary;
     private java.math.BigDecimal actualbasesalary;
     private java.math.BigDecimal otsalary;
-    private java.math.BigDecimal lunchallowance;
-    private java.math.BigDecimal transportallowance;
-    private java.math.BigDecimal phoneallowance;
+    private java.math.BigDecimal totalallowanceamount;
     private java.math.BigDecimal bonusamount;
     private java.math.BigDecimal grossamount;
     private java.math.BigDecimal bhxhamount;
@@ -62,14 +60,8 @@ public class Payslips {
     public java.math.BigDecimal getOtsalary() { return otsalary; }
     public void setOtsalary(java.math.BigDecimal otsalary) { this.otsalary = otsalary; }
     
-    public java.math.BigDecimal getLunchallowance() { return lunchallowance; }
-    public void setLunchallowance(java.math.BigDecimal lunchallowance) { this.lunchallowance = lunchallowance; }
-    
-    public java.math.BigDecimal getTransportallowance() { return transportallowance; }
-    public void setTransportallowance(java.math.BigDecimal transportallowance) { this.transportallowance = transportallowance; }
-    
-    public java.math.BigDecimal getPhoneallowance() { return phoneallowance; }
-    public void setPhoneallowance(java.math.BigDecimal phoneallowance) { this.phoneallowance = phoneallowance; }
+    public java.math.BigDecimal getTotalallowanceamount() { return totalallowanceamount; }
+    public void setTotalallowanceamount(java.math.BigDecimal totalallowanceamount) { this.totalallowanceamount = totalallowanceamount; }
     
     public java.math.BigDecimal getBonusamount() { return bonusamount; }
     public void setBonusamount(java.math.BigDecimal bonusamount) { this.bonusamount = bonusamount; }

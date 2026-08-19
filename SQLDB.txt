@@ -62,7 +62,7 @@ create table requests
     Status                   varchar(20) default 'Pending'         not null,
     StartDate                datetime                              not null,
     EndDate                  datetime                              not null,
-    Value                    decimal(5, 1)                         not null,
+    Value                    decimal(18, 1)                         not null,
     ImageUrl                 varchar(500) charset utf8mb3          null,
     CreatedAt                datetime    default CURRENT_TIMESTAMP not null,
     RequestTypeId            int                                   not null,
@@ -277,10 +277,8 @@ CREATE TABLE payslips
     ActualBaseSalary        DECIMAL(18, 2) DEFAULT 0.00 NOT NULL,      -- Lương thực tế = (BaseSalary / Standard) * Actual
     OtSalary                DECIMAL(18, 2) DEFAULT 0.00 NOT NULL,
     
-    -- 3. BA KHOẢN PHỤ CẤP CỐ ĐỊNH
-    LunchAllowance          DECIMAL(18, 2) DEFAULT 0.00 NOT NULL,      -- Phụ cấp ăn trưa (Miễn thuế tối đa 730k)
-    TransportAllowance      DECIMAL(18, 2) DEFAULT 0.00 NOT NULL,      -- Phụ cấp xăng xe, đi lại
-    PhoneAllowance          DECIMAL(18, 2) DEFAULT 0.00 NOT NULL,      -- Phụ cấp điện thoại, liên lạc
+    -- 3. PHỤ CẤP
+    TotalAllowanceAmount DECIMAL(18, 2) DEFAULT 0.00 NOT NULL,
     
     -- 4. Thưởng & Tổng thu nhập Gross
     BonusAmount             DECIMAL(18, 2) DEFAULT 0.00 NOT NULL,
@@ -314,6 +312,20 @@ CREATE TABLE payslips
     CONSTRAINT FK_Payslips_Periods FOREIGN KEY (PeriodId) REFERENCES timesheetperiods (Id),
     CONSTRAINT FK_Payslips_Accounts FOREIGN KEY (AdjustedByAccountId) REFERENCES accounts (Id)
 );
+
+CREATE TABLE payslip_allowances
+(
+    Id              INT AUTO_INCREMENT PRIMARY KEY,
+    PayslipId       INT NOT NULL, 
+    AllowanceTypeId INT NOT NULL,        
+    Amount          DECIMAL(18, 2) DEFAULT 0.00 NOT NULL,-- Số tiền thực nhận tháng này
+    
+    CONSTRAINT FK_PayslipAllowances_Payslips 
+        FOREIGN KEY (PayslipId) REFERENCES payslips (Id) ON DELETE CASCADE,
+    CONSTRAINT FK_PayslipAllowances_AllowanceTypes 
+        FOREIGN KEY (AllowanceTypeId) REFERENCES allowancetypes (Id)
+);
+
 
 
 create table shiftassignments
