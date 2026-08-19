@@ -1,5 +1,6 @@
 package com.ems.dao;
 
+import com.ems.model.Users;
 import com.ems.util.DBConnection;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -375,5 +376,36 @@ public class UserDAO {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    /** Lấy thông tin user (Users) theo userId */
+    public Users getById(int userId) {
+        String query = "SELECT * FROM users WHERE Id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Users user = new Users();
+                    user.setId(rs.getInt("Id"));
+                    user.setEmployeecode(rs.getString("EmployeeCode"));
+                    user.setFullname(rs.getString("FullName"));
+                    user.setEmailcompany(rs.getString("EmailCompany"));
+                    user.setPhone(rs.getString("Phone"));
+                    user.setGender(rs.getBoolean("Gender"));
+                    if (rs.getDate("DateOfBirth") != null) {
+                        user.setDateofbirth(rs.getDate("DateOfBirth").toLocalDate());
+                    }
+                    user.setStatus(rs.getBoolean("Status"));
+                    user.setDepartmentid(rs.getInt("DepartmentId"));
+                    user.setPositionid(rs.getInt("PositionId"));
+                    user.setDependentscount(rs.getInt("DependentsCount"));
+                    return user;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

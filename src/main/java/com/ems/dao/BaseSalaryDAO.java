@@ -3,6 +3,7 @@ package com.ems.dao;
 import com.ems.dto.BaseSalaryDTO;
 import com.ems.dto.SalarySummaryDTO;
 import com.ems.model.Departments;
+import com.ems.model.Employmentbasesalarys;
 import com.ems.model.Positions;
 import com.ems.util.DBConnection;
 
@@ -287,5 +288,26 @@ public class BaseSalaryDAO {
                 }
             }
         }
+    }
+
+    /** Lấy thông tin lương cơ bản theo userId */
+    public Employmentbasesalarys getByUserId(int userId) {
+        String sql = "SELECT * FROM employmentbasesalarys WHERE UserId = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Employmentbasesalarys item = new Employmentbasesalarys();
+                    item.setId(rs.getInt("Id"));
+                    item.setBasesalary(rs.getBigDecimal("BaseSalary"));
+                    item.setUserid(rs.getInt("UserId"));
+                    return item;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
