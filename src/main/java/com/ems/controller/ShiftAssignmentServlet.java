@@ -79,7 +79,7 @@ public class ShiftAssignmentServlet extends HttpServlet {
                         b.setMonthlyDay(Integer.parseInt(req.getParameter("monthlyDay")));
                     }
                 }
-
+                String scope = req.getParameter("scope");
                 Integer accountId = (Integer) req.getSession().getAttribute("accountId");
                 b.setCreatedBy(accountId);
 
@@ -94,9 +94,9 @@ public class ShiftAssignmentServlet extends HttpServlet {
                     for (String e : empParams) empIds.add(Integer.parseInt(e));
 
                 if (b.getId() == null) {
-                    service.create(b, weekdays, empIds);
+                    service.create(b, weekdays, empIds, scope);
                 } else {
-                    service.update(b, weekdays, empIds);
+                    service.update(b, weekdays, empIds, scope);
                 }
             }
             resp.sendRedirect(req.getContextPath() + "/shift-assignment");

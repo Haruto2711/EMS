@@ -1,4 +1,7 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page contentType="text/html;charset=UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ page import="java.util.List, java.util.Map" %>
 <%
     if (request.getAttribute("isLoaded") == null) {
@@ -25,33 +28,7 @@
   <link rel="stylesheet" href="css/ems.css"/>
 </head>
 <body>
-
-<aside class="sidebar">
-  <a href="home" class="sidebar-brand">
-    <div class="brand-dot">E</div>
-    <span class="brand-name">EMS</span>
-  </a>
-  <nav class="nav-group">
-    <div class="nav-section-label">Menu chính</div>
-    <a href="home" class="nav-link active">Trang chủ</a>
-    <a href="#" class="nav-link">Lịch trình</a>
-    <div class="nav-section-label">Công việc</div>
-    <a href="${pageContext.request.contextPath}/request.jsp" class="nav-link">Yêu cầu</a>
-    <a href="#" class="nav-link">Bảng lương</a>
-  </nav>
-  <div class="sidebar-footer">
-    <div class="user-block">
-      <div class="user-avatar">
-        <%= fullName != null && !fullName.isEmpty() ? fullName.substring(0,1).toUpperCase() : "N" %>
-      </div>
-      <div>
-        <div class="user-name"><%= fullName != null ? fullName : "Nhân viên" %></div>
-        <div class="user-role"><%= deptName != null ? deptName : "Nhân viên" %></div>
-      </div>
-    </div>
-    <button class="btn-logout" onclick="window.location='login'">Đăng xuất</button>
-  </div>
-</aside>
+<%@include file="/WEB-INF/jspf/sidebar.jsp"%>
 
 <div class="main-content">
   <div class="topbar">

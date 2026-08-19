@@ -122,6 +122,36 @@ public class ShiftAssignmentDAO {
     }
 
     /**
+     * Lấy đầy đủ thông tin nhân viên (mã NV, họ tên, phòng ban) của 1 batch.
+     * Dùng cho ExportAttendanceServlet khi tạo file Excel template chấm công.
+     */
+    public static List<EmployeeDTO> getEmployeesOfBatch(int batchId) {
+        List<EmployeeDTO> list = new ArrayList<>();
+        String sql =
+                "SELECT u.Id, u.EmployeeCode, u.FullName, d.Name AS DeptName " +
+                "FROM shiftassignmentbatch_employees e " +
+                "JOIN users u ON e.EmployeeId = u.Id " +
+                "LEFT JOIN departments d ON u.DepartmentId = d.Id " +
+                "WHERE e.BatchId = ? ORDER BY u.FullName";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, batchId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(new EmployeeDTO(
+                            rs.getInt("Id"),
+                            rs.getString("EmployeeCode"),
+                            rs.getString("FullName"),
+                            rs.getString("DeptName")));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return list;
+    }
+
+    /**
      * Lấy danh sách tên nhân viên của batch
      */
     private static List<String> getEmployeeNames(int batchId) {
@@ -409,4 +439,113 @@ public class ShiftAssignmentDAO {
         if (ts != null) dto.setCreatedAt(ts.toLocalDateTime());
         return dto;
     }
-}
+
+    // ─────────────────────────────────────────────
+    //  CONFLICT DETECTION
+    // ─────────────────────────────────────────────
+
+    /**
+     * Tìm các nhân viên bị xung đột ca làm việc (Mức 1):
+     *   1. Khoảng ngày áp dụng giao nhau (date range overlap)
+     *   2. Cùng nhân viên
+     *   3. Giờ làm của 2 ca chồng nhau (time overlap)
+     *
+     * @param newBatch       batch phân ca mới (chứa shiftId, startDate, endDate)
+     * @param empIds         danh sách EmployeeId được chọn trong batch mới
+     * @param excludeBatchId id của batch đang sửa (truyền null khi tạo mới) — tránh tự so sánh với chính mình
+     * @return danh sách tên nhân viên bị conflict (rỗng = không có conflict)
+     */
+    public static List<String> findConflictingEmployees(
+            Shiftassignmentbatches newBatch,
+            List<Integer> empIds,
+            Integer excludeBatchId) {
+
+        if (empIds == null || empIds.isEmpty()) return new ArrayList<>();
+
+        // Build IN-clause placeholder: (?,?,?...)
+        StringBuilder inClause = new StringBuilder();
+        for (int i = 0; i < empIds.size(); i++) {
+            if (i > 0) inClause.append(",");
+            inClause.append("?");
+        }
+
+        /*
+         * Logic SQL:
+         *  - Lấy các batch hiện có (b2) khác với batch đang sửa
+         *  - Có nhân viên chung với danh sách empIds mới
+         *  - Khoảng ngày của b2 giao với khoảng ngày mới:
+         *      b2.startDate <= newBatch.endDate  (hoặc newBatch.endDate null = vô hạn)
+         *      AND newBatch.startDate <= b2.endDate (hoặc b2.endDate null = vô hạn)
+         *  - Giờ ca của b2 chồng với giờ ca mới:
+         *      s_old.StartTime < s_new.EndTime
+         *      AND s_new.StartTime < s_old.EndTime
+         */
+        String sql =
+            "SELECT DISTINCT u.FullName, s_old.Name AS OldShiftName, " +
+            "       s_old.StartTime AS OldStart, s_old.EndTime AS OldEnd " +
+            "FROM shiftassignmentbatch_employees be2 " +
+            "JOIN shiftassignmentbatches b2    ON be2.BatchId = b2.Id " +
+            "JOIN shifts s_new                 ON s_new.Id = ? " +       // ca mới
+            "JOIN shifts s_old                 ON s_old.Id = b2.ShiftId " + // ca cũ
+            "JOIN users u                      ON be2.EmployeeId = u.Id " +
+            "WHERE be2.EmployeeId IN (" + inClause + ") " +
+            // Loại trừ chính batch đang sửa
+            "  AND (? IS NULL OR b2.Id != ?) " +
+            // Date range overlap: b2.start <= new.end AND new.start <= b2.end
+            // Trường hợp endDate NULL => coi như vô hạn (không giới hạn trên)
+            "  AND b2.StartDate <= COALESCE(?, '9999-12-31') " +
+            "  AND COALESCE(b2.EndDate, '9999-12-31') >= ? " +
+            // Time overlap: s_old.start < s_new.end AND s_new.start < s_old.end
+            "  AND s_old.StartTime < s_new.EndTime " +
+            "  AND s_new.StartTime < s_old.EndTime " +
+            "ORDER BY u.FullName";
+
+        List<String> conflicts = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            int idx = 1;
+            ps.setInt(idx++, newBatch.getShiftId());           // s_new.Id = ?
+
+            // IN clause: empIds
+            for (Integer empId : empIds) {
+                ps.setInt(idx++, empId);
+            }
+
+            // excludeBatchId (nullable)
+            if (excludeBatchId != null) {
+                ps.setInt(idx++, excludeBatchId);
+                ps.setInt(idx++, excludeBatchId);
+            } else {
+                ps.setNull(idx++, java.sql.Types.INTEGER);
+                ps.setNull(idx++, java.sql.Types.INTEGER);
+            }
+
+            // newBatch.endDate (nullable → COALESCE '9999-12-31')
+            if (newBatch.getEndDate() != null) {
+                ps.setDate(idx++, Date.valueOf(newBatch.getEndDate()));
+            } else {
+                ps.setDate(idx++, Date.valueOf(java.time.LocalDate.of(9999, 12, 31)));
+            }
+
+            // newBatch.startDate
+            ps.setDate(idx++, Date.valueOf(newBatch.getStartDate()));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    String name      = rs.getString("FullName");
+                    String shiftName = rs.getString("OldShiftName");
+                    Time   oStart    = rs.getTime("OldStart");
+                    Time   oEnd      = rs.getTime("OldEnd");
+                    String timeRange = (oStart != null && oEnd != null)
+                            ? " (" + oStart.toLocalTime() + " – " + oEnd.toLocalTime() + ")"
+                            : "";
+                    conflicts.add(name + " [ca: " + shiftName + timeRange + "]");
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Lỗi kiểm tra conflict phân ca: " + e.getMessage(), e);
+        }
+        return conflicts;
+    }
+}
