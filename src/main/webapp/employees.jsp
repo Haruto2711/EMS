@@ -29,10 +29,10 @@
   <nav class="nav-group">
     <div class="nav-section-label">Tổng quan</div>
     <a href="home" class="nav-link">Trang chủ</a>
-    <div class="nav-section-label">Quản lý</div>
-    <a href="users"     class="nav-link">Tài khoản</a>
-    <a href="employees" class="nav-link active">Nhân viên</a>
-    <a href="#"         class="nav-link">Phân quyền</a>
+    <div class="nav-section-label">Quản trị</div>
+    <a href="users"       class="nav-link">Tài khoản</a>
+    <a href="employees"   class="nav-link active">Nhân viên</a>
+    <a href="departments" class="nav-link">Phòng ban</a>
   </nav>
   <div class="sidebar-footer">
     <div class="user-block">
@@ -44,7 +44,7 @@
         <div class="user-role"><%= deptName != null ? deptName : "Quản trị viên" %></div>
       </div>
     </div>
-    <button class="btn-logout" onclick="window.location='login'">Đăng xuất</button>
+    <button class="btn-logout" onclick="window.location='logout'">Đăng xuất</button>
   </div>
 </aside>
 

@@ -49,7 +49,7 @@
         <div class="user-role"><%= deptName != null ? deptName : "Nhân viên" %></div>
       </div>
     </div>
-    <button class="btn-logout" onclick="window.location='login'">Đăng xuất</button>
+    <button class="btn-logout" onclick="window.location='logout'">Đăng xuất</button>
   </div>
 </aside>
 
