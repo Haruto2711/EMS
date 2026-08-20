@@ -195,4 +195,38 @@ public class DepartmentDAO {
         }
         return false;
     }
+
+    /**
+     * Lấy danh sách nhân viên gom nhóm theo từng phòng ban
+     */
+    public Map<Integer, List<Map<String, Object>>> getAllEmployeesGroupedByDepartment() {
+        Map<Integer, List<Map<String, Object>>> map = new HashMap<>();
+        String sql = "SELECT u.Id, u.EmployeeCode, u.FullName, u.EmailCompany, u.Phone, u.Status, u.DepartmentId, " +
+                     "       p.Name AS PositionName " +
+                     "FROM users u " +
+                     "LEFT JOIN positions p ON u.PositionId = p.Id " +
+                     "ORDER BY u.EmployeeCode ASC";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                int deptId = rs.getInt("DepartmentId");
+                Map<String, Object> emp = new HashMap<>();
+                emp.put("id", rs.getInt("Id"));
+                emp.put("employeeCode", rs.getString("EmployeeCode"));
+                emp.put("fullName", rs.getString("FullName"));
+                emp.put("emailCompany", rs.getString("EmailCompany"));
+                emp.put("phone", rs.getString("Phone"));
+                emp.put("status", rs.getBoolean("Status"));
+                emp.put("positionName", rs.getString("PositionName"));
+
+                map.computeIfAbsent(deptId, k -> new ArrayList<>()).add(emp);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return map;
+    }
 }

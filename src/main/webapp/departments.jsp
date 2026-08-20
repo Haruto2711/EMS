@@ -3,10 +3,9 @@
 <%
     List<Map<String, Object>> departmentsList = (List<Map<String, Object>>) request.getAttribute("departmentsList");
     List<Map<String, Object>> headCandidatesList = (List<Map<String, Object>>) request.getAttribute("headCandidatesList");
+    Map<Integer, List<Map<String, Object>>> deptEmployeesMap = (Map<Integer, List<Map<String, Object>>>) request.getAttribute("deptEmployeesMap");
     String fullName = (String) request.getAttribute("fullName");
     String deptName = (String) request.getAttribute("deptName");
-%>
-<%
     Integer totalDepts = (Integer) request.getAttribute("totalDepts");
     Integer assignedHeadCount = (Integer) request.getAttribute("assignedHeadCount");
     if (totalDepts == null) totalDepts = departmentsList != null ? departmentsList.size() : 0;
@@ -136,10 +135,12 @@
                 <% } %>
               </td>
               <td style="padding: 12px 16px;">
-                <span class="badge-headcount <%= totalEmp == 0 ? "empty" : "" %>">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                  <%= totalEmp %> nhân sự
-                </span>
+                <a href="employees?dept=<%= java.net.URLEncoder.encode(name != null ? name : "", "UTF-8") %>" style="text-decoration: none;" title="Xem danh sách nhân viên phòng <%= name %>">
+                  <span class="badge-headcount <%= totalEmp == 0 ? "empty" : "" %>" style="cursor: pointer;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <%= totalEmp %> nhân sự
+                  </span>
+                </a>
               </td>
               <td style="padding: 12px 16px;">
                 <a href="javascript:void(0)" onclick="openEditModal(<%= id %>, '<%= code %>', '<%= name %>', <%= headId != null ? headId : "''" %>)" style="color: #0d9488; text-decoration: none; font-weight: 600; margin-right: 12px;">Sửa</a>

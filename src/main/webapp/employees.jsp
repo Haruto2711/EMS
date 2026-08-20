@@ -158,7 +158,6 @@
               <td><span class="emp-code"><%= emp.get("employeeCode") %></span></td>
               <td>
                 <div class="emp-name"><%= emp.get("fullName") %></div>
-                <div class="emp-email-sub"><%= emp.get("emailCompany") %></div>
               </td>
               <td><%= deptStr %></td>
               <td><%= posStr %></td>
@@ -239,6 +238,10 @@
       <div style="font-size:12px; font-weight:700; color:#6b7280; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px;">— Thông tin công việc —</div>
       <div style="display:flex; flex-direction:column; gap:8px;">
         <div style="display:flex; justify-content:space-between; font-size:13.5px;">
+          <span style="color:#6b7280;">Email công ty:</span>
+          <span style="color:#111827; font-weight:500;" id="viewEmpEmail">—</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; font-size:13.5px;">
           <span style="color:#6b7280;">Phòng ban:</span>
           <span style="color:#111827; font-weight:500;" id="viewEmpDept">—</span>
         </div>
@@ -289,8 +292,8 @@
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label" style="font-size:13px; font-weight:600; color:#374151; margin-bottom:5px; display:block;">Ngày sinh</label>
-          <input type="date" name="dob" id="editEmpDob" class="form-input"
+          <label class="form-label" style="font-size:13px; font-weight:600; color:#374151; margin-bottom:5px; display:block;">Ngày sinh (dd/MM/yyyy)</label>
+          <input type="text" name="dob" id="editEmpDob" class="form-input" placeholder="Ví dụ: 15/05/1990"
                  style="width:100%; padding:9px 12px; border:1px solid #e5e7eb; border-radius:8px; font-size:13.5px; outline:none; box-sizing:border-box;"/>
         </div>
         <div class="form-group">
@@ -329,16 +332,51 @@
   })();
 
   function filterTable() {
-    var search  = document.getElementById('searchInput').value.toLowerCase();
-    var dept    = document.getElementById('filterDept').value.toLowerCase();
-    var status  = document.getElementById('filterStatus').value.toLowerCase();
+    var search  = document.getElementById('searchInput').value.toLowerCase().trim();
+    var dept    = document.getElementById('filterDept').value.toLowerCase().trim();
+    var status  = document.getElementById('filterStatus').value.toLowerCase().trim();
     document.querySelectorAll('#empTableBody .emp-row').forEach(function(row) {
-      var matchSearch = !search || row.dataset.name.toLowerCase().includes(search) || row.dataset.code.toLowerCase().includes(search);
-      var matchDept   = !dept   || row.dataset.dept.toLowerCase() === dept;
-      var matchStatus = !status || row.dataset.status === status;
+      var name = (row.dataset.name || '').toLowerCase();
+      var code = (row.dataset.code || '').toLowerCase();
+      var pos  = (row.dataset.pos  || '').toLowerCase();
+      var rowDept = (row.dataset.dept || '').toLowerCase();
+      var rowStatus = row.dataset.status || '';
+
+      var matchSearch = !search || name.includes(search) || code.includes(search) || pos.includes(search);
+      var matchDept   = !dept   || rowDept === dept;
+      var matchStatus = !status || rowStatus === status;
       row.style.display = (matchSearch && matchDept && matchStatus) ? '' : 'none';
     });
   }
+
+  // Tự động nhận tham số từ URL khi chuyển trang từ màn Phòng ban / Chức vụ
+  (function initFromUrl() {
+    var params = new URLSearchParams(window.location.search);
+    var dept = params.get('dept');
+    var pos = params.get('pos');
+    var search = params.get('search');
+
+    if (dept) {
+      var sel = document.getElementById('filterDept');
+      if (sel) {
+        for (var i = 0; i < sel.options.length; i++) {
+          if (sel.options[i].value.toLowerCase() === dept.toLowerCase()) {
+            sel.selectedIndex = i;
+            break;
+          }
+        }
+      }
+    }
+    if (pos) {
+      document.getElementById('searchInput').value = pos;
+    }
+    if (search) {
+      document.getElementById('searchInput').value = search;
+    }
+    if (dept || pos || search) {
+      filterTable();
+    }
+  })();
 
   function openEditEmpModal(btn) {
     var row = btn.closest('tr');
@@ -347,7 +385,7 @@
     document.getElementById('editEmpEmail').value     = row.dataset.email;
     document.getElementById('editEmpPhone').value     = row.dataset.phone || '';
     document.getElementById('editEmpGender').value    = row.dataset.genderRaw || 'true';
-    document.getElementById('editEmpDob').value       = row.dataset.dobRaw || '';
+    document.getElementById('editEmpDob').value       = (row.dataset.dob && row.dataset.dob !== '—') ? row.dataset.dob : '';
     document.getElementById('editEmpDept').value      = row.dataset.deptId || '';
     document.getElementById('editEmpPos').value       = row.dataset.posId || '';
     var modal = document.getElementById('editEmpModal');
@@ -374,6 +412,7 @@
     document.getElementById('viewEmpDob').textContent    = row.dataset.dob    || '—';
     document.getElementById('viewEmpGender').textContent = row.dataset.gender || '—';
     document.getElementById('viewEmpPhone').textContent  = row.dataset.phone  || '—';
+    document.getElementById('viewEmpEmail').textContent  = row.dataset.email  || '—';
     document.getElementById('viewEmpDept').textContent   = row.dataset.dept   || '—';
     document.getElementById('viewEmpPos').textContent    = row.dataset.pos    || '—';
     document.getElementById('viewEmpModal').style.display = 'flex';
