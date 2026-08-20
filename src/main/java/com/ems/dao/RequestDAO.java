@@ -319,16 +319,16 @@ public class RequestDAO {
         }
     }
 
-    /** Updates a pending request only when it belongs to the acting manager. */
+    /** Updates a pending request, setting the status and recording the manager who approved/rejected it. */
     public boolean updateStatusForApprover(int requestId, int approverAccountId, String status)
             throws SQLException {
-        String sql = "UPDATE Requests SET Status = ? WHERE Id = ? "
-                + "AND CurrentApproverAccountId = ? AND Status = 'Pending'";
+        String sql = "UPDATE Requests SET Status = ?, CurrentApproverAccountId = ? WHERE Id = ? "
+                + "AND Status = 'Pending'";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, status);
-            ps.setInt(2, requestId);
-            ps.setInt(3, approverAccountId);
+            ps.setInt(2, approverAccountId);
+            ps.setInt(3, requestId);
             return ps.executeUpdate() > 0;
         }
     }
@@ -394,29 +394,20 @@ public class RequestDAO {
 
     /**
      * Get pending requests
-     * assigned to a specific approver
      */
-    public List<RequestDTO> getPendingRequests(
-            int approverAccountId
-    ) throws SQLException {
+    public List<RequestDTO> getPendingRequests() throws SQLException {
 
         List<RequestDTO> list = new ArrayList<>();
 
         String sql =
                 BASE_SELECT +
-                        "WHERE r.CurrentApproverAccountId = ? " +
-                        "AND r.Status = 'Pending' " +
+                        "WHERE r.Status = 'Pending' " +
                         "ORDER BY r.CreatedAt ASC";
 
         try (
                 PreparedStatement ps =
                         connection.prepareStatement(sql)
         ) {
-
-            ps.setInt(
-                    1,
-                    approverAccountId
-            );
 
             try (
                     ResultSet rs =

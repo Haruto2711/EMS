@@ -38,11 +38,11 @@
 <main class="main-content">
     <div class="topbar"><span class="topbar-left">Xử lý đơn</span><span class="topbar-right" id="topbar-date"></span></div>
     <div class="page-body">
-        <div class="page-header"><h1>Đơn chờ xử lý</h1><p>Xem thông tin và phê duyệt hoặc từ chối các đơn được phân công cho bạn.</p></div>
+        <div class="page-header"><h1>Quản lý yêu cầu</h1><p>Xem danh sách và phê duyệt hoặc từ chối các yêu cầu của nhân viên.</p></div>
         <section class="card">
-            <div class="card-header"><span>Đơn chờ phê duyệt</span><span class="badge badge-pending"><%= requests.size() %> đơn</span></div>
+            <div class="card-header"><span>Danh sách đơn yêu cầu</span><span class="badge badge-active"><%= requests.size() %> đơn</span></div>
             <% if (requests.isEmpty()) { %>
-                <div class="empty-state"><strong>Không có đơn nào chờ xử lý.</strong><p>Các đơn được phân công cho bạn sẽ hiển thị tại đây.</p></div>
+                <div class="empty-state"><strong>Chưa có đơn yêu cầu nào gửi lên hệ thống.</strong><p>Các đơn yêu cầu của nhân viên sẽ hiển thị tại đây.</p></div>
             <% } else { %>
                 <div class="table-wrap"><table>
                     <thead><tr><th>Nhân viên</th><th>Đơn yêu cầu</th><th>Loại</th><th>Thời gian</th><th>Giá trị</th><th>Ngày gửi</th><th>Thao tác</th></tr></thead>
@@ -55,7 +55,35 @@
                             <td><%= item.getStartDate() == null ? "-" : dateFormat.format(item.getStartDate()) %><br><span style="color:#9ca3af;font-size:12px;">đến <%= item.getEndDate() == null ? "-" : dateFormat.format(item.getEndDate()) %></span></td>
                             <td><%= item.getValue() %></td>
                             <td><%= item.getCreatedAt() == null ? "-" : dateFormat.format(item.getCreatedAt()) %></td>
-                            <td><div class="request-actions"><form class="decision-form" method="post" action="<%= request.getContextPath() %>/requests" onsubmit="return confirm('Duyệt đơn này?');"><input type="hidden" name="action" value="approve"><input type="hidden" name="id" value="<%= item.getId() %>"><button class="btn-decision btn-approve" type="submit">Duyệt</button></form><form class="decision-form" method="post" action="<%= request.getContextPath() %>/requests" onsubmit="return confirm('Từ chối đơn này?');"><input type="hidden" name="action" value="reject"><input type="hidden" name="id" value="<%= item.getId() %>"><button class="btn-decision btn-reject" type="submit">Từ chối</button></form></div></td>
+                            <td>
+                                <%
+                                    String status = item.getStatus() == null ? "" : item.getStatus();
+                                    if ("Pending".equalsIgnoreCase(status)) {
+                                %>
+                                    <div class="request-actions">
+                                        <form class="decision-form" method="post" action="<%= request.getContextPath() %>/requests" onsubmit="return confirm('Duyệt đơn này?');">
+                                            <input type="hidden" name="action" value="approve">
+                                            <input type="hidden" name="id" value="<%= item.getId() %>">
+                                            <button class="btn-decision btn-approve" type="submit">Duyệt</button>
+                                        </form>
+                                        <form class="decision-form" method="post" action="<%= request.getContextPath() %>/requests" onsubmit="return confirm('Từ chối đơn này?');">
+                                            <input type="hidden" name="action" value="reject">
+                                            <input type="hidden" name="id" value="<%= item.getId() %>">
+                                            <button class="btn-decision btn-reject" type="submit">Từ chối</button>
+                                        </form>
+                                    </div>
+                                <% } else {
+                                    String badgeClass = "badge-approved";
+                                    String statusText = "Đã duyệt";
+                                    if ("Rejected".equalsIgnoreCase(status)) {
+                                        badgeClass = "badge-rejected";
+                                        statusText = "Từ chối";
+                                    }
+                                %>
+                                    <span class="badge <%= badgeClass %>"><%= statusText %></span>
+                                    <span style="font-size: 11px; color: #6b7280; display: block; margin-top: 4px;">Bởi: <%= item.getCurrentApproverName() != null ? item.getCurrentApproverName() : "Hệ thống" %></span>
+                                <% } %>
+                            </td>
                         </tr>
                     <% } %>
                     </tbody>
