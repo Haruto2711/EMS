@@ -1,7 +1,7 @@
 package com.ems.controller;
 
-import com.ems.dto.HolidayDTO;
-import com.ems.model.Holidays;
+import com.ems.dto.HolidayYearViewDTO;
+import com.ems.model.HolidayTemplate;
 import com.ems.service.HolidayService;
 
 import jakarta.servlet.ServletException;
@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.time.Year;
 import java.util.List;
 
 @WebServlet(name = "HolidayServlet", urlPatterns = { "/holiday" })
@@ -27,41 +28,15 @@ public class HolidayServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // ── 1. Đọc & validate tham số từ URL ──────────────────────────────
-        String keyword = request.getParameter("search");
-        if (keyword == null) keyword = "";
-        else keyword = keyword.trim();
-
-        String sort = request.getParameter("sort");
-        if (!"DESC".equals(sort)) sort = "ASC"; // mặc định A→Z
-
-        int pageSize = 5;
+        int year = Year.now().getValue();
         try {
-            int ps = Integer.parseInt(request.getParameter("pageSize"));
-            if (ps == 10 || ps == 20) pageSize = ps;
+            year = Integer.parseInt(request.getParameter("year"));
         } catch (NumberFormatException ignored) { }
 
-        int page = 1;
-        try {
-            page = Math.max(1, Integer.parseInt(request.getParameter("page")));
-        } catch (NumberFormatException ignored) { }
+        List<HolidayYearViewDTO> holidays = holidayService.getHolidaysForYear(year);
 
-        // ── 2. Lấy dữ liệu từ service ──────────────────────────────────────
-        int totalRecords = holidayService.countHolidays(keyword);
-        int totalPages   = Math.max(1, (int) Math.ceil((double) totalRecords / pageSize));
-        if (page > totalPages) page = totalPages;
-
-        List<Holidays> holidays = holidayService.searchHolidays(keyword, sort, page, pageSize);
-
-        // ── 3. Đẩy attributes sang JSP ─────────────────────────────────────
-        request.setAttribute("holidays",     holidays);
-        request.setAttribute("keyword",      keyword);
-        request.setAttribute("sort",         sort);
-        request.setAttribute("currentPage",  page);
-        request.setAttribute("pageSize",     pageSize);
-        request.setAttribute("totalPages",   totalPages);
-        request.setAttribute("totalRecords", totalRecords);
-
+        request.setAttribute("holidays", holidays);
+        request.setAttribute("year", year);
         request.getRequestDispatcher("/holiday.jsp").forward(request, response);
     }
 
@@ -71,60 +46,40 @@ public class HolidayServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
 
         String action = request.getParameter("action");
-        String id = request.getParameter("id");
+        int year = Integer.parseInt(request.getParameter("year"));
+        Integer accountId = (Integer) request.getSession().getAttribute("accountId");
 
-        if ("create".equals(action)) {
-            String name      = request.getParameter("name");
-            String startDate = request.getParameter("startDate");
-            String endDate   = request.getParameter("endDate");
-
-            if (name != null && !name.isBlank()
-                    && startDate != null && !startDate.isBlank()
-                    && endDate != null && !endDate.isBlank()) {
-                try {
-                    HolidayDTO dto = new HolidayDTO();
-                    dto.setName(name.trim());
-                    dto.setStartdate(startDate.trim());
-                    dto.setEnddate(endDate.trim());
-                    holidayService.createHoliday(List.of(dto));
-                    response.sendRedirect(request.getContextPath() + "/holiday?saved=1");
-                    return;
-                } catch (IllegalArgumentException e) {
-                    request.setAttribute("errorMsg", e.getMessage());
-                    List<Holidays> holidays = holidayService.getAllHolidays();
-                    request.setAttribute("holidays", holidays);
-                    request.getRequestDispatcher("/holiday.jsp").forward(request, response);
-                    return;
-                }
+        try {
+            if ("saveDates".equals(action)) {
+                int templateId = Integer.parseInt(request.getParameter("templateId"));
+                holidayService.saveInstanceDates(
+                        templateId, year,
+                        request.getParameter("startDate"),
+                        request.getParameter("endDate"),
+                        accountId);
+            } else if ("saveCoefficient".equals(action)) {
+                int templateId = Integer.parseInt(request.getParameter("templateId"));
+                double coefficient = Double.parseDouble(request.getParameter("coefficient"));
+                boolean locked = "on".equals(request.getParameter("locked"));
+                holidayService.saveCoefficient(templateId, year, coefficient, locked, accountId);
+            } else if ("createTemplate".equals(action)) {
+                HolidayTemplate t = new HolidayTemplate();
+                t.setHolidayName(request.getParameter("name"));
+                t.setRecurType(request.getParameter("recurType"));
+                String month = request.getParameter("fixedMonth");
+                String day = request.getParameter("fixedDay");
+                if (month != null && !month.isBlank()) t.setFixedMonth(Integer.parseInt(month));
+                if (day != null && !day.isBlank()) t.setFixedDay(Integer.parseInt(day));
+                t.setFixedDurationDays(1);
+                t.setDefaultCoefficient(1.0);
+                t.setCoefficientLocked(false);
+                t.setCreatedBy(accountId);
+                holidayService.createTemplate(t);
             }
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            request.setAttribute("errorMsg", e.getMessage());
         }
 
-        if("update".equals(action)) {
-            String name =  request.getParameter("name");
-            String startDate = request.getParameter("startDate");
-            String endDate = request.getParameter("endDate");
-            if (name != null && !name.isBlank()
-            && startDate != null && !startDate.isBlank()
-            && endDate != null && !endDate.isBlank()) {
-                try {
-                    HolidayDTO dto = new HolidayDTO();
-                    dto.setId(Integer.parseInt(id));
-                    dto.setName(name.trim());
-                    dto.setStartdate(startDate.trim());
-                    dto.setEnddate(endDate.trim());
-                    holidayService.updateHoliday(List.of(dto));
-                    response.sendRedirect(request.getContextPath() + "/holiday?updated=1");
-                    return;
-                }catch (IllegalArgumentException e) {
-                    request.setAttribute("errorMsg", e.getMessage());
-                    List<Holidays> holidays = holidayService.getAllHolidays();
-                    request.setAttribute("holidays", holidays);
-                    request.getRequestDispatcher("/holiday.jsp").forward(request, response);
-                    return;
-                }
-            }
-        }
-
-        response.sendRedirect(request.getContextPath() + "/holiday");
+        response.sendRedirect(request.getContextPath() + "/holiday?year=" + year);
     }
 }
