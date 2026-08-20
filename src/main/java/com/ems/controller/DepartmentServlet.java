@@ -67,6 +67,7 @@ public class DepartmentServlet extends HttpServlet {
         // Lấy danh sách phòng ban và danh sách nhân sự ứng viên làm Trưởng phòng
         List<Map<String, Object>> departmentsList = departmentDAO.getAllDepartmentsWithStats();
         List<Map<String, Object>> headCandidatesList = departmentDAO.getActiveEmployeesForHead();
+        Map<Integer, List<Map<String, Object>>> deptEmployeesMap = departmentDAO.getAllEmployeesGroupedByDepartment();
 
         int totalDepts = departmentsList != null ? departmentsList.size() : 0;
         int assignedHeadCount = 0;
@@ -82,6 +83,7 @@ public class DepartmentServlet extends HttpServlet {
         request.setAttribute("assignedHeadCount", assignedHeadCount);
         request.setAttribute("departmentsList", departmentsList);
         request.setAttribute("headCandidatesList", headCandidatesList);
+        request.setAttribute("deptEmployeesMap", deptEmployeesMap);
 
         request.getRequestDispatcher("/departments.jsp").forward(request, response);
     }

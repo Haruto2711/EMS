@@ -110,7 +110,18 @@ public class EmployeeServlet extends HttpServlet {
                 java.sql.Date dobDate = null;
                 String dobParam = request.getParameter("dob");
                 if (dobParam != null && !dobParam.trim().isEmpty()) {
-                    dobDate = java.sql.Date.valueOf(dobParam.trim());
+                    dobParam = dobParam.trim();
+                    try {
+                        if (dobParam.contains("/")) {
+                            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy");
+                            java.util.Date parsed = sdf.parse(dobParam);
+                            dobDate = new java.sql.Date(parsed.getTime());
+                        } else if (dobParam.contains("-")) {
+                            dobDate = java.sql.Date.valueOf(dobParam);
+                        }
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
                 }
 
                 int departmentId = Integer.parseInt(request.getParameter("departmentId"));

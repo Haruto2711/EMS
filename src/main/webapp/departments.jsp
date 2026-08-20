@@ -3,10 +3,9 @@
 <%
     List<Map<String, Object>> departmentsList = (List<Map<String, Object>>) request.getAttribute("departmentsList");
     List<Map<String, Object>> headCandidatesList = (List<Map<String, Object>>) request.getAttribute("headCandidatesList");
+    Map<Integer, List<Map<String, Object>>> deptEmployeesMap = (Map<Integer, List<Map<String, Object>>>) request.getAttribute("deptEmployeesMap");
     String fullName = (String) request.getAttribute("fullName");
     String deptName = (String) request.getAttribute("deptName");
-%>
-<%
     Integer totalDepts = (Integer) request.getAttribute("totalDepts");
     Integer assignedHeadCount = (Integer) request.getAttribute("assignedHeadCount");
     if (totalDepts == null) totalDepts = departmentsList != null ? departmentsList.size() : 0;
@@ -20,6 +19,7 @@
   <title>EMS – Quản lý phòng ban</title>
   <link rel="stylesheet" href="css/ems.css"/>
   <link rel="stylesheet" href="css/users.css"/>
+  <link rel="stylesheet" href="css/departments.css"/>
 </head>
 <body>
 
@@ -36,6 +36,7 @@
     <a href="users"       class="nav-link">Tài khoản</a>
     <a href="employees"   class="nav-link">Nhân viên</a>
     <a href="departments" class="nav-link active">Phòng ban</a>
+    <a href="positions"   class="nav-link">Chức vụ</a>
   </nav>
   <div class="sidebar-footer">
     <div class="user-block">
@@ -86,9 +87,9 @@
 
     <!-- Main Card -->
     <div class="card">
-      <div class="card-header" style="display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; color: #111827; border-bottom: 1px solid #f3f4f6; padding: 14px 18px;">
+      <div class="card-header">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0d9488" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="9" y1="22" x2="9" y2="22.01"></line><line x1="15" y1="22" x2="15" y2="22.01"></line><line x1="9" y1="6" x2="9" y2="6.01"></line><line x1="15" y1="6" x2="15" y2="6.01"></line><line x1="9" y1="10" x2="9" y2="10.01"></line><line x1="15" y1="10" x2="15" y2="10.01"></line><line x1="9" y1="14" x2="9" y2="14.01"></line><line x1="15" y1="14" x2="15" y2="14.01"></line><line x1="9" y1="18" x2="9" y2="18.01"></line><line x1="15" y1="18" x2="15" y2="18.01"></line></svg>
-        Danh sách phòng ban
+        <span>Danh sách phòng ban</span>
       </div>
 
       <!-- Filter / Search Bar -->
@@ -128,19 +129,18 @@
               </td>
               <td style="padding: 12px 16px;">
                 <% if (headName != null && !headName.isEmpty()) { %>
-                  <div class="head-manager-cell">
-                    <div class="head-avatar-circle"><%= headName.substring(0,1).toUpperCase() %></div>
-                    <span style="font-weight: 500; color: #1f2937;"><%= headName %></span>
-                  </div>
+                  <span style="font-weight: 500; color: #111827;"><%= headName %></span>
                 <% } else { %>
                   <span class="badge-unassigned">Chưa bổ nhiệm</span>
                 <% } %>
               </td>
               <td style="padding: 12px 16px;">
-                <span class="badge-headcount <%= totalEmp == 0 ? "empty" : "" %>">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                  <%= totalEmp %> nhân sự
-                </span>
+                <a href="employees?dept=<%= java.net.URLEncoder.encode(name != null ? name : "", "UTF-8") %>" style="text-decoration: none;" title="Xem danh sách nhân viên phòng <%= name %>">
+                  <span class="badge-headcount <%= totalEmp == 0 ? "empty" : "" %>" style="cursor: pointer;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                    <%= totalEmp %> nhân sự
+                  </span>
+                </a>
               </td>
               <td style="padding: 12px 16px;">
                 <a href="javascript:void(0)" onclick="openEditModal(<%= id %>, '<%= code %>', '<%= name %>', <%= headId != null ? headId : "''" %>)" style="color: #0d9488; text-decoration: none; font-weight: 600; margin-right: 12px;">Sửa</a>
