@@ -211,11 +211,11 @@
                                     <div class="modal-grid-1-2">
                                         <div class="modal-form-group">
                                             <label>Mã Phụ Cấp (Unique)</label>
-                                            <input type="text" name="code" required placeholder="VD: PC_AN_TRUA">
+                                            <input type="text" name="code" required pattern=".*\S+.*" title="Vui lòng nhập định dạng hợp lệ, không thể chỉ chứa khoảng trắng" placeholder="VD: PC_AN_TRUA">
                                         </div>
                                         <div class="modal-form-group">
                                             <label>Tên Phụ Cấp</label>
-                                            <input type="text" name="name" required placeholder="VD: Phụ cấp ăn trưa">
+                                            <input type="text" name="name" required pattern=".*\S+.*" title="Vui lòng nhập định dạng hợp lệ, không thể chỉ chứa khoảng trắng" placeholder="VD: Phụ cấp ăn trưa">
                                         </div>
                                     </div>
 
@@ -294,7 +294,7 @@
                                         </div>
                                         <div class="modal-form-group">
                                             <label>Tên Phụ Cấp</label>
-                                            <input type="text" name="name" id="edit_name" required>
+                                            <input type="text" name="name" id="edit_name" required pattern=".*\S+.*" title="Vui lòng nhập định dạng hợp lệ, không thể chỉ chứa khoảng trắng">
                                         </div>
                                     </div>
 

@@ -402,7 +402,7 @@
                                 <div class="modal-form-group">
                                   <label>Tên kỳ lương <span style="color:#ef4444;">*</span></label>
                                   <input type="text" name="name" id="createName"
-                                    placeholder="VD: Kỳ lương Tháng 09/2026" required />
+                                    placeholder="VD: Kỳ lương Tháng 09/2026" required pattern=".*\S+.*" title="Vui lòng nhập định dạng hợp lệ, không thể chỉ chứa khoảng trắng" />
                                 </div>
 
                                 <div class="modal-form-group modal-date-grid">
@@ -451,7 +451,7 @@
 
                                 <div class="modal-form-group">
                                   <label>Tên kỳ lương <span style="color:#ef4444;">*</span></label>
-                                  <input type="text" name="name" id="editName" required />
+                                  <input type="text" name="name" id="editName" required pattern=".*\S+.*" title="Vui lòng nhập định dạng hợp lệ, không thể chỉ chứa khoảng trắng" />
                                 </div>
 
                                 <div class="modal-form-group modal-date-grid">
