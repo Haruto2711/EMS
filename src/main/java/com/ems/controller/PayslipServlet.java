@@ -59,6 +59,14 @@ public class PayslipServlet extends HttpServlet {
             periodId = periods.get(0).getId();
         }
 
+        boolean isCurrentPeriodLocked = false;
+        for (Timesheetperiods p : periods) {
+            if (p.getId() != null && p.getId() == periodId) {
+                isCurrentPeriodLocked = (p.getIslocked() != null && p.getIslocked());
+                break;
+            }
+        }
+
         List<PayslipDTO> payslips = payslipDAO.getPayslipsByPeriodForView(periodId, searchStr, departmentId);
         List<Departments> departments = payslipService.getAllDepartments();
 
@@ -77,12 +85,46 @@ public class PayslipServlet extends HttpServlet {
 
         DecimalFormat decimalFormat = new DecimalFormat("#,###");
 
-        request.setAttribute("payslips", payslips);
+        // Pagination handling
+        int page = 1;
+        String pageParam = request.getParameter("page");
+        if (pageParam != null && !pageParam.trim().isEmpty()) {
+            try { page = Integer.parseInt(pageParam); } catch (NumberFormatException ignored) {}
+        }
+        if (page < 1) page = 1;
+
+        int pageSize = 5;
+        String pageSizeParam = request.getParameter("pageSize");
+        if (pageSizeParam != null && !pageSizeParam.trim().isEmpty()) {
+            try { pageSize = Integer.parseInt(pageSizeParam); } catch (NumberFormatException ignored) {}
+        }
+        if (pageSize < 1) pageSize = 5;
+
+        int totalFilteredItems = payslips.size();
+        int totalPages = (int) Math.ceil((double) totalFilteredItems / pageSize);
+        if (totalPages < 1) totalPages = 1;
+        if (page > totalPages) page = totalPages;
+
+        int fromIndex = (page - 1) * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, totalFilteredItems);
+
+        List<PayslipDTO> pagedPayslips = (fromIndex < totalFilteredItems)
+                ? payslips.subList(fromIndex, toIndex)
+                : java.util.Collections.emptyList();
+
+        request.setAttribute("payslips", pagedPayslips);
+        
+        request.setAttribute("totalFilteredItems", totalFilteredItems);
+        request.setAttribute("currentPage", page);
+        request.setAttribute("pageSize", pageSize);
+        request.setAttribute("totalPages", totalPages);
+
         request.setAttribute("periods", periods);
         request.setAttribute("departments", departments);
         request.setAttribute("selectedPeriodId", periodId);
         request.setAttribute("selectedDepartmentId", departmentId);
         request.setAttribute("search", searchStr);
+        request.setAttribute("isCurrentPeriodLocked", isCurrentPeriodLocked);
         request.setAttribute("totalEmployees", totalEmployees);
         request.setAttribute("formattedTotalGross", decimalFormat.format(totalGross).replace(',', '.'));
         request.setAttribute("formattedTotalNet", decimalFormat.format(totalNet).replace(',', '.'));
@@ -106,6 +148,12 @@ public class PayslipServlet extends HttpServlet {
         if ("generate".equals(action)){
             int periodId = Integer.parseInt(request.getParameter("periodId"));
 
+            if (isPeriodLocked(periodId)) {
+                request.getSession().setAttribute("msgError", "Kỳ lương đã bị khóa, không thể thực hiện thao tác!");
+                response.sendRedirect(request.getContextPath() + "/payslips?periodId=" + periodId);
+                return;
+            }
+
             PayrollService payrollService = new PayrollService();
             String result = payrollService.generatePayrollMonth(periodId, managerId);
 
@@ -122,6 +170,13 @@ public class PayslipServlet extends HttpServlet {
             // Lấy dữ liệu từ Form Edit gửi lên
             int payslipId = Integer.parseInt(request.getParameter("payslipId"));
             int periodId = Integer.parseInt(request.getParameter("periodId"));
+            
+            if (isPeriodLocked(periodId)) {
+                request.getSession().setAttribute("msgError", "Kỳ lương đã bị khóa, không thể thực hiện thao tác!");
+                response.sendRedirect(request.getContextPath() + "/payslips?periodId=" + periodId);
+                return;
+            }
+
             String note = request.getParameter("note");
 
             // Xử lý tiền tệ (Nếu rỗng thì cho = 0)
@@ -149,6 +204,11 @@ public class PayslipServlet extends HttpServlet {
                 return;
             }
 
+            if (isPeriodLocked(periodId)) {
+                request.getSession().setAttribute("msgError", "Kỳ lương đã bị khóa, không thể thực hiện thao tác!");
+                response.sendRedirect(request.getContextPath() + "/payslips?periodId=" + periodId);
+                return;
+            }
 
             PayrollService payrollService = new PayrollService();
             String result = payrollService.confirmPayroll(periodId);
@@ -162,5 +222,15 @@ public class PayslipServlet extends HttpServlet {
 
             response.sendRedirect(request.getContextPath() + "/payslips?periodId=" + periodId);
         }
+    }
+
+    private boolean isPeriodLocked(int periodId) {
+        List<Timesheetperiods> allPeriods = payslipService.getAllTimesheetPeriods();
+        for (Timesheetperiods p : allPeriods) {
+            if (p.getId() != null && p.getId() == periodId) {
+                return (p.getIslocked() != null && p.getIslocked());
+            }
+        }
+        return false;
     }
 }

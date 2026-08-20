@@ -228,10 +228,9 @@ public class HomeServlet extends HttpServlet {
                               "FROM requests r " +
                               "JOIN accounts a ON r.CreatedByAccountId = a.Id " +
                               "JOIN users u ON a.UserId = u.Id " +
-                              "WHERE r.CurrentApproverAccountId = ? AND r.Status = 'Pending' " +
+                              "WHERE r.Status = 'Pending' " +
                               "ORDER BY r.CreatedAt DESC";
         try (PreparedStatement ps = conn.prepareStatement(pendingQuery)) {
-            ps.setInt(1, accountId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     Map<String, Object> req = new HashMap<>();
