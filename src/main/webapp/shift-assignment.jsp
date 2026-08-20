@@ -1,7 +1,18 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
+<%@ page import="java.time.LocalDate" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%
+    // Tính ngày hôm nay để truyền vào JSTL so sánh với batch startDate/endDate
+    pageContext.setAttribute("today", LocalDate.now());
+    // Lấy exportError từ session (nếu có) rồi xóa đi
+    String exportErr = (String) session.getAttribute("exportError");
+    if (exportErr != null) {
+        pageContext.setAttribute("exportError", exportErr);
+        session.removeAttribute("exportError");
+    }
+%>
 
 <!DOCTYPE html>
 <html lang="vi">
@@ -16,384 +27,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
           rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* ── Layout 2 cột ── */
-        .sa-layout {
-            display: grid;
-            grid-template-columns:1fr 340px;
-            gap: 20px;
-            align-items: start;
-        }
-
-        @media (max-width: 900px) {
-            .sa-layout {
-                grid-template-columns:1fr;
-            }
-        }
-
-        /* ── Form card ── */
-        .sa-form-card {
-            background: #fff;
-            border-radius: 12px;
-            border: 1px solid #e5e7eb;
-            padding: 24px;
-        }
-
-        .sa-section-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: #6b7280;
-            text-transform: uppercase;
-            letter-spacing: .6px;
-            margin: 20px 0 10px;
-            padding-bottom: 6px;
-            border-bottom: 1px solid #f3f4f6;
-        }
-
-        .sa-section-title:first-child {
-            margin-top: 0;
-        }
-
-        .sa-field {
-            margin-bottom: 14px;
-        }
-
-        .sa-field label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 5px;
-        }
-
-        .sa-field label .req {
-            color: #ef4444;
-            margin-left: 2px;
-        }
-
-        .sa-field input[type=text], .sa-field select, .sa-field input[type=date],
-        .sa-field input[type=number] {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            font-size: 13px;
-            font-family: inherit;
-            outline: none;
-            transition: border .15s;
-        }
-
-        .sa-field input:focus, .sa-field select:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, .08);
-        }
-
-        .sa-row2 {
-            display: grid;
-            grid-template-columns:1fr 1fr;
-            gap: 12px;
-        }
-
-        /* ── Recur box ── */
-        .recur-box {
-            background: #f9fafb;
-            border: 1px solid #e5e7eb;
-            border-radius: 10px;
-            padding: 14px;
-            margin-top: 4px;
-        }
-
-        .recur-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 10px;
-        }
-
-        .recur-row:last-child {
-            margin-bottom: 0;
-        }
-
-        .recur-row label {
-            font-size: 13px;
-            color: #374151;
-        }
-
-        .recur-row select, .recur-row input[type=number] {
-            padding: 6px 10px;
-            border: 1px solid #d1d5db;
-            border-radius: 7px;
-            font-size: 13px;
-            font-family: inherit;
-            outline: none;
-        }
-
-        .day-checks {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            margin-top: 8px;
-        }
-
-        .day-check-label {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            padding: 6px 10px;
-            border: 1px solid #d1d5db;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            color: #6b7280;
-            transition: all .15s;
-            user-select: none;
-        }
-
-        .day-check-label:has(input:checked) {
-            background: #2563eb;
-            border-color: #2563eb;
-            color: #fff;
-        }
-
-        .day-check-label input {
-            display: none;
-        }
-
-        /* ── Employee table ── */
-        .emp-search-wrap {
-            position: relative;
-            margin-bottom: 10px;
-        }
-
-        .emp-search-wrap input {
-            width: 100%;
-            padding: 8px 12px 8px 36px;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            font-size: 13px;
-            outline: none;
-        }
-
-        .emp-search-wrap .search-icon {
-            position: absolute;
-            left: 11px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #9ca3af;
-            font-size: 13px;
-        }
-
-        .emp-table-wrap {
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-        }
-
-        .emp-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-
-        .emp-table th {
-            background: #f9fafb;
-            padding: 8px 12px;
-            text-align: left;
-            font-weight: 600;
-            color: #6b7280;
-            border-bottom: 1px solid #e5e7eb;
-            position: sticky;
-            top: 0;
-            z-index: 1;
-        }
-
-        .emp-table td {
-            padding: 8px 12px;
-            border-bottom: 1px solid #f3f4f6;
-        }
-
-        .emp-table tr:last-child td {
-            border-bottom: none;
-        }
-
-        .emp-count-badge {
-            font-size: 12px;
-            color: #6b7280;
-            margin-top: 6px;
-        }
-
-        /* ── Calendar preview ── */
-        .cal-card {
-            background: #fff;
-            border-radius: 12px;
-            border: 1px solid #e5e7eb;
-            padding: 18px;
-            position: sticky;
-            top: 20px;
-        }
-
-        .cal-nav {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 14px;
-        }
-
-        .cal-nav-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 6px;
-            color: #6b7280;
-            font-size: 14px;
-            transition: background .15s;
-        }
-
-        .cal-nav-btn:hover {
-            background: #f3f4f6;
-        }
-
-        .cal-month-label {
-            font-size: 14px;
-            font-weight: 700;
-            color: #111827;
-        }
-
-        .cal-grid {
-            display: grid;
-            grid-template-columns:repeat(7, 1fr);
-            gap: 2px;
-        }
-
-        .cal-dow {
-            text-align: center;
-            font-size: 11px;
-            font-weight: 700;
-            color: #9ca3af;
-            padding: 4px 0;
-        }
-
-        .cal-day {
-            text-align: center;
-            font-size: 12px;
-            padding: 4px 2px;
-            border-radius: 6px;
-            min-height: 36px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .cal-day.other-month {
-            color: #d1d5db;
-        }
-
-        .cal-day.today {
-            font-weight: 700;
-            color: #2563eb;
-        }
-
-        .cal-day.has-shift {
-            background: #eff6ff;
-        }
-
-        .cal-day.has-shift .cal-badge {
-            background: #2563eb;
-            color: #fff;
-            font-size: 10px;
-            font-weight: 700;
-            border-radius: 4px;
-            padding: 1px 4px;
-            margin-top: 2px;
-        }
-
-        .cal-legend {
-            margin-top: 12px;
-            font-size: 11px;
-            color: #6b7280;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .cal-legend-dot {
-            width: 10px;
-            height: 10px;
-            background: #2563eb;
-            border-radius: 3px;
-        }
-
-        /* ── Summary table ── */
-        .sa-summary-card {
-            background: #fff;
-            border-radius: 12px;
-            border: 1px solid #e5e7eb;
-            padding: 20px;
-            margin-top: 24px;
-        }
-
-        .sa-summary-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-
-        .sa-summary-title {
-            font-size: 15px;
-            font-weight: 700;
-            color: #111827;
-        }
-
-        /* ── Bảng tổng hợp: ngày / lặp theo / hành động ── */
-        .date-text { font-size: 13px; color: #111827; white-space: nowrap; }
-        .dash-text { font-size: 12px; color: #9ca3af; font-style: italic; }
-
-        .recur-badge {
-            display: inline-block;
-            font-size: 11px;
-            font-weight: 600;
-            padding: 3px 8px;
-            border-radius: 6px;
-            white-space: nowrap;
-        }
-        .recur-none    { background: #f3f4f6; color: #6b7280; }
-        .recur-weekly  { background: #eff6ff; color: #2563eb; }
-        .recur-monthly { background: #fdf4ff; color: #a21caf; }
-        .recur-detail  { font-size: 11px; color: #6b7280; margin-top: 4px; }
-
-        .action-btns { display: flex; gap: 6px; justify-content: flex-end; }
-        .action-btns .btn-sm {
-            width: 32px;
-            height: 32px;
-            padding: 0;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 8px;
-        }
-
-        /* ── Scope radio ── */
-        .scope-options {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-            margin-bottom: 10px;
-        }
-
-        .scope-opt {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-            font-size: 13px;
-        }
-    </style>
+    <link rel="stylesheet" href="css/shift-assignment.css"/>
 </head>
 <body>
 
@@ -425,6 +59,12 @@
             <div class="alert-error">
                 <i class="fa-solid fa-circle-exclamation"></i>
                 <span>${fn:escapeXml(error)}</span>
+            </div>
+        </c:if>
+        <c:if test="${not empty exportError}">
+            <div class="alert-error">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span>${fn:escapeXml(exportError)}</span>
             </div>
         </c:if>
         <c:if test="${not empty successMsg}">
@@ -840,6 +480,29 @@
                                     </td>
                                     <td style="text-align:right;">
                                         <div class="action-btns">
+                                            <%-- Tính xem batch này có active hôm nay không --%>
+                                            <c:set var="bActive" value="false"/>
+                                            <c:if test="${b.endDate != null}">
+                                                <c:if test="${!today.isBefore(b.startDate) && !today.isAfter(b.endDate)}">
+                                                    <c:set var="bActive" value="true"/>
+                                                </c:if>
+                                            </c:if>
+                                            <c:choose>
+                                                <c:when test="${bActive}">
+                                                    <a href="${pageContext.request.contextPath}/shift-assignment/export-attendance?batchId=${b.id}"
+                                                       class="btn btn-sm btn-success"
+                                                       title="Export Excel chấm công hôm nay">
+                                                        <i class="fa-solid fa-file-excel"></i>
+                                                    </a>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <button class="btn btn-sm btn-secondary" disabled
+                                                            title="${b.endDate == null ? 'Batch chưa có ngày kết thúc' : (today.isAfter(b.endDate) ? 'Batch đã hết hạn' : 'Batch chưa bắt đầu')}"
+                                                            style="opacity:0.45;cursor:not-allowed;">
+                                                        <i class="fa-solid fa-file-excel"></i>
+                                                    </button>
+                                                </c:otherwise>
+                                            </c:choose>
                                             <a href="${pageContext.request.contextPath}/shift-assignment?action=edit&id=${b.id}"
                                                class="btn btn-sm btn-secondary" title="Sửa">
                                                 <i class="fa-solid fa-pen-to-square"></i>
@@ -900,6 +563,11 @@
 </div>
 
 <script>
+    // ── Danh sách đầy đủ Id nhân viên, dùng khi scope = "all" ──
+    var allEmployeeIds = [
+        <c:forEach var="emp" items="${employees}" varStatus="st">${emp.id}<c:if test="${!st.last}">,</c:if></c:forEach>
+    ];
+
     // ── Topbar date ──
     (function () {
         var n = new Date(), p = n => String(n).padStart(2, '0');
@@ -1068,16 +736,40 @@
         document.getElementById('mDay').disabled = !isDate;
     }
 
+    // ── Snapshot nội dung bảng nhân viên gốc (server-rendered) ──
+    // Được ghi 1 lần khi trang load; dùng để phục hồi khi scope quay lại "employees"
+    var _origEmpTableHTML = null;
+
     // ── Scope change ──
     function onScopeChange() {
         var v = document.querySelector('input[name=scope]:checked').value;
         document.getElementById('deptPanel').style.display = v === 'dept' ? '' : 'none';
-        document.getElementById('empPanel').style.display = v === 'employees' ? '' : 'none';
+        document.getElementById('empPanel').style.display  = v === 'employees' ? '' : 'none';
+
+        if (v === 'employees') {
+            // Quay về "Danh sách nhân viên": phục hồi nội dung bảng gốc
+            // (loadDeptEmployees đã ghi đè tbody.innerHTML, cần restore lại)
+            if (_origEmpTableHTML !== null) {
+                document.getElementById('empTableBody').innerHTML = _origEmpTableHTML;
+                updateEmpCount();
+            }
+        } else if (v === 'dept') {
+            // Quay lại "Theo phòng ban": nếu đã chọn phòng ban thì load lại NV
+            // (sau khi restore về employees, tbody không còn chứa NV phòng ban nữa)
+            var deptId = document.getElementById('deptSelect').value;
+            if (deptId) loadDeptEmployees();
+        }
     }
 
     function loadDeptEmployees() {
         var deptId = document.getElementById('deptSelect').value;
         if (!deptId) return;
+
+        // Chỉ lưu snapshot một lần (trước lần ghi đè đầu tiên)
+        if (_origEmpTableHTML === null) {
+            _origEmpTableHTML = document.getElementById('empTableBody').innerHTML;
+        }
+
         fetch('${pageContext.request.contextPath}/shift-assignment?action=dept-employees&deptId=' + deptId)
             .then(r => r.json())
             .then(function (emps) {
@@ -1184,7 +876,41 @@
         }
     }
 
+    // ── Submit: build lại employeeIds đúng theo scope đang chọn ──
+    document.getElementById('saForm').addEventListener('submit', function (e) {
+        var scope = document.querySelector('input[name=scope]:checked').value;
+
+        // Đọc trước các Id đang được chọn (checkbox cũng có name="employeeIds"
+        // nên phải lấy giá trị TRƯỚC khi xóa, không sẽ đọc hụt)
+        var idsToSubmit = [];
+        if (scope === 'all') {
+            idsToSubmit = allEmployeeIds.slice();
+        } else {
+            document.querySelectorAll('#empTableBody input.emp-checkbox:checked').forEach(function (cb) {
+                idsToSubmit.push(cb.value);
+            });
+        }
+
+        // Xóa hết input employeeIds hiện có (bao gồm cả checkbox)
+        // -> tránh trùng lặp / dữ liệu sót từ lần đổi scope trước đó
+        document.querySelectorAll('input[name=employeeIds]').forEach(function (el) {
+            el.remove();
+        });
+
+        // Build lại bằng hidden input duy nhất theo idsToSubmit đã đọc ở trên
+        idsToSubmit.forEach(function (id) {
+            var hidden = document.createElement('input');
+            hidden.type = 'hidden';
+            hidden.name = 'employeeIds';
+            hidden.value = id;
+            e.target.appendChild(hidden);
+        });
+    });
+
     // ── Init ──
+    // Lưu snapshot HTML gốc của tbody ngay khi trang load,
+    // trước khi onScopeChange() có thể ẩn/hiện empPanel
+    _origEmpTableHTML = document.getElementById('empTableBody').innerHTML;
     onRecurTypeChange();
     onMonthlyTypeChange();
     onScopeChange();

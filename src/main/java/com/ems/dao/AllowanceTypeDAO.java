@@ -43,13 +43,14 @@ public class AllowanceTypeDAO {
         return list;
     }
 
-    public Allowancetypes getById(int id){
+    public Allowancetypes getById(int id) {
         String sql = "SELECT * FROM allowancetypes WHERE Id = ?";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return mapResultSet(rs);
+                if (rs.next())
+                    return mapResultSet(rs);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -57,25 +58,43 @@ public class AllowanceTypeDAO {
         return null;
     }
 
-    public Allowancetypes getByCode(String code){
+    public Allowancetypes getByCode(String code) {
         String sql = "SELECT * FROM allowancetypes WHERE Code = ?";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, code);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return mapResultSet(rs);
+                if (rs.next())
+                    return mapResultSet(rs);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public List<Allowancetypes> getAllActive() {
+        List<Allowancetypes> list = new ArrayList<>();
+        String sql = "SELECT * FROM allowancetypes WHERE IsActive = 1";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                list.add(mapResultSet(rs));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 
     public boolean insert(Allowancetypes item) {
         String sql = "INSERT INTO allowancetypes (Code, Name, Type, CalculationMethod, DefaultAmount, IsTaxable, TaxExemptLimit, IsInsuranceSalary, IsActive) "
                 + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             ps.setString(1, item.getCode());
             ps.setString(2, item.getName());
@@ -90,7 +109,8 @@ public class AllowanceTypeDAO {
             int affectedRows = ps.executeUpdate();
             if (affectedRows > 0) {
                 try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
-                    if (generatedKeys.next()) item.setId(generatedKeys.getInt(1));
+                    if (generatedKeys.next())
+                        item.setId(generatedKeys.getInt(1));
                 }
                 return true;
             }
@@ -104,7 +124,7 @@ public class AllowanceTypeDAO {
         String sql = "UPDATE allowancetypes SET Name = ?, Type = ?, CalculationMethod = ?, DefaultAmount = ?, "
                 + "IsTaxable = ?, TaxExemptLimit = ?, IsInsuranceSalary = ?, IsActive = ? WHERE Id = ?";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, item.getName());
             ps.setString(2, item.getType());
@@ -123,10 +143,10 @@ public class AllowanceTypeDAO {
         return false;
     }
 
-    public boolean toggleStatus(int id){
+    public boolean toggleStatus(int id) {
         String sql = "UPDATE allowancetypes SET IsActive = NOT IsActive WHERE Id = ?";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+                PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             return ps.executeUpdate() > 0;
         } catch (Exception e) {

@@ -58,19 +58,21 @@
 
         <!- Employee ->
         <c:if test="${sessionScope.role == 'Employee'}">
-            <a href="#"
-               class="flex items-center justify-between px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 text-sm font-medium transition">
-                <div class="flex items-center space-x-3">
-                    <i data-lucide="bell" class="w-4 h-4 text-slate-400"></i>
-                    <span>Thông báo</span>
-                </div>
-                <span class="bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold">2</span>
+
+            <a href="${pageContext.request.contextPath}/home"
+               class="nav-link ${pageContext.request.servletPath == '/home.jsp' ? 'active' : ''}">
+                Trang chủ
             </a>
-            <a href="#"
-               class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 text-sm font-medium transition">
-                <i data-lucide="users" class="w-4 h-4 text-slate-400"></i>
-                <span>Nhân viên</span>
+            <div class="nav-section-label">Công việc</div>
+            <a href="${pageContext.request.contextPath}/request.jsp"
+               class="nav-link ${pageContext.request.servletPath == '/request.jsp' ? 'active' : ''}">
+                Yêu cầu
             </a>
+            <a href="${pageContext.request.contextPath}/notification"
+               class="nav-link ${pageContext.request.servletPath == '/notification.jsp' ? 'active' : ''}">
+                Thông báo
+            </a>
+
         </c:if>
 
     </nav>
