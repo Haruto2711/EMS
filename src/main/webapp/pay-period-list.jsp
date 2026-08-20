@@ -39,18 +39,22 @@
                 int startItem = totalFilteredItems > 0 ? (currentPage - 1) * pageSize + 1 : 0;
                 int endItem = Math.min(currentPage * pageSize, totalFilteredItems);
                 %>
-                <%! private String buildPageUrl(String search, String status, int page, int pageSize) { StringBuilder
-                  sb=new StringBuilder("pay-periods?page=").append(page).append(" &pageSize=").append(pageSize);
+                <%!
+                    private String buildPageUrl(String search, String status, int page, int pageSize) {
+                        StringBuilder sb = new StringBuilder("pay-periods?page=").append(page).append("&pageSize=").append(pageSize);
                         if (search != null && !search.trim().isEmpty()) {
                             try {
-                                sb.append(" &search=").append(java.net.URLEncoder.encode(search.trim(), " UTF-8")); }
-                  catch (Exception ignored) {} } if (status !=null && !status.trim().isEmpty()) { sb.append("&status=").append(status);
+                                sb.append("&search=").append(java.net.URLEncoder.encode(search.trim(), "UTF-8"));
+                            } catch (Exception ignored) {}
+                        }
+                        if (status != null && !status.trim().isEmpty()) {
+                            sb.append("&status=").append(status);
                         }
                         return sb.toString();
                     }
 %>
 <!DOCTYPE html>
-<html lang=" vi">
+<html lang="vi">
 
                   <head>
                     <meta charset="UTF-8" />
