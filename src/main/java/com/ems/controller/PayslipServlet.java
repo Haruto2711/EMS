@@ -93,17 +93,18 @@ public class PayslipServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        Integer managerId = (Integer) session.getAttribute("accountId");
+
+        if (managerId == null) {
+            response.sendRedirect(request.getContextPath() + "/login.jsp");
+            return;
+        }
+
         String action = request.getParameter("action");
 
         if ("generate".equals(action)){
             int periodId = Integer.parseInt(request.getParameter("periodId"));
-            HttpSession session = request.getSession();
-            Integer managerId = (Integer) session.getAttribute("accountId");
-
-            if (managerId == null) {
-                response.sendRedirect(request.getContextPath() + "/login.jsp");
-                return;
-            }
 
             PayrollService payrollService = new PayrollService();
             String result = payrollService.generatePayrollMonth(periodId, managerId);
@@ -112,7 +113,50 @@ public class PayslipServlet extends HttpServlet {
                 String count = result.split(":")[1];
                 request.getSession().setAttribute("msgSuccess", "Đã tính lương thành công cho " + count + " nhân viên!");
 
-            }else {
+            } else {
+                request.getSession().setAttribute("msgError", result);
+            }
+
+            response.sendRedirect(request.getContextPath() + "/payslips?periodId=" + periodId);
+        } else if ("edit".equals(action)){
+            // Lấy dữ liệu từ Form Edit gửi lên
+            int payslipId = Integer.parseInt(request.getParameter("payslipId"));
+            int periodId = Integer.parseInt(request.getParameter("periodId"));
+            String note = request.getParameter("note");
+
+            // Xử lý tiền tệ (Nếu rỗng thì cho = 0)
+            BigDecimal bonus = request.getParameter("bonus").isEmpty() ? BigDecimal.ZERO : new BigDecimal(request.getParameter("bonus"));
+            BigDecimal penalty = request.getParameter("penalty").isEmpty() ? BigDecimal.ZERO : new BigDecimal(request.getParameter("penalty"));
+            BigDecimal advance = request.getParameter("advance").isEmpty() ? BigDecimal.ZERO : new BigDecimal(request.getParameter("advance"));
+
+            // Gọi Service tính lại và cập nhật
+            com.ems.service.PayrollService payrollService = new com.ems.service.PayrollService();
+            String result = payrollService.updateManualPayslip(payslipId, bonus, penalty, advance, note, managerId);
+
+            if ("SUCCESS".equals(result)) {
+                request.getSession().setAttribute("msgSuccess", "Đã cập nhật phiếu lương thành công! Thuế và Thực lĩnh đã được tính toán lại.");
+            } else {
+                request.getSession().setAttribute("msgError", result);
+            }
+            response.sendRedirect(request.getContextPath() + "/payslips?periodId=" + periodId);
+        } else if ("confirm".equals(action)) {
+            int periodId = 0;
+            try {
+                periodId = Integer.parseInt(request.getParameter("periodId"));
+            } catch (NumberFormatException e) {
+                request.getSession().setAttribute("msgError", "Kỳ lương không hợp lệ!");
+                response.sendRedirect(request.getContextPath() + "/payslips");
+                return;
+            }
+
+
+            PayrollService payrollService = new PayrollService();
+            String result = payrollService.confirmPayroll(periodId);
+
+            if (result.startsWith("SUCCESS")) {
+                String count = result.split(":")[1];
+                request.getSession().setAttribute("msgSuccess", "Đã chốt thành công " + count + " phiếu lương! Dữ liệu đã được khóa.");
+            } else {
                 request.getSession().setAttribute("msgError", result);
             }
 
