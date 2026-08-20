@@ -232,4 +232,101 @@ public class PayslipDAO {
         }
         return list;
     }
+
+    //Hàm để tính lương
+
+    public boolean checkPayrollExists(int periodId) {
+        String sql = "SELECT COUNT(*) FROM payslips WHERE PeriodId = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, periodId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1) > 0;
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return false;
+    }
+
+    public int countActualWorkDays(int userId, int periodId) {
+        String sql = "SELECT COUNT(DISTINCT a.AttendanceDate) " +
+                "FROM attendance a " +
+                "JOIN timesheetperiods t ON t.Id = ? " +
+                "WHERE a.EmployeeId = ? " +
+                "AND a.AttendanceDate BETWEEN t.StartDate AND t.EndDate " +
+                "AND a.CheckInTime IS NOT NULL";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, periodId);
+            ps.setInt(2, userId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+
+    public int insertPayslip(com.ems.model.Payslips p) {
+        String sql = "INSERT INTO payslips (UserId, PeriodId, StandardWorkDays, ActualWorkDays, OtHours, " +
+                "BaseSalary, ActualBaseSalary, OtSalary, TotalAllowanceAmount, BonusAmount, GrossAmount, " +
+                "BhxhAmount, BhytAmount, BhtnAmount, TotalInsuranceDeduction, DependentsCount, " +
+                "DependentDeduction, TaxableIncome, TaxDeduction, PenaltyAmount, AdvanceAmount, " +
+                "OtherDeductions, NetAmount, Status, AdjustedByAccountId) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
+
+            ps.setInt(1, p.getUserid());
+            ps.setInt(2, p.getPeriodid());
+            ps.setInt(3, p.getStandardworkdays());
+            ps.setBigDecimal(4, p.getActualworkdays());
+            ps.setBigDecimal(5, p.getOthours());
+            ps.setBigDecimal(6, p.getBasesalary());
+            ps.setBigDecimal(7, p.getActualbasesalary());
+            ps.setBigDecimal(8, p.getOtsalary());
+            ps.setBigDecimal(9, p.getTotalallowanceamount());
+            ps.setBigDecimal(10, p.getBonusamount());
+            ps.setBigDecimal(11, p.getGrossamount());
+            ps.setBigDecimal(12, p.getBhxhamount());
+            ps.setBigDecimal(13, p.getBhytamount());
+            ps.setBigDecimal(14, p.getBhtnamount());
+            ps.setBigDecimal(15, p.getTotalinsurancededuction());
+            ps.setInt(16, p.getDependentscount());
+            ps.setBigDecimal(17, p.getDependentdeduction());
+            ps.setBigDecimal(18, p.getTaxableincome());
+            ps.setBigDecimal(19, p.getTaxdeduction());
+            ps.setBigDecimal(20, p.getPenaltyamount());
+            ps.setBigDecimal(21, p.getAdvanceamount());
+            ps.setBigDecimal(22, p.getOtherdeductions());
+            ps.setBigDecimal(23, p.getNetamount());
+            ps.setString(24, p.getStatus());
+            if (p.getAdjustedbyaccountid() != null) ps.setInt(25, p.getAdjustedbyaccountid());
+            else ps.setNull(25, java.sql.Types.INTEGER);
+
+            if (ps.executeUpdate() > 0) {
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (rs.next()) return rs.getInt(1); // Trả về ID của phiếu lương vừa tạo
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return -1;
+    }
+
+    public void insertPayslipAllowance(int payslipId, int allowanceTypeId, java.math.BigDecimal amount) {
+        String sql = "INSERT INTO payslip_allowances (PayslipId, AllowanceTypeId, Amount) VALUES (?, ?, ?)";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, payslipId);
+            ps.setInt(2, allowanceTypeId);
+            ps.setBigDecimal(3, amount);
+            ps.executeUpdate();
+        } catch (Exception e) { e.printStackTrace(); }
+    }
 }

@@ -408,4 +408,21 @@ public class UserDAO {
         }
         return null;
     }
+
+    // Hàm lấy danh sách tất cả nhân viên đang đi làm (Status = 1)
+    public java.util.List<com.ems.model.Users> getAllActiveUsers() {
+        java.util.List<com.ems.model.Users> list = new java.util.ArrayList<>();
+        String sql = "SELECT * FROM users WHERE Status = 1";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                com.ems.model.Users u = new com.ems.model.Users();
+                u.setId(rs.getInt("Id"));
+                u.setDependentscount(rs.getInt("DependentsCount"));
+                list.add(u);
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+    }
 }
