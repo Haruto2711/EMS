@@ -261,7 +261,7 @@
       <div class="modal-body">
         <p id="deleteMessage" style="font-size: 14px; color: #374151; line-height: 1.5;"></p>
         <div id="deleteWarning" style="display: none; background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px; border-radius: 6px; font-size: 13px; margin-top: 12px;">
-          ⚠️ <strong>Cảnh báo:</strong> Phòng ban này hiện đang có nhân viên trực thuộc. Bạn không thể xóa cho đến khi chuyển hết nhân sự sang phòng ban khác!
+          <strong>Cảnh báo:</strong> Phòng ban này hiện đang có nhân viên trực thuộc. Bạn không thể xóa cho đến khi chuyển hết nhân sự sang phòng ban khác!
         </div>
       </div>
       <div class="modal-footer">

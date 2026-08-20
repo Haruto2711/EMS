@@ -72,9 +72,7 @@ public class PositionServlet extends HttpServlet {
         if (positionsList != null) {
             for (Map<String, Object> p : positionsList) {
                 int totalEmp = (Integer) p.get("totalEmployees");
-                if (totalEmp > 0) {
-                    assignedPositions++;
-                }
+                assignedPositions += totalEmp;
             }
         }
 
