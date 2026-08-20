@@ -68,6 +68,10 @@
                 Trang chủ
             </a>
             <div class="nav-section-label">Công việc</div>
+            <a href="${pageContext.request.contextPath}/employee-calendar?year=<%=java.time.LocalDate.now().getYear()%>&amp;month=<%=java.time.LocalDate.now().getMonthValue()%>&amp;employeeId=${sessionScope.accountId}"
+               class="nav-link ${pageContext.request.servletPath == '/employee-calendar.jsp' ? 'active' : ''}">
+                Lịch làm việc
+            </a>
             <a href="${pageContext.request.contextPath}/request.jsp"
                class="nav-link ${pageContext.request.servletPath == '/request.jsp' ? 'active' : ''}">
                 Yêu cầu
