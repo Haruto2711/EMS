@@ -20,7 +20,6 @@ public class PayrollService {
     private BaseSalaryDAO salaryDAO = new BaseSalaryDAO(); // Chứa lương cơ bản
     private PayslipDAO payslipDAO = new PayslipDAO();
 
-
     /**
      * HÀM CHÍNH: Tính toán ra 1 tờ Phiếu Lương (Payslips) hoàn chỉnh cho 1 nhân
      * viên
@@ -29,12 +28,12 @@ public class PayrollService {
     public Payslips calculatePayslip(int userId, int periodId, BigDecimal actualWorkDays, BigDecimal otHours,
             BigDecimal bonus, BigDecimal penalty, BigDecimal advance) {
 
-        // 1. Lấy dữ liệu cấu hình ĐANG ÁP DỤNG
+        // Lấy dữ liệu cấu hình ĐANG ÁP DỤNG
         Payrollconfigs config = configDAO.getActiveConfig();
         if (config == null)
             throw new RuntimeException("Lỗi: Chưa có Cấu hình lương nào được kích hoạt!");
 
-        // 2. Lấy thông tin nhân viên & Lương cơ bản
+        // Lấy thông tin nhân viên & Lương cơ bản
         Users user = userDAO.getById(userId);
         Employmentbasesalarys baseSalaryInfo = salaryDAO.getByUserId(userId);
         BigDecimal baseSalary = baseSalaryInfo != null ? baseSalaryInfo.getBasesalary() : BigDecimal.ZERO;
@@ -138,7 +137,7 @@ public class PayrollService {
             assessableIncome = BigDecimal.ZERO;
         }
         payslip.setTaxableincome(assessableIncome);
-        payslip.setTaxdeduction(calculatePIT(assessableIncome)); // Gọi hàm tính thuế 7 bậc
+        payslip.setTaxdeduction(calculatePIT(assessableIncome)); // Gọi hàm tính thuế 5 bậc
 
         // --- TÍNH THỰC LĨNH (NET) ---
         BigDecimal netAmount = grossAmount
@@ -176,35 +175,40 @@ public class PayrollService {
         return BigDecimal.valueOf(tax).setScale(2, RoundingMode.HALF_UP);
     }
 
+    // Chay tinh luong cho ca cong ty
+    public String generatePayrollMonth(int periodId, int managerId) {
 
-    //Chay tinh luong cho ca cong ty
-    public String generatePayrollMonth(int periodId, int managerId){
-
-        //Kiem tra trung lap
+        // Kiem tra trung lap
         if (payslipDAO.checkPayrollExists(periodId)) {
             return "Kỳ lương này đã được tính toán rồi. Không thể chạy trùng!";
         }
 
-        //Lay cau hinh luong
+        // Lay cau hinh luong
         Payrollconfigs config = configDAO.getActiveConfig();
-        if (config == null) return "Error: Không tìm thấy Cấu hình lương nào đang Active!";
+        if (config == null)
+            return "Error: Không tìm thấy Cấu hình lương nào đang Active!";
 
-        //Lay danh sach phu cap
+        // Lay danh sach phu cap
         List<Allowancetypes> activeAllowances = allowanceDAO.getAllActive();
 
-        //Lay danh sach nhan vien active
+        // Lay danh sach nhan vien active
         List<Users> users = userDAO.getAllActiveUsers();
-        if (users == null || users.isEmpty()) return "Error: Không có nhân viên nào trong hệ thống!";
+        if (users == null || users.isEmpty())
+            return "Error: Không có nhân viên nào trong hệ thống!";
 
         int successCount = 0;
 
-        //Vong lap tinh luong
-        for (Users u : users){
-            //So ngay di lam thuc te
+        // Vong lap tinh luong
+        for (Users u : users) {
+            // So ngay di lam thuc te
             int actualDaysInt = payslipDAO.countActualWorkDays(u.getId(), periodId);
             BigDecimal actualDays = new BigDecimal(actualDaysInt);
 
-            //Set cac gia tri khac bang 0
+            if (actualDaysInt <= 0) {
+                continue;
+            }
+
+            // Set cac gia tri khac bang 0
             BigDecimal otHours = BigDecimal.ZERO;
             BigDecimal bonus = BigDecimal.ZERO;
             BigDecimal penalty = BigDecimal.ZERO;
@@ -214,15 +218,15 @@ public class PayrollService {
             p.setStatus("Draft");
             p.setAdjustedbyaccountid(managerId);
 
-            //insert phieu luong
+            // insert phieu luong
             int newPayslipId = payslipDAO.insertPayslip(p);
 
-            //insert phu cap
-            if (newPayslipId >0){
+            // insert phu cap
+            if (newPayslipId > 0) {
                 successCount++;
-                for (Allowancetypes alw : activeAllowances){
+                for (Allowancetypes alw : activeAllowances) {
                     BigDecimal amt = alw.getDefaultamount();
-                    //Tinh lai neu set ByWorkDay
+                    // Tinh lai neu set ByWorkDay
                     if ("ByWorkDay".equals(alw.getCalculationmethod())) {
                         amt = amt.multiply(actualDays)
                                 .divide(new BigDecimal(config.getStandardworkingdays()), 2, RoundingMode.HALF_UP);
@@ -232,6 +236,39 @@ public class PayrollService {
             }
         }
         return "SUCCESS:" + successCount;
+    }
+
+    public String updateManualPayslip(int payslipId, BigDecimal bonus, BigDecimal penalty, BigDecimal advance, String note, int managerId){
+        Payslips oldPayslip = payslipDAO.getPayslipById(payslipId);
+        if (oldPayslip == null) return "Không tìm thấy phiếu lương này!";
+        if (!"Draft".equals(oldPayslip.getStatus())) return "Error: Chỉ được phép chỉnh sửa Bản nháp!";
+
+        Payslips updatedPayslip = calculatePayslip(
+                oldPayslip.getUserid(),
+                oldPayslip.getPeriodid(),
+                oldPayslip.getActualworkdays(),
+                oldPayslip.getOthours(),
+                bonus, penalty, advance
+        );
+
+        updatedPayslip.setId(payslipId);
+        updatedPayslip.setNote(note);
+        updatedPayslip.setAdjustedbyaccountid(managerId);
+
+        if (payslipDAO.updatePayslip(updatedPayslip)) {
+            return "SUCCESS";
+        }
+        return "Lỗi khi lưu vào Database!";
+    }
+
+    public String confirmPayroll(int periodId) {
+        int updatedCount = payslipDAO.updatePayslipStatusByPeriod(periodId, "Draft", "Confirmed");
+
+        if (updatedCount > 0) {
+            return "SUCCESS:" + updatedCount;
+        } else {
+            return "Không có phiếu lương bản nháp nào cần chốt trong kỳ này!";
+        }
     }
 
 }
