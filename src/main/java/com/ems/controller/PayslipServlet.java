@@ -4,6 +4,8 @@ import com.ems.dao.PayslipDAO;
 import com.ems.dto.PayslipDTO;
 import com.ems.model.Departments;
 import com.ems.model.Timesheetperiods;
+import com.ems.model.Users;
+import com.ems.service.PayrollService;
 import com.ems.service.PayslipService;
 
 import jakarta.servlet.ServletException;
@@ -11,6 +13,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
@@ -85,5 +89,34 @@ public class PayslipServlet extends HttpServlet {
         request.setAttribute("formattedTotalDeductions", decimalFormat.format(totalDeductions).replace(',', '.'));
 
         request.getRequestDispatcher("/payslip-list.jsp").forward(request, response);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String action = request.getParameter("action");
+
+        if ("generate".equals(action)){
+            int periodId = Integer.parseInt(request.getParameter("periodId"));
+            HttpSession session = request.getSession();
+            Integer managerId = (Integer) session.getAttribute("accountId");
+
+            if (managerId == null) {
+                response.sendRedirect(request.getContextPath() + "/login.jsp");
+                return;
+            }
+
+            PayrollService payrollService = new PayrollService();
+            String result = payrollService.generatePayrollMonth(periodId, managerId);
+
+            if (result.startsWith("SUCCESS")){
+                String count = result.split(":")[1];
+                request.getSession().setAttribute("msgSuccess", "Đã tính lương thành công cho " + count + " nhân viên!");
+
+            }else {
+                request.getSession().setAttribute("msgError", result);
+            }
+
+            response.sendRedirect(request.getContextPath() + "/payslips?periodId=" + periodId);
+        }
     }
 }
