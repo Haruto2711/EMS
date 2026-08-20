@@ -43,7 +43,7 @@ public class UploadServlet extends HttpServlet {
             HttpSession session = request.getSession();
             session.setAttribute("previewList", records);
 
-            request.getRequestDispatcher("preview.jsp").forward(request, response);
+            request.getRequestDispatcher("/Attendance/attendance.jsp").forward(request, response);
 
         } catch (Exception e) {
             request.setAttribute("error", "Lỗi khi đọc file Excel: " + e.getMessage());

@@ -48,6 +48,10 @@
                class="nav-link ${pageContext.request.servletPath == '/salary-management.jsp' ? 'active' : ''}">
                 Quản lý lương
             </a>
+            <a href="${pageContext.request.contextPath}/Attendance/upload.jsp"
+                                       class="nav-link ${pageContext.request.servletPath == '/Attendance/upload.jsp' ? 'active' : ''}">
+                                        Quản lý chấm công
+                          </a>
         </c:if>
 
 
