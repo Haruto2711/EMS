@@ -33,6 +33,7 @@
     <a href="users"       class="nav-link">Tài khoản</a>
     <a href="employees"   class="nav-link active">Nhân viên</a>
     <a href="departments" class="nav-link">Phòng ban</a>
+    <a href="positions"   class="nav-link">Chức vụ</a>
   </nav>
   <div class="sidebar-footer">
     <div class="user-block">
