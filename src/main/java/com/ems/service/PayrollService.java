@@ -20,11 +20,7 @@ public class PayrollService {
     private BaseSalaryDAO salaryDAO = new BaseSalaryDAO(); // Chứa lương cơ bản
     private PayslipDAO payslipDAO = new PayslipDAO();
 
-    /**
-     * HÀM CHÍNH: Tính toán ra 1 tờ Phiếu Lương (Payslips) hoàn chỉnh cho 1 nhân
-     * viên
-     * Lưu ý: Hàm này chỉ TÍNH TOÁN trên RAM (chưa lưu xuống DB)
-     */
+    // Tính toán phiếu lương
     public Payslips calculatePayslip(int userId, int periodId, BigDecimal actualWorkDays, BigDecimal otHours,
             BigDecimal bonus, BigDecimal penalty, BigDecimal advance) {
 
@@ -72,7 +68,7 @@ public class PayrollService {
         BigDecimal totalInsuranceAllowance = BigDecimal.ZERO; // Phụ cấp đóng BH
 
         for (Allowancetypes alw : allowances) {
-            BigDecimal amt = alw.getDefaultamount(); // Tạm tính theo Fixed
+            BigDecimal amt = alw.getDefaultamount(); // Tính theo Fixed
             if ("ByWorkDay".equals(alw.getCalculationmethod())) {
                 amt = amt.multiply(actualWorkDays).divide(new BigDecimal(config.getStandardworkingdays()), 2,
                         RoundingMode.HALF_UP);
@@ -238,18 +234,20 @@ public class PayrollService {
         return "SUCCESS:" + successCount;
     }
 
-    public String updateManualPayslip(int payslipId, BigDecimal bonus, BigDecimal penalty, BigDecimal advance, String note, int managerId){
+    public String updateManualPayslip(int payslipId, BigDecimal bonus, BigDecimal penalty, BigDecimal advance,
+            String note, int managerId) {
         Payslips oldPayslip = payslipDAO.getPayslipById(payslipId);
-        if (oldPayslip == null) return "Không tìm thấy phiếu lương này!";
-        if (!"Draft".equals(oldPayslip.getStatus())) return "Error: Chỉ được phép chỉnh sửa Bản nháp!";
+        if (oldPayslip == null)
+            return "Không tìm thấy phiếu lương này!";
+        if (!"Draft".equals(oldPayslip.getStatus()))
+            return "Error: Chỉ được phép chỉnh sửa Bản nháp!";
 
         Payslips updatedPayslip = calculatePayslip(
                 oldPayslip.getUserid(),
                 oldPayslip.getPeriodid(),
                 oldPayslip.getActualworkdays(),
                 oldPayslip.getOthours(),
-                bonus, penalty, advance
-        );
+                bonus, penalty, advance);
 
         updatedPayslip.setId(payslipId);
         updatedPayslip.setNote(note);

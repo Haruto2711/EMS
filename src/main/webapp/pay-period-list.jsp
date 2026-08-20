@@ -41,13 +41,13 @@
                 %>
                 <%! private String buildPageUrl(String search, String status, int page, int pageSize) { StringBuilder
                   sb=new StringBuilder("pay-periods?page=").append(page).append(" &pageSize=").append(pageSize);
-        if (search != null && !search.trim().isEmpty()) {
-            try {
-                sb.append(" &search=").append(java.net.URLEncoder.encode(search.trim(), " UTF-8")); } catch (Exception
-                  ignored) {} } if (status !=null && !status.trim().isEmpty()) { sb.append("&status=").append(status);
-        }
-        return sb.toString();
-    }
+                        if (search != null && !search.trim().isEmpty()) {
+                            try {
+                                sb.append(" &search=").append(java.net.URLEncoder.encode(search.trim(), " UTF-8")); }
+                  catch (Exception ignored) {} } if (status !=null && !status.trim().isEmpty()) { sb.append("&status=").append(status);
+                        }
+                        return sb.toString();
+                    }
 %>
 <!DOCTYPE html>
 <html lang=" vi">
@@ -260,7 +260,7 @@
                                           <div class="action-group" style="justify-content: flex-end;">
 
                                             <!-- Link to view payslips of this period -->
-                                            <a href="manager-payslips?periodId=<%= p.getId() %>" class="btn-action-view"
+                                            <a href="payslips?periodId=<%= p.getId() %>" class="btn-action-view"
                                               title="Xem bảng lương kỳ này">
                                               <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
                                                 stroke="currentColor" stroke-width="2" stroke-linecap="round"
