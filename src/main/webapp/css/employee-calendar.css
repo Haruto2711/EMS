@@ -1,0 +1,219 @@
+/* ===================================================
+   employee-calendar.css – Styles riêng cho trang Lịch làm việc nhân viên
+   Phụ thuộc: ems.css (phải load trước file này)
+   =================================================== */
+
+/* ── Month Navigator ── */
+.month-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.month-nav-btn {
+  width: 34px;
+  height: 34px;
+  border: 1.5px solid var(--slate-200);
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--slate-600);
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.month-nav-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-light);
+}
+
+.month-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1.5px solid var(--slate-200);
+  border-radius: 8px;
+  padding: 6px 18px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--dark);
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  min-width: 150px;
+  justify-content: center;
+}
+
+.month-chip i {
+  color: var(--primary);
+  font-size: 0.85rem;
+}
+
+/* ── Topbar overrides ── */
+.topbar-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--dark);
+}
+
+.topbar-breadcrumb {
+  font-size: 0.8rem;
+  color: var(--slate-400);
+}
+
+/* ── Legend ── */
+.cal-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 20px;
+  font-size: 0.82rem;
+  color: var(--slate-600);
+}
+
+.cal-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.cal-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.cal-dot-work    { background: var(--primary); }
+.cal-dot-holiday { background: var(--danger); }
+.cal-dot-weekend { background: var(--slate-400); }
+.cal-dot-off     { background: var(--slate-200); border: 1px solid var(--slate-300); }
+
+/* ── Calendar Card ── */
+.cal-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid var(--slate-200);
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+}
+
+.cal-card-header {
+  padding: 1.1rem 1.5rem;
+  border-bottom: 1px solid var(--slate-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.cal-card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cal-card-icon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--primary-light), #e0f2fe);
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  font-size: 1rem;
+}
+
+.cal-card-title    { font-weight: 700; font-size: 1rem; color: var(--dark); }
+.cal-card-subtitle { font-size: 0.8rem; color: var(--slate-500); }
+
+/* ── Calendar Grid ── */
+.cal-grid-wrap {
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.weekday-header {
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: var(--slate-500);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 8px 4px;
+}
+
+.weekday-header.sunday { color: var(--danger); }
+
+/* ── Day Cells ── */
+.day-cell {
+  min-height: 90px;
+  border: 1px solid var(--slate-200);
+  border-radius: 10px;
+  padding: 8px;
+  font-size: 12px;
+  position: relative;
+  transition: box-shadow 0.15s;
+}
+
+.day-cell:hover:not(.blank) {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.day-cell.blank {
+  border: none;
+  background: transparent;
+}
+
+.day-cell.work    { background: #eff6ff; border-color: #bfdbfe; }
+.day-cell.holiday { background: #fef2f2; border-color: #fecaca; }
+.day-cell.weekend { background: var(--slate-50); border-color: var(--slate-200); }
+.day-cell.off     { background: #fff; }
+
+.day-number {
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+  color: var(--dark);
+}
+
+.day-cell.weekend .day-number { color: var(--slate-400); }
+.day-cell.holiday .day-number { color: var(--danger); }
+
+/* ── Tags inside cells ── */
+.cal-tag {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.cal-tag-work    { background: var(--primary); color: #fff; }
+.cal-tag-holiday { background: var(--danger); color: #fff; }
+
+.shift-time    { color: var(--slate-600); font-size: 0.72rem; margin-top: 2px; }
+.holiday-label { color: #b91c1c; font-size: 0.72rem; font-weight: 600; margin-top: 2px; }
+.coef-label    { color: #b91c1c; font-size: 0.7rem; margin-top: 1px; }
+.weekend-label { color: var(--slate-400); font-size: 0.75rem; font-weight: 500; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .day-cell { min-height: 60px; padding: 5px; }
+  .cal-grid-wrap { padding: 0.75rem; }
+  .calendar-grid { gap: 4px; }
+}
