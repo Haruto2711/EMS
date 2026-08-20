@@ -33,7 +33,7 @@ public class HolidayYearInstanceDAO {
                     hi.setEndDate(rs.getObject("EndDate", LocalDate.class));
                     hi.setCoefficient(rs.getDouble("Coefficient"));
                     hi.setCreatedBy((Integer) rs.getObject("CreatedBy"));
-                    holidayYearInstanceMap.put(hi.getId(), hi);
+                    holidayYearInstanceMap.put(hi.getTemplateId(), hi);
                 }
             }
         } catch (SQLException e) {
