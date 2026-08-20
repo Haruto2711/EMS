@@ -252,8 +252,9 @@ public class RequestController extends HttpServlet {
         }
 
         List<RequestDTO> list =
-                dao.getPendingRequests(accountId);
-
+                dao.getAll();
+        System.out.println("[EMS-DEBUG] pending method: loaded list size = " + (list != null ? list.size() : "null"));
+ 
         request.setAttribute("requests", list);
 
         request.getRequestDispatcher(
