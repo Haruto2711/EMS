@@ -158,10 +158,24 @@ public class UserServlet extends HttpServlet {
                 int departmentId = (deptStr != null && !deptStr.isEmpty()) ? Integer.parseInt(deptStr) : 0;
                 int positionId = (posStr != null && !posStr.isEmpty()) ? Integer.parseInt(posStr) : 0;
 
-                // Validate trùng lặp
+                if (!"Manager".equalsIgnoreCase(role) && !"Employee".equalsIgnoreCase(role)) {
+                    role = "Employee";
+                }
+
+                String rawUsername = request.getParameter("username");
+                String rawEmail = request.getParameter("email");
+                String rawPhone = request.getParameter("phone");
+
+                // Validate trùng lặp & viết liền
                 String error = null;
                 if (username.isEmpty() || password == null || password.isEmpty() || fullName.isEmpty() || email.isEmpty()) {
                     error = "Vui lòng điền đầy đủ các thông tin bắt buộc!";
+                } else if (rawUsername != null && rawUsername.contains(" ")) {
+                    error = "Tên tài khoản phải viết liền, không được chứa khoảng trắng!";
+                } else if (rawEmail != null && rawEmail.contains(" ")) {
+                    error = "Email phải viết liền, không được chứa khoảng trắng!";
+                } else if (rawPhone != null && rawPhone.contains(" ")) {
+                    error = "Số điện thoại phải viết liền, không được chứa khoảng trắng!";
                 } else if (userDAO.isUsernameExists(username)) {
                     error = "Tên tài khoản (Username) '" + username + "' đã tồn tại! Vui lòng chọn tên khác.";
                 } else if (userDAO.isEmailExists(email)) {
@@ -200,10 +214,17 @@ public class UserServlet extends HttpServlet {
                 email = email != null ? email.trim() : "";
                 phone = phone != null ? phone.trim() : "";
 
+                String rawEmail = request.getParameter("email");
+                String rawPhone = request.getParameter("phone");
+
                 // Validate trùng lặp khi sửa
                 String error = null;
                 if (fullName.isEmpty() || email.isEmpty()) {
                     error = "Vui lòng điền đầy đủ họ và tên và email!";
+                } else if (rawEmail != null && rawEmail.contains(" ")) {
+                    error = "Email phải viết liền, không được chứa khoảng trắng!";
+                } else if (rawPhone != null && rawPhone.contains(" ")) {
+                    error = "Số điện thoại phải viết liền, không được chứa khoảng trắng!";
                 } else if (userDAO.isEmailExistsForOther(email, accountId)) {
                     error = "Email công ty '" + email + "' đã được sử dụng bởi tài khoản khác!";
                 } else if (!phone.isEmpty() && userDAO.isPhoneExistsForOther(phone, accountId)) {

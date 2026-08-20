@@ -20,6 +20,34 @@
   <link rel="stylesheet" href="css/ems.css"/>
   <link rel="stylesheet" href="css/users.css"/>
   <link rel="stylesheet" href="css/employees.css"/>
+  <style>
+    .page-nav-btn, .page-num-btn {
+      padding: 6px 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      background: #ffffff;
+      color: #374151;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      outline: none;
+    }
+    .page-nav-btn:hover:not(:disabled), .page-num-btn:hover:not(.active) {
+      background: #f3f4f6;
+      border-color: #d1d5db;
+    }
+    .page-nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .page-num-btn.active {
+      background: #0d9488;
+      color: #ffffff;
+      border-color: #0d9488;
+      font-weight: 600;
+    }
+  </style>
 </head>
 <body>
 
@@ -192,21 +220,26 @@
                   <input type="hidden" name="userId" value="<%= emp.get("userId") %>"/>
                   <input type="hidden" name="currentStatus" value="<%= isActive %>"/>
                   <button type="submit" style="background:none; border:none; color:#dc2626; cursor:pointer; font-size:13.5px; font-weight:600; padding:0; font-family:inherit;">
-                    <%= isActive ? "Ẩn" : "Hiện" %>
+                    <%= isActive ? "Dừng" : "Hiện" %>
                   </button>
                 </form>
               </td>
             </tr>
           <%
+                }
               }
-            } else {
           %>
-            <tr>
-              <td colspan="8" class="emp-empty">Không có nhân viên nào.</td>
+            <tr id="empEmptyRow" style="display:none;">
+              <td colspan="8" class="emp-empty" style="padding: 30px; text-align: center; color: #9ca3af;">Không tìm thấy nhân viên nào phù hợp.</td>
             </tr>
-          <% } %>
           </tbody>
         </table>
+      </div>
+
+      <!-- Pagination Container -->
+      <div class="pagination-container" style="display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-top: 1px solid #f3f4f6; font-size: 13px; color: #6b7280; flex-wrap: wrap; gap: 10px;">
+        <div id="empPaginationInfo">Hiển thị 0 - 0 / 0 nhân viên</div>
+        <div id="empPaginationControls" style="display: flex; gap: 6px; align-items: center;"></div>
       </div>
     </div>
 
@@ -444,11 +477,17 @@
     submitBtn.style.cursor = hasError ? 'not-allowed' : 'pointer';
   }
 
+  const EMP_PAGE_SIZE = 10;
+  let currentEmpPage = 1;
+  let filteredEmpRows = [];
+
   function filterTable() {
-    var search  = document.getElementById('searchInput').value.toLowerCase().trim();
-    var dept    = document.getElementById('filterDept').value.toLowerCase().trim();
-    var status  = document.getElementById('filterStatus').value.toLowerCase().trim();
-    document.querySelectorAll('#empTableBody .emp-row').forEach(function(row) {
+    var search  = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+    var dept    = (document.getElementById('filterDept').value || '').toLowerCase().trim();
+    var status  = (document.getElementById('filterStatus').value || '').toLowerCase().trim();
+
+    var allRows = Array.from(document.querySelectorAll('#empTableBody .emp-row'));
+    filteredEmpRows = allRows.filter(function(row) {
       var name = (row.dataset.name || '').toLowerCase();
       var code = (row.dataset.code || '').toLowerCase();
       var pos  = (row.dataset.pos  || '').toLowerCase();
@@ -458,8 +497,111 @@
       var matchSearch = !search || name.includes(search) || code.includes(search) || pos.includes(search);
       var matchDept   = !dept   || rowDept === dept;
       var matchStatus = !status || rowStatus === status;
-      row.style.display = (matchSearch && matchDept && matchStatus) ? '' : 'none';
+
+      return matchSearch && matchDept && matchStatus;
     });
+
+    currentEmpPage = 1;
+    renderEmpPagination();
+  }
+
+  function renderEmpPagination() {
+    var allRows = document.querySelectorAll('#empTableBody .emp-row');
+    allRows.forEach(function(r) { r.style.display = 'none'; });
+
+    var emptyRow = document.getElementById('empEmptyRow');
+    var total = filteredEmpRows.length;
+
+    if (total === 0) {
+      if (emptyRow) emptyRow.style.display = '';
+    } else {
+      if (emptyRow) emptyRow.style.display = 'none';
+    }
+
+    var totalPages = Math.ceil(total / EMP_PAGE_SIZE) || 1;
+    if (currentEmpPage > totalPages) currentEmpPage = totalPages;
+    if (currentEmpPage < 1) currentEmpPage = 1;
+
+    var startIdx = (currentEmpPage - 1) * EMP_PAGE_SIZE;
+    var endIdx   = Math.min(startIdx + EMP_PAGE_SIZE, total);
+
+    for (var i = startIdx; i < endIdx; i++) {
+      filteredEmpRows[i].style.display = '';
+    }
+
+    // Cập nhật thông tin phân trang
+    var infoEl = document.getElementById('empPaginationInfo');
+    if (infoEl) {
+      if (total === 0) {
+        infoEl.textContent = 'Không tìm thấy nhân viên nào phù hợp';
+      } else {
+        infoEl.textContent = 'Hiển thị ' + (startIdx + 1) + ' - ' + endIdx + ' trên tổng số ' + total + ' nhân viên';
+      }
+    }
+
+    // Vẽ các nút phân trang
+    var controlsEl = document.getElementById('empPaginationControls');
+    if (!controlsEl) return;
+    controlsEl.innerHTML = '';
+
+    if (totalPages <= 1) {
+      return;
+    }
+
+    // Nút Trước
+    var prevBtn = document.createElement('button');
+    prevBtn.innerHTML = '&laquo; Trước';
+    prevBtn.className = 'page-nav-btn';
+    prevBtn.type = 'button';
+    prevBtn.disabled = currentEmpPage === 1;
+    prevBtn.onclick = function() {
+      if (currentEmpPage > 1) {
+        currentEmpPage--;
+        renderEmpPagination();
+      }
+    };
+    controlsEl.appendChild(prevBtn);
+
+    // Các trang số
+    for (var p = 1; p <= totalPages; p++) {
+      if (totalPages > 7) {
+        if (p !== 1 && p !== totalPages && Math.abs(p - currentEmpPage) > 2) {
+          if (p === 2 || p === totalPages - 1) {
+            var dots = document.createElement('span');
+            dots.textContent = '...';
+            dots.style.padding = '0 4px';
+            dots.style.color = '#9ca3af';
+            controlsEl.appendChild(dots);
+          }
+          continue;
+        }
+      }
+      var pageBtn = document.createElement('button');
+      pageBtn.textContent = p;
+      pageBtn.type = 'button';
+      pageBtn.className = 'page-num-btn' + (p === currentEmpPage ? ' active' : '');
+      pageBtn.onclick = (function(page) {
+        return function() {
+          currentEmpPage = page;
+          renderEmpPagination();
+        };
+      })(p);
+      controlsEl.appendChild(pageBtn);
+    }
+
+    // Nút Tiếp
+    var nextBtn = document.createElement('button');
+    nextBtn.innerHTML = 'Tiếp &raquo;';
+    nextBtn.className = 'page-nav-btn';
+    nextBtn.type = 'button';
+    nextBtn.disabled = currentEmpPage === totalPages;
+    nextBtn.onclick = function() {
+      if (currentEmpPage < totalPages) {
+        currentEmpPage++;
+        renderEmpPagination();
+      }
+    };
+    controlsEl.appendChild(nextBtn);
   }
 
   // Tự động nhận tham số từ URL khi chuyển trang từ màn Phòng ban / Chức vụ
@@ -486,9 +628,7 @@
     if (search) {
       document.getElementById('searchInput').value = search;
     }
-    if (dept || pos || search) {
-      filterTable();
-    }
+    filterTable();
   })();
 
   function openEditEmpModal(btn) {

@@ -64,6 +64,7 @@ public class UserDAO {
                        "JOIN users u ON a.UserId = u.Id " +
                        "LEFT JOIN accountroles ar ON a.Id = ar.AccountId " +
                        "LEFT JOIN roles r ON ar.RoleId = r.Id " +
+                        "Where ar.RoleID != 1 " +
                        "ORDER BY a.Id DESC";
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(query);

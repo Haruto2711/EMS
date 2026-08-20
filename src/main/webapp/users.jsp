@@ -21,6 +21,34 @@
   <title>EMS – Quản lý tài khoản</title>
   <link rel="stylesheet" href="css/ems.css"/>
   <link rel="stylesheet" href="css/users.css"/>
+  <style>
+    .page-nav-btn, .page-num-btn {
+      padding: 6px 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      background: #ffffff;
+      color: #374151;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      outline: none;
+    }
+    .page-nav-btn:hover:not(:disabled), .page-num-btn:hover:not(.active) {
+      background: #f3f4f6;
+      border-color: #d1d5db;
+    }
+    .page-nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .page-num-btn.active {
+      background: #0d9488;
+      color: #ffffff;
+      border-color: #0d9488;
+      font-weight: 600;
+    }
+  </style>
 </head>
 <body>
 
@@ -105,8 +133,26 @@
         Danh sách người dùng
       </div>
       
+      <!-- Filter / Search bar -->
+      <div class="filter-bar" style="display: flex; gap: 12px; padding: 14px 18px; border-bottom: 1px solid #f3f4f6; flex-wrap: wrap; background: #fafafa;">
+        <input type="text" id="userSearchInput" placeholder="Tìm kiếm họ tên, @username, email..." oninput="filterUsers()" style="flex: 1; min-width: 200px; padding: 8px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13.5px; outline: none; background: #fff;"/>
+        <select id="userRoleFilter" onchange="filterUsers()" style="padding: 8px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13.5px; outline: none; height: 38px; color: #374151; background: #fff;">
+          <option value="">Tất cả vai trò</option>
+          <% if (rolesList != null) { for (String r : rolesList) { 
+               if (!"Admin".equalsIgnoreCase(r)) {
+          %>
+            <option value="<%= r.toLowerCase() %>"><%= r %></option>
+          <% }}} %>
+        </select>
+        <select id="userStatusFilter" onchange="filterUsers()" style="padding: 8px 14px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13.5px; outline: none; height: 38px; color: #374151; background: #fff;">
+          <option value="">Tất cả trạng thái</option>
+          <option value="active">Hoạt động</option>
+          <option value="locked">Bị khóa</option>
+        </select>
+      </div>
+
       <div style="overflow-x: auto;">
-        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13.5px;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13.5px;" id="userTable">
           <thead>
             <tr style="border-bottom: 1.5px solid #f3f4f6; color: #6b7280; text-transform: uppercase; font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">
               <th style="padding: 14px 16px;">Người dùng</th>
@@ -116,25 +162,33 @@
               <th style="padding: 14px 16px;">Thao tác</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="userTableBody">
             <%
               if (usersList != null && !usersList.isEmpty()) {
                 for (Map<String, Object> u : usersList) {
                   String name = (String) u.get("fullName");
                   String username = (String) u.get("username");
+                  String email = (String) u.get("emailCompany");
+                  String roleName = (String) u.get("roleName");
                   
                   Boolean status = (Boolean) u.get("accountStatus");
                   boolean isCurrentStatus = (status != null && status);
             %>
-                  <tr style="border-bottom: 1px solid #f3f4f6; transition: background 0.1s;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='transparent'">
+                  <tr class="user-row"
+                      data-name="<%= name != null ? name.toLowerCase() : "" %>"
+                      data-username="<%= username != null ? username.toLowerCase() : "" %>"
+                      data-email="<%= email != null ? email.toLowerCase() : "" %>"
+                      data-role="<%= roleName != null ? roleName.toLowerCase() : "" %>"
+                      data-status="<%= isCurrentStatus ? "active" : "locked" %>"
+                      style="border-bottom: 1px solid #f3f4f6; transition: background 0.1s;" onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background='transparent'">
                     <td style="padding: 12px 16px;">
                       <div style="font-weight: 600; color: #111827;"><%= name %></div>
                       <div style="font-size: 12px; color: #6b7280;">@<%= username %></div>
                     </td>
-                    <td style="padding: 12px 16px; color: #4b5563;"><%= u.get("emailCompany") %></td>
+                    <td style="padding: 12px 16px; color: #4b5563;"><%= email %></td>
                     <td style="padding: 12px 16px;">
                       <span class="badge-role">
-                        <%= ((String) u.get("roleName") != null ? (String) u.get("roleName") : "employee").toLowerCase() %>
+                        <%= (roleName != null ? roleName : "employee").toLowerCase() %>
                       </span>
                     </td>
                     <td style="padding: 12px 16px;">
@@ -147,13 +201,13 @@
                         String phoneVal = (String) u.get("phone");
                         if (phoneVal == null) phoneVal = "";
                       %>
-                      <a href="javascript:void(0)" onclick="openEditModal(<%= u.get("accountId") %>, '<%= username %>', '<%= name.replace("'", "\\'") %>', '<%= u.get("emailCompany") %>', '<%= phoneVal.replace("'", "\\'") %>', '<%= u.get("roleName") %>', <%= u.get("departmentId") %>, <%= u.get("positionId") %>)" style="color: #0d9488; text-decoration: none; font-weight: 600; margin-right: 12px;">Sửa</a>
+                      <a href="javascript:void(0)" onclick="openEditModal(<%= u.get("accountId") %>, '<%= username %>', '<%= name != null ? name.replace("'", "\\'") : "" %>', '<%= email != null ? email.replace("'", "\\'") : "" %>', '<%= phoneVal.replace("'", "\\'") %>', '<%= roleName != null ? roleName : "" %>', <%= u.get("departmentId") %>, <%= u.get("positionId") %>)" style="color: #0d9488; text-decoration: none; font-weight: 600; margin-right: 12px;">Sửa</a>
                       <form action="users" method="post" style="display:inline;">
                         <input type="hidden" name="action" value="toggleStatus"/>
                         <input type="hidden" name="accountId" value="<%= u.get("accountId") %>"/>
                         <input type="hidden" name="currentStatus" value="<%= isCurrentStatus %>"/>
                         <button type="submit" style="background: none; border: none; color: #dc2626; cursor: pointer; font-size: 13.5px; font-weight: 600; padding: 0; font-family: inherit;">
-                          <%= isCurrentStatus ? "Ẩn" : "Hiện" %>
+                          <%= isCurrentStatus ? "Khóa" : "Hiện" %>
                         </button>
                       </form>
                     </td>
@@ -162,12 +216,18 @@
                 }
               } else {
             %>
-              <tr>
+              <tr id="userEmptyRow">
                 <td colspan="5" style="padding: 30px; text-align: center; color: #9ca3af;">Không có người dùng nào được tìm thấy.</td>
               </tr>
             <% } %>
           </tbody>
         </table>
+      </div>
+
+      <!-- Pagination Container -->
+      <div class="pagination-container" style="display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-top: 1px solid #f3f4f6; font-size: 13px; color: #6b7280; flex-wrap: wrap; gap: 10px;">
+        <div id="userPaginationInfo">Hiển thị 0 - 0 / 0 người dùng</div>
+        <div id="userPaginationControls" style="display: flex; gap: 6px; align-items: center;"></div>
       </div>
     </div>
   </div>
@@ -208,9 +268,11 @@
             <%
               if (rolesList != null) {
                 for (String r : rolesList) {
+                  if (!"Admin".equalsIgnoreCase(r)) {
             %>
                   <option value="<%= r %>"><%= r %></option>
             <%
+                  }
                 }
               }
             %>
@@ -292,12 +354,17 @@
             <%
               if (rolesList != null) {
                 for (String r : rolesList) {
+                  if ("Manager".equalsIgnoreCase(r) || "Employee".equalsIgnoreCase(r)) {
             %>
-                  <option value="<%= r %>"><%= r %></option>
+                  <option value="<%= r %>" <%= "Employee".equalsIgnoreCase(r) ? "selected" : "" %>><%= r %></option>
             <%
+                  }
                 }
-              }
+              } else {
             %>
+                  <option value="Employee" selected>Employee</option>
+                  <option value="Manager">Manager</option>
+            <% } %>
           </select>
         </div>
         <div class="form-group">
@@ -377,9 +444,13 @@
 
   // Kiểm tra thời gian thực khi THÊM tài khoản
   function validateAddForm() {
-    const un = (document.getElementById("addUsername").value || "").trim().toLowerCase();
-    const em = (document.getElementById("addEmail").value || "").trim().toLowerCase();
-    const ph = (document.getElementById("addPhone").value || "").trim();
+    const rawUn = document.getElementById("addUsername") ? document.getElementById("addUsername").value : "";
+    const rawEm = document.getElementById("addEmail") ? document.getElementById("addEmail").value : "";
+    const rawPh = document.getElementById("addPhone") ? document.getElementById("addPhone").value : "";
+
+    const un = rawUn.trim().toLowerCase();
+    const em = rawEm.trim().toLowerCase();
+    const ph = rawPh.trim();
 
     const unInput = document.getElementById("addUsername");
     const unMsg = document.getElementById("addUsernameMsg");
@@ -392,45 +463,60 @@
     let hasError = false;
 
     // 1. Check Username
-    if (un.length > 0) {
-      const isUnDup = EXISTING_USERS.some(u => u.username.toLowerCase() === un);
-      if (isUnDup) {
-        setFieldStatus(unInput, unMsg, false, "Tên tài khoản này đã tồn tại!");
+    if (rawUn.length > 0) {
+      if (/\s/.test(rawUn)) {
+        setFieldStatus(unInput, unMsg, false, "Tên tài khoản phải viết liền, không được chứa khoảng trắng!");
         hasError = true;
       } else {
-        setFieldStatus(unInput, unMsg, true, "Tên tài khoản hợp lệ");
+        const isUnDup = EXISTING_USERS.some(u => u.username.toLowerCase() === un);
+        if (isUnDup) {
+          setFieldStatus(unInput, unMsg, false, "Tên tài khoản này đã tồn tại!");
+          hasError = true;
+        } else {
+          setFieldStatus(unInput, unMsg, true, "Tên tài khoản hợp lệ");
+        }
       }
     } else {
       setFieldStatus(unInput, unMsg, null, "");
     }
 
     // 2. Check Email
-    if (em.length > 0) {
-      const isEmDup = EXISTING_USERS.some(u => u.email.toLowerCase() === em);
-      if (isEmDup) {
-        setFieldStatus(emInput, emMsg, false, "Email công ty này đã tồn tại!");
+    if (rawEm.length > 0) {
+      if (/\s/.test(rawEm)) {
+        setFieldStatus(emInput, emMsg, false, "Email phải viết liền, không được chứa khoảng trắng!");
         hasError = true;
-      } else if (!em.includes("@") || !em.includes(".")) {
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
         setFieldStatus(emInput, emMsg, false, "Định dạng email chưa đúng!");
         hasError = true;
       } else {
-        setFieldStatus(emInput, emMsg, true, "Email hợp lệ");
+        const isEmDup = EXISTING_USERS.some(u => u.email.toLowerCase() === em);
+        if (isEmDup) {
+          setFieldStatus(emInput, emMsg, false, "Email công ty này đã tồn tại!");
+          hasError = true;
+        } else {
+          setFieldStatus(emInput, emMsg, true, "Email hợp lệ");
+        }
       }
     } else {
       setFieldStatus(emInput, emMsg, null, "");
     }
 
     // 3. Check Phone
-    if (ph.length > 0) {
-      const isPhDup = EXISTING_USERS.some(u => u.phone && u.phone === ph);
-      if (isPhDup) {
-        setFieldStatus(phInput, phMsg, false, "Số điện thoại này đã được sử dụng!");
+    if (rawPh.length > 0) {
+      if (/\s/.test(rawPh)) {
+        setFieldStatus(phInput, phMsg, false, "Số điện thoại phải viết liền, không được chứa khoảng trắng!");
         hasError = true;
       } else if (!/^[0-9]{9,11}$/.test(ph)) {
         setFieldStatus(phInput, phMsg, false, "Số điện thoại phải từ 9 - 11 chữ số!");
         hasError = true;
       } else {
-        setFieldStatus(phInput, phMsg, true, "Số điện thoại hợp lệ");
+        const isPhDup = EXISTING_USERS.some(u => u.phone && u.phone === ph);
+        if (isPhDup) {
+          setFieldStatus(phInput, phMsg, false, "Số điện thoại này đã được sử dụng!");
+          hasError = true;
+        } else {
+          setFieldStatus(phInput, phMsg, true, "Số điện thoại hợp lệ");
+        }
       }
     } else {
       setFieldStatus(phInput, phMsg, null, "");
@@ -445,8 +531,11 @@
   // Kiểm tra thời gian thực khi SỬA tài khoản
   function validateEditForm() {
     const currentId = parseInt(document.getElementById("editAccountId").value);
-    const em = (document.getElementById("editEmail").value || "").trim().toLowerCase();
-    const ph = (document.getElementById("editPhone").value || "").trim();
+    const rawEm = document.getElementById("editEmail") ? document.getElementById("editEmail").value : "";
+    const rawPh = document.getElementById("editPhone") ? document.getElementById("editPhone").value : "";
+
+    const em = rawEm.trim().toLowerCase();
+    const ph = rawPh.trim();
 
     const emInput = document.getElementById("editEmail");
     const emMsg = document.getElementById("editEmailMsg");
@@ -457,32 +546,42 @@
     let hasError = false;
 
     // 1. Check Email (loại trừ tài khoản hiện tại)
-    if (em.length > 0) {
-      const isEmDup = EXISTING_USERS.some(u => u.id !== currentId && u.email.toLowerCase() === em);
-      if (isEmDup) {
-        setFieldStatus(emInput, emMsg, false, "Email này đã được dùng bởi tài khoản khác!");
+    if (rawEm.length > 0) {
+      if (/\s/.test(rawEm)) {
+        setFieldStatus(emInput, emMsg, false, "Email phải viết liền, không được chứa khoảng trắng!");
         hasError = true;
-      } else if (!em.includes("@") || !em.includes(".")) {
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
         setFieldStatus(emInput, emMsg, false, "Định dạng email chưa đúng!");
         hasError = true;
       } else {
-        setFieldStatus(emInput, emMsg, true, "Email hợp lệ");
+        const isEmDup = EXISTING_USERS.some(u => u.id !== currentId && u.email.toLowerCase() === em);
+        if (isEmDup) {
+          setFieldStatus(emInput, emMsg, false, "Email này đã được dùng bởi tài khoản khác!");
+          hasError = true;
+        } else {
+          setFieldStatus(emInput, emMsg, true, "Email hợp lệ");
+        }
       }
     } else {
       setFieldStatus(emInput, emMsg, null, "");
     }
 
     // 2. Check Phone (loại trừ tài khoản hiện tại)
-    if (ph.length > 0) {
-      const isPhDup = EXISTING_USERS.some(u => u.id !== currentId && u.phone && u.phone === ph);
-      if (isPhDup) {
-        setFieldStatus(phInput, phMsg, false, "Số điện thoại đã được dùng bởi tài khoản khác!");
+    if (rawPh.length > 0) {
+      if (/\s/.test(rawPh)) {
+        setFieldStatus(phInput, phMsg, false, "Số điện thoại phải viết liền, không được chứa khoảng trắng!");
         hasError = true;
       } else if (!/^[0-9]{9,11}$/.test(ph)) {
         setFieldStatus(phInput, phMsg, false, "Số điện thoại phải từ 9 - 11 chữ số!");
         hasError = true;
       } else {
-        setFieldStatus(phInput, phMsg, true, "Số điện thoại hợp lệ");
+        const isPhDup = EXISTING_USERS.some(u => u.id !== currentId && u.phone && u.phone === ph);
+        if (isPhDup) {
+          setFieldStatus(phInput, phMsg, false, "Số điện thoại đã được dùng bởi tài khoản khác!");
+          hasError = true;
+        } else {
+          setFieldStatus(phInput, phMsg, true, "Số điện thoại hợp lệ");
+        }
       }
     } else {
       setFieldStatus(phInput, phMsg, null, "");
@@ -564,6 +663,139 @@
       }, 400);
     });
   }, 2000);
+
+  // Phân trang & Tìm kiếm Người dùng
+  const USER_PAGE_SIZE = 10;
+  let currentUserPage = 1;
+  let filteredUserRows = [];
+
+  function filterUsers() {
+    const searchVal = (document.getElementById('userSearchInput') ? document.getElementById('userSearchInput').value : '').toLowerCase().trim();
+    const roleVal   = (document.getElementById('userRoleFilter') ? document.getElementById('userRoleFilter').value : '').toLowerCase().trim();
+    const statusVal = (document.getElementById('userStatusFilter') ? document.getElementById('userStatusFilter').value : '').toLowerCase().trim();
+
+    const allRows = Array.from(document.querySelectorAll('.user-row'));
+    filteredUserRows = allRows.filter(row => {
+      const name = row.getAttribute('data-name') || '';
+      const un   = row.getAttribute('data-username') || '';
+      const em   = row.getAttribute('data-email') || '';
+      const role = row.getAttribute('data-role') || '';
+      const st   = row.getAttribute('data-status') || '';
+
+      const matchSearch = !searchVal || name.includes(searchVal) || un.includes(searchVal) || em.includes(searchVal);
+      const matchRole   = !roleVal || role === roleVal;
+      const matchStatus = !statusVal || st === statusVal;
+
+      return matchSearch && matchRole && matchStatus;
+    });
+
+    currentUserPage = 1;
+    renderUserPagination();
+  }
+
+  function renderUserPagination() {
+    const allRows = document.querySelectorAll('.user-row');
+    allRows.forEach(r => r.style.display = 'none');
+
+    const emptyRow = document.getElementById('userEmptyRow');
+    const total = filteredUserRows.length;
+
+    if (total === 0) {
+      if (emptyRow) emptyRow.style.display = '';
+    } else {
+      if (emptyRow) emptyRow.style.display = 'none';
+    }
+
+    const totalPages = Math.ceil(total / USER_PAGE_SIZE) || 1;
+    if (currentUserPage > totalPages) currentUserPage = totalPages;
+    if (currentUserPage < 1) currentUserPage = 1;
+
+    const startIdx = (currentUserPage - 1) * USER_PAGE_SIZE;
+    const endIdx   = Math.min(startIdx + USER_PAGE_SIZE, total);
+
+    for (let i = startIdx; i < endIdx; i++) {
+      filteredUserRows[i].style.display = '';
+    }
+
+    // Update pagination info
+    const infoEl = document.getElementById('userPaginationInfo');
+    if (infoEl) {
+      if (total === 0) {
+        infoEl.textContent = 'Không tìm thấy người dùng nào phù hợp';
+      } else {
+        infoEl.textContent = 'Hiển thị ' + (startIdx + 1) + ' - ' + endIdx + ' trên tổng số ' + total + ' người dùng';
+      }
+    }
+
+    // Render controls
+    const controlsEl = document.getElementById('userPaginationControls');
+    if (!controlsEl) return;
+    controlsEl.innerHTML = '';
+
+    if (totalPages <= 1) {
+      return; // Không cần phân trang nếu chỉ có 1 trang
+    }
+
+    // Nút Trước
+    const prevBtn = document.createElement('button');
+    prevBtn.innerHTML = '&laquo; Trước';
+    prevBtn.className = 'page-nav-btn';
+    prevBtn.type = 'button';
+    prevBtn.disabled = currentUserPage === 1;
+    prevBtn.onclick = function() {
+      if (currentUserPage > 1) {
+        currentUserPage--;
+        renderUserPagination();
+      }
+    };
+    controlsEl.appendChild(prevBtn);
+
+    // Các trang số
+    for (let p = 1; p <= totalPages; p++) {
+      if (totalPages > 7) {
+        if (p !== 1 && p !== totalPages && Math.abs(p - currentUserPage) > 2) {
+          if (p === 2 || p === totalPages - 1) {
+            const dots = document.createElement('span');
+            dots.textContent = '...';
+            dots.style.padding = '0 4px';
+            dots.style.color = '#9ca3af';
+            controlsEl.appendChild(dots);
+          }
+          continue;
+        }
+      }
+      const pageBtn = document.createElement('button');
+      pageBtn.textContent = p;
+      pageBtn.type = 'button';
+      pageBtn.className = 'page-num-btn' + (p === currentUserPage ? ' active' : '');
+      pageBtn.onclick = (function(page) {
+        return function() {
+          currentUserPage = page;
+          renderUserPagination();
+        };
+      })(p);
+      controlsEl.appendChild(pageBtn);
+    }
+
+    // Nút Tiếp
+    const nextBtn = document.createElement('button');
+    nextBtn.innerHTML = 'Tiếp &raquo;';
+    nextBtn.className = 'page-nav-btn';
+    nextBtn.type = 'button';
+    nextBtn.disabled = currentUserPage === totalPages;
+    nextBtn.onclick = function() {
+      if (currentUserPage < totalPages) {
+        currentUserPage++;
+        renderUserPagination();
+      }
+    };
+    controlsEl.appendChild(nextBtn);
+  }
+
+  // Khởi tạo phân trang ngay khi tải xong
+  window.addEventListener('DOMContentLoaded', function() {
+    filterUsers();
+  });
 </script>
 </body>
 </html>
