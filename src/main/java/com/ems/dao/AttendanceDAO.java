@@ -1,7 +1,7 @@
 package com.ems.dao;
 
 import com.ems.model.AttendanceRecord;
-import util.DBUtil;
+import com.ems.util.DBConnection;
 
 import java.sql.*;
 import java.util.List;
@@ -25,7 +25,7 @@ public class AttendanceDAO {
      * Trả về null nếu không tìm thấy nhân viên tương ứng trong hệ thống.
      */
     public Integer findUserIdByEmployeeCode(String employeeCode) throws Exception {
-        try (Connection conn = DBUtil.getConnection();
+        try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(FIND_USER_ID_SQL)) {
             ps.setString(1, employeeCode);
             try (ResultSet rs = ps.executeQuery()) {
@@ -39,7 +39,7 @@ public class AttendanceDAO {
      * (đã được tra cứu và gán trước đó ở ConfirmServlet).
      */
     public void saveAll(List<AttendanceRecord> records) throws Exception {
-        try (Connection conn = DBUtil.getConnection()) {
+        try (Connection conn = DBConnection.getConnection()) {
             conn.setAutoCommit(false);
             try (PreparedStatement ps = conn.prepareStatement(UPSERT_SQL)) {
                 for (AttendanceRecord r : records) {
