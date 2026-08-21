@@ -1,0 +1,166 @@
+﻿commit 4ec24fcd3eaa93d4732381ba1ca7dad145486336
+Author: hieuchhe172757 <hieuchhe172757@fpt.edu.vn>
+Date:   Thu Aug 20 23:35:49 2026 +0700
+
+    Xß╗¡ l├¡ lß║íi approved
+
+diff --git a/src/main/webapp/request-manager.jsp b/src/main/webapp/request-manager.jsp
+index 19ad8a2..aa8e5b4 100644
+--- a/src/main/webapp/request-manager.jsp
++++ b/src/main/webapp/request-manager.jsp
+@@ -38,11 +38,11 @@
+ <main class="main-content">
+     <div class="topbar"><span class="topbar-left">Xß╗¡ l├╜ ─æ╞ín</span><span class="topbar-right" id="topbar-date"></span></div>
+     <div class="page-body">
+-        <div class="page-header"><h1>─É╞ín chß╗¥ xß╗¡ l├╜</h1><p>Xem th├┤ng tin v├á ph├¬ duyß╗çt hoß║╖c tß╗½ chß╗æi c├íc ─æ╞ín ─æ╞░ß╗úc ph├ón c├┤ng cho bß║ín.</p></div>
++        <div class="page-header"><h1>Quß║ún l├╜ y├¬u cß║ºu</h1><p>Xem danh s├ích v├á ph├¬ duyß╗çt hoß║╖c tß╗½ chß╗æi c├íc y├¬u cß║ºu cß╗ºa nh├ón vi├¬n.</p></div>
+         <section class="card">
+-            <div class="card-header"><span>─É╞ín chß╗¥ ph├¬ duyß╗çt</span><span class="badge badge-pending"><%= requests.size() %> ─æ╞ín</span></div>
++            <div class="card-header"><span>Danh s├ích ─æ╞ín y├¬u cß║ºu</span><span class="badge badge-active"><%= requests.size() %> ─æ╞ín</span></div>
+             <% if (requests.isEmpty()) { %>
+-                <div class="empty-state"><strong>Kh├┤ng c├│ ─æ╞ín n├áo chß╗¥ xß╗¡ l├╜.</strong><p>C├íc ─æ╞ín ─æ╞░ß╗úc ph├ón c├┤ng cho bß║ín sß║╜ hiß╗ân thß╗ï tß║íi ─æ├óy.</p></div>
++                <div class="empty-state"><strong>Ch╞░a c├│ ─æ╞ín y├¬u cß║ºu n├áo gß╗¡i l├¬n hß╗ç thß╗æng.</strong><p>C├íc ─æ╞ín y├¬u cß║ºu cß╗ºa nh├ón vi├¬n sß║╜ hiß╗ân thß╗ï tß║íi ─æ├óy.</p></div>
+             <% } else { %>
+                 <div class="table-wrap"><table>
+                     <thead><tr><th>Nh├ón vi├¬n</th><th>─É╞ín y├¬u cß║ºu</th><th>Loß║íi</th><th>Thß╗¥i gian</th><th>Gi├í trß╗ï</th><th>Ng├áy gß╗¡i</th><th>Thao t├íc</th></tr></thead>
+@@ -55,7 +55,35 @@
+                             <td><%= item.getStartDate() == null ? "-" : dateFormat.format(item.getStartDate()) %><br><span style="color:#9ca3af;font-size:12px;">─æß║┐n <%= item.getEndDate() == null ? "-" : dateFormat.format(item.getEndDate()) %></span></td>
+                             <td><%= item.getValue() %></td>
+                             <td><%= item.getCreatedAt() == null ? "-" : dateFormat.format(item.getCreatedAt()) %></td>
+-                            <td><div class="request-actions"><form class="decision-form" method="post" action="<%= request.getContextPath() %>/requests" onsubmit="return confirm('Duyß╗çt ─æ╞ín n├áy?');"><input type="hidden" name="action" value="approve"><input type="hidden" name="id" value="<%= item.getId() %>"><button class="btn-decision btn-approve" type="submit">Duyß╗çt</button></form><form class="decision-form" method="post" action="<%= request.getContextPath() %>/requests" onsubmit="return confirm('Tß╗½ chß╗æi ─æ╞ín n├áy?');"><input type="hidden" name="action" value="reject"><input type="hidden" name="id" value="<%= item.getId() %>"><button class="btn-decision btn-reject" type="submit">Tß╗½ chß╗æi</button></form></div></td>
++                            <td>
++                                <%
++                                    String status = item.getStatus() == null ? "" : item.getStatus();
++                                    if ("Pending".equalsIgnoreCase(status)) {
++                                %>
++                                    <div class="request-actions">
++                                        <form class="decision-form" method="post" action="<%= request.getContextPath() %>/requests" onsubmit="return confirm('Duyß╗çt ─æ╞ín n├áy?');">
++                                            <input type="hidden" name="action" value="approve">
++                                            <input type="hidden" name="id" value="<%= item.getId() %>">
++                                            <button class="btn-decision btn-approve" type="submit">Duyß╗çt</button>
++                                        </form>
++                                        <form class="decision-form" method="post" action="<%= request.getContextPath() %>/requests" onsubmit="return confirm('Tß╗½ chß╗æi ─æ╞ín n├áy?');">
++                                            <input type="hidden" name="action" value="reject">
++                                            <input type="hidden" name="id" value="<%= item.getId() %>">
++                                            <button class="btn-decision btn-reject" type="submit">Tß╗½ chß╗æi</button>
++                                        </form>
++                                    </div>
++                                <% } else {
++                                    String badgeClass = "badge-approved";
++                                    String statusText = "─É├ú duyß╗çt";
++                                    if ("Rejected".equalsIgnoreCase(status)) {
++                                        badgeClass = "badge-rejected";
++                                        statusText = "Tß╗½ chß╗æi";
++                                    }
++                                %>
++                                    <span class="badge <%= badgeClass %>"><%= statusText %></span>
++                                    <span style="font-size: 11px; color: #6b7280; display: block; margin-top: 4px;">Bß╗ƒi: <%= item.getCurrentApproverName() != null ? item.getCurrentApproverName() : "Hß╗ç thß╗æng" %></span>
++                                <% } %>
++                            </td>
+                         </tr>
+                     <% } %>
+                     </tbody>
+
+commit 833172c3ebeb5834a02c800d7dcd3b5ece47d896
+Author: hieuchhe172757 <hieuchhe172757@fpt.edu.vn>
+Date:   Tue Aug 18 10:34:55 2026 +0700
+
+    requestmanager
+
+diff --git a/src/main/webapp/request-manager.jsp b/src/main/webapp/request-manager.jsp
+index 3564b01..19ad8a2 100644
+--- a/src/main/webapp/request-manager.jsp
++++ b/src/main/webapp/request-manager.jsp
+@@ -1,5 +1,8 @@
+-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+-<%@ page import="java.util.List" %>
++<%@ page pageEncoding="UTF-8" %>
++
++<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
++<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
++<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %><%@ page import="java.util.List" %>
+ <%@ page import="com.ems.dto.RequestDTO" %>
+ <%@ page import="java.text.SimpleDateFormat" %>
+ <%
+
+commit 734a208b63f2be6e8bd79e02c1c8cb1a2de1da22
+Author: hieuchhe172757 <hieuchhe172757@fpt.edu.vn>
+Date:   Mon Aug 17 21:19:47 2026 +0700
+
+    requestmanager
+
+diff --git a/src/main/webapp/request-manager.jsp b/src/main/webapp/request-manager.jsp
+new file mode 100644
+index 0000000..3564b01
+--- /dev/null
++++ b/src/main/webapp/request-manager.jsp
+@@ -0,0 +1,69 @@
++<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
++<%@ page import="java.util.List" %>
++<%@ page import="com.ems.dto.RequestDTO" %>
++<%@ page import="java.text.SimpleDateFormat" %>
++<%
++    List<RequestDTO> requests = (List<RequestDTO>) request.getAttribute("requests");
++    if (requests == null) {
++        response.sendRedirect(request.getContextPath() + "/requests?action=pending");
++        return;
++    }
++    SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
++%>
++<!DOCTYPE html>
++<html lang="vi">
++<head>
++    <meta charset="UTF-8">
++    <meta name="viewport" content="width=device-width, initial-scale=1.0">
++    <title>EMS - Xß╗¡ l├╜ ─æ╞ín</title>
++    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/ems.css">
++    <style>
++        .request-name { color: #111827; font-weight: 600; }
++        .request-reason { max-width: 280px; color: #6b7280; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
++        .request-actions { display: flex; gap: 8px; justify-content: flex-end; }
++        .decision-form { display: inline; }
++        .btn-decision { border: 0; border-radius: 6px; padding: 7px 11px; color: #fff; font: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
++        .btn-approve { background: #059669; } .btn-approve:hover { background: #047857; }
++        .btn-reject { background: #dc2626; } .btn-reject:hover { background: #b91c1c; }
++        .empty-state { padding: 48px 20px; text-align: center; color: #6b7280; }
++        .request-image { display: inline-block; margin-top: 5px; color: #2563eb; font-size: 12px; }
++        @media (max-width: 800px) { .sidebar { position: static; width: 100%; min-height: auto; } body { display: block; } .main-content { margin-left: 0; } .table-wrap { overflow-x: auto; } th, td { white-space: nowrap; } }
++    </style>
++</head>
++<body>
++<%@ include file="/WEB-INF/jspf/sidebar.jsp" %>
++<main class="main-content">
++    <div class="topbar"><span class="topbar-left">Xß╗¡ l├╜ ─æ╞ín</span><span class="topbar-right" id="topbar-date"></span></div>
++    <div class="page-body">
++        <div class="page-header"><h1>─É╞ín chß╗¥ xß╗¡ l├╜</h1><p>Xem th├┤ng tin v├á ph├¬ duyß╗çt hoß║╖c tß╗½ chß╗æi c├íc ─æ╞ín ─æ╞░ß╗úc ph├ón c├┤ng cho bß║ín.</p></div>
++        <section class="card">
++            <div class="card-header"><span>─É╞ín chß╗¥ ph├¬ duyß╗çt</span><span class="badge badge-pending"><%= requests.size() %> ─æ╞ín</span></div>
++            <% if (requests.isEmpty()) { %>
++                <div class="empty-state"><strong>Kh├┤ng c├│ ─æ╞ín n├áo chß╗¥ xß╗¡ l├╜.</strong><p>C├íc ─æ╞ín ─æ╞░ß╗úc ph├ón c├┤ng cho bß║ín sß║╜ hiß╗ân thß╗ï tß║íi ─æ├óy.</p></div>
++            <% } else { %>
++                <div class="table-wrap"><table>
++                    <thead><tr><th>Nh├ón vi├¬n</th><th>─É╞ín y├¬u cß║ºu</th><th>Loß║íi</th><th>Thß╗¥i gian</th><th>Gi├í trß╗ï</th><th>Ng├áy gß╗¡i</th><th>Thao t├íc</th></tr></thead>
++                    <tbody>
++                    <% for (RequestDTO item : requests) { %>
++                        <tr>
++                            <td><span class="request-name"><%= item.getCreatedByName() %></span></td>
++                            <td><div class="request-name"><%= item.getTitle() %></div><div class="request-reason" title="<%= item.getReason() == null ? "" : item.getReason() %>"><%= item.getReason() == null ? "Kh├┤ng c├│ nß╗Öi dung" : item.getReason() %></div><% if (item.getImageUrl() != null && !item.getImageUrl().isBlank()) { %><a class="request-image" href="<%= item.getImageUrl() %>" target="_blank" rel="noopener">Xem minh chß╗⌐ng</a><% } %></td>
++                            <td><%= item.getRequestTypeName() %></td>
++                            <td><%= item.getStartDate() == null ? "-" : dateFormat.format(item.getStartDate()) %><br><span style="color:#9ca3af;font-size:12px;">─æß║┐n <%= item.getEndDate() == null ? "-" : dateFormat.format(item.getEndDate()) %></span></td>
++                            <td><%= item.getValue() %></td>
++                            <td><%= item.getCreatedAt() == null ? "-" : dateFormat.format(item.getCreatedAt()) %></td>
++                            <td><div class="request-actions"><form class="decision-form" method="post" action="<%= request.getContextPath() %>/requests" onsubmit="return confirm('Duyß╗çt ─æ╞ín n├áy?');"><input type="hidden" name="action" value="approve"><input type="hidden" name="id" value="<%= item.getId() %>"><button class="btn-decision btn-approve" type="submit">Duyß╗çt</button></form><form class="decision-form" method="post" action="<%= request.getContextPath() %>/requests" onsubmit="return confirm('Tß╗½ chß╗æi ─æ╞ín n├áy?');"><input type="hidden" name="action" value="reject"><input type="hidden" name="id" value="<%= item.getId() %>"><button class="btn-decision btn-reject" type="submit">Tß╗½ chß╗æi</button></form></div></td>
++                        </tr>
++                    <% } %>
++                    </tbody>
++                </table></div>
++            <% } %>
++        </section>
++    </div>
++    <footer>┬⌐ 2026 Hß╗ç thß╗æng Quß║ún l├╜ Nh├ón sß╗▒ (EMS) ┬╖ FPT University SWP391</footer>
++</main>
++<script>
++    (function () { var now = new Date(), pad = function (n) { return String(n).padStart(2, '0'); }; document.getElementById('topbar-date').textContent = pad(now.getDate()) + '/' + pad(now.getMonth() + 1) + '/' + now.getFullYear(); }());
++</script>
++</body>
++</html>
