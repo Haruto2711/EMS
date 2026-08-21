@@ -457,12 +457,13 @@ public class ShiftAssignmentDAO {
      */
     public static List<String> findConflictingEmployees(
             Shiftassignmentbatches newBatch,
+            List<Integer> weekdays,
             List<Integer> empIds,
             Integer excludeBatchId) {
 
         if (empIds == null || empIds.isEmpty()) return new ArrayList<>();
 
-        // Build IN-clause placeholder: (?,?,?...)
+        // Build IN-clause placeholder cho empIds: (?,?,?...)
         StringBuilder inClause = new StringBuilder();
         for (int i = 0; i < empIds.size(); i++) {
             if (i > 0) inClause.append(",");
@@ -473,46 +474,71 @@ public class ShiftAssignmentDAO {
          * Logic SQL:
          *  - Lấy các batch hiện có (b2) khác với batch đang sửa
          *  - Có nhân viên chung với danh sách empIds mới
-         *  - Khoảng ngày của b2 giao với khoảng ngày mới:
-         *      b2.startDate <= newBatch.endDate  (hoặc newBatch.endDate null = vô hạn)
-         *      AND newBatch.startDate <= b2.endDate (hoặc b2.endDate null = vô hạn)
-         *  - Giờ ca của b2 chồng với giờ ca mới:
-         *      s_old.StartTime < s_new.EndTime
-         *      AND s_new.StartTime < s_old.EndTime
+         *  - Khoảng ngày của b2 giao với khoảng ngày mới
+         *  - Giờ ca của b2 chồng với giờ ca mới
+         *  - Weekday check: chỉ conflict nếu cả 2 đều là WEEKLY
+         *    VÀ có ít nhất 1 ngày trong tuần chung.
+         *    Nếu bất kỳ bên nào không phải WEEKLY thì bỏ qua điều kiện weekday
+         *    (NONE/MONTHLY không có weekday cụ thể nên luôn coi là có thể trùng).
          */
         String sql =
             "SELECT DISTINCT u.FullName, s_old.Name AS OldShiftName, " +
             "       s_old.StartTime AS OldStart, s_old.EndTime AS OldEnd " +
             "FROM shiftassignmentbatch_employees be2 " +
             "JOIN shiftassignmentbatches b2    ON be2.BatchId = b2.Id " +
-            "JOIN shifts s_new                 ON s_new.Id = ? " +       // ca mới
-            "JOIN shifts s_old                 ON s_old.Id = b2.ShiftId " + // ca cũ
+            "JOIN shifts s_new                 ON s_new.Id = ? " +
+            "JOIN shifts s_old                 ON s_old.Id = b2.ShiftId " +
             "JOIN users u                      ON be2.EmployeeId = u.Id " +
             "WHERE be2.EmployeeId IN (" + inClause + ") " +
-            // Loại trừ chính batch đang sửa
             "  AND (? IS NULL OR b2.Id != ?) " +
-            // Date range overlap: b2.start <= new.end AND new.start <= b2.end
-            // Trường hợp endDate NULL => coi như vô hạn (không giới hạn trên)
             "  AND b2.StartDate <= COALESCE(?, '9999-12-31') " +
             "  AND COALESCE(b2.EndDate, '9999-12-31') >= ? " +
-            // Time overlap: s_old.start < s_new.end AND s_new.start < s_old.end
             "  AND s_old.StartTime < s_new.EndTime " +
             "  AND s_new.StartTime < s_old.EndTime " +
+            // Weekday overlap: nếu batch mới là WEEKLY VÀ batch cũ cũng là WEEKLY
+            // thì bắt buộc phải có ngày trong tuần chung mới tính là conflict.
+            // Nếu bất kỳ bên nào KHÔNG phải WEEKLY → giữ nguyên (không lọc weekday).
+            "  AND (" +
+            "    ? != 'WEEKLY' OR b2.RecurType != 'WEEKLY'" +
+            "    OR EXISTS (" +
+            "      SELECT 1 FROM shiftassignmentbatch_weekdays wd_old" +
+            "      WHERE wd_old.BatchId = b2.Id" +
+            "        AND wd_old.DayOfWeek IN (SELECT DayOfWeek FROM shiftassignmentbatch_weekdays WHERE BatchId = -1)" +
+            "    )" +
+            "  ) " +
             "ORDER BY u.FullName";
+
+        // Thay thế placeholder weekday subquery
+        // - WEEKLY + có weekday cụ thể → build UNION ALL SELECT literal
+        // - Mọi trường hợp khác (NONE/MONTHLY hoặc WEEKLY không chọn ngày)
+        //   → điều kiện "? != 'WEEKLY'" sẽ short-circuit, dùng SELECT 0 cho safe
+        boolean newIsWeekly = "WEEKLY".equals(newBatch.getRecurType())
+                && weekdays != null && !weekdays.isEmpty();
+
+        if (newIsWeekly) {
+            sql = sql.replace(
+                "SELECT DayOfWeek FROM shiftassignmentbatch_weekdays WHERE BatchId = -1",
+                buildWeekdaySubquery(weekdays)
+            );
+        } else {
+            // Placeholder không bao giờ được evaluate (short-circuit), thay bằng SELECT 0
+            sql = sql.replace(
+                "SELECT DayOfWeek FROM shiftassignmentbatch_weekdays WHERE BatchId = -1",
+                "SELECT 0"
+            );
+        }
 
         List<String> conflicts = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             int idx = 1;
-            ps.setInt(idx++, newBatch.getShiftId());           // s_new.Id = ?
+            ps.setInt(idx++, newBatch.getShiftId());
 
-            // IN clause: empIds
             for (Integer empId : empIds) {
                 ps.setInt(idx++, empId);
             }
 
-            // excludeBatchId (nullable)
             if (excludeBatchId != null) {
                 ps.setInt(idx++, excludeBatchId);
                 ps.setInt(idx++, excludeBatchId);
@@ -521,15 +547,16 @@ public class ShiftAssignmentDAO {
                 ps.setNull(idx++, java.sql.Types.INTEGER);
             }
 
-            // newBatch.endDate (nullable → COALESCE '9999-12-31')
             if (newBatch.getEndDate() != null) {
                 ps.setDate(idx++, Date.valueOf(newBatch.getEndDate()));
             } else {
                 ps.setDate(idx++, Date.valueOf(java.time.LocalDate.of(9999, 12, 31)));
             }
 
-            // newBatch.startDate
             ps.setDate(idx++, Date.valueOf(newBatch.getStartDate()));
+
+            // Tham số RecurType của batch mới (dùng cho điều kiện weekday check)
+            ps.setString(idx++, newBatch.getRecurType() != null ? newBatch.getRecurType() : "NONE");
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -547,5 +574,18 @@ public class ShiftAssignmentDAO {
             throw new RuntimeException("Lỗi kiểm tra conflict phân ca: " + e.getMessage(), e);
         }
         return conflicts;
+    }
+
+    /**
+     * Build subquery trả về tập weekday literals (tương thích MySQL).
+     * Ví dụ weekdays=[2,7] → "SELECT 2 UNION ALL SELECT 7"
+     */
+    private static String buildWeekdaySubquery(List<Integer> weekdays) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < weekdays.size(); i++) {
+            if (i > 0) sb.append(" UNION ALL ");
+            sb.append("SELECT ").append(weekdays.get(i));
+        }
+        return sb.toString();
     }
 }

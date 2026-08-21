@@ -73,7 +73,7 @@ public class ShiftAssignmentService {
         }
 
         // ── Validate conflict chồng ca ──
-        List<String> conflicts = ShiftAssignmentDAO.findConflictingEmployees(b, empIds, excludeBatchId);
+        List<String> conflicts = ShiftAssignmentDAO.findConflictingEmployees(b, weekdays, empIds, excludeBatchId);
         if (!conflicts.isEmpty()) {
             StringBuilder sb = new StringBuilder(
                     "Một số nhân viên đã có ca làm việc chồng giờ trong khoảng thời gian này:\n");
