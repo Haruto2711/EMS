@@ -354,14 +354,9 @@ public class HomeServlet extends HttpServlet {
         }
         request.setAttribute("recentEmployees", recentEmployees);
 
-        // 3. Phân bổ nhân viên theo phòng ban (Department Distribution)
-        List<Map<String, Object>> deptDistribution = new ArrayList<>();
-        String distQuery = "SELECT d.Name as DeptName, COUNT(u.Id) as EmpCount " +
-                           "FROM departments d " +
-                           "LEFT JOIN users u ON u.DepartmentId = d.Id " +
-                           "GROUP BY d.Id, d.Name " +
-                           "ORDER BY EmpCount DESC";
-        try (PreparedStatement ps = conn.prepareStatement(distQuery);
+        int totalHolidays = 0;
+        String countHolidays = "SELECT COUNT(*) as cnt FROM holidaytemplates";
+        try (PreparedStatement ps = conn.prepareStatement(countHolidays);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 Map<String, Object> dist = new HashMap<>();
