@@ -315,47 +315,35 @@
     <form action="employees" method="post">
       <input type="hidden" name="action" value="update"/>
       <input type="hidden" name="userId" id="editEmpUserId"/>
-      <div class="modal-body" style="padding:20px 22px; display:flex; flex-direction:column; gap:14px; max-height: 55vh; overflow-y: auto;">
-        <div class="form-group">
-          <label class="form-label" style="font-size:13px; font-weight:600; color:#374151; margin-bottom:5px; display:block;">Họ và tên</label>
-          <input type="text" name="fullName" id="editEmpFullName" class="form-input" required
-                 style="width:100%; padding:9px 12px; border:1px solid #e5e7eb; border-radius:8px; font-size:13.5px; outline:none; box-sizing:border-box;"/>
+      <div class="modal-body" style="padding:20px 22px; display:flex; flex-direction:column; gap:14px;">
+        
+        <!-- Header tóm tắt nhân viên -->
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px 14px; display:flex; align-items:center; gap:10px;">
+          <div style="width:36px; height:36px; border-radius:8px; background:#0d9488; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;" id="editEmpAvatar">E</div>
+          <div>
+            <div style="font-size:11px; color:#64748b; font-weight:600; text-transform:uppercase;" id="editEmpCodeBadge">EMP001</div>
+            <div style="font-size:15px; font-weight:700; color:#0f172a;" id="editEmpNameDisplay">Nguyễn Văn An</div>
+          </div>
         </div>
+
         <div class="form-group">
-          <label class="form-label" style="font-size:13px; font-weight:600; color:#374151; margin-bottom:5px; display:block;">Email công ty</label>
+          <label class="form-label" style="font-size:13px; font-weight:600; color:#374151; margin-bottom:5px; display:block;">Email công ty <span style="color:red;">*</span></label>
           <input type="email" name="email" id="editEmpEmail" class="form-input" required oninput="validateEditEmpForm()"
                  style="width:100%; padding:9px 12px; border:1px solid #e5e7eb; border-radius:8px; font-size:13.5px; outline:none; box-sizing:border-box;"/>
           <div id="editEmpEmailMsg" style="font-size: 12px; margin-top: 4px;"></div>
         </div>
+
         <div class="form-group">
-          <label class="form-label" style="font-size:13px; font-weight:600; color:#374151; margin-bottom:5px; display:block;">Số điện thoại</label>
-          <input type="text" name="phone" id="editEmpPhone" class="form-input" oninput="validateEditEmpForm()"
-                 style="width:100%; padding:9px 12px; border:1px solid #e5e7eb; border-radius:8px; font-size:13.5px; outline:none; box-sizing:border-box;"/>
-          <div id="editEmpPhoneMsg" style="font-size: 12px; margin-top: 4px;"></div>
-        </div>
-        <div class="form-group">
-          <label class="form-label" style="font-size:13px; font-weight:600; color:#374151; margin-bottom:5px; display:block;">Giới tính</label>
-          <select name="gender" id="editEmpGender" class="form-input" style="width:100%; padding:9px 12px; border:1px solid #e5e7eb; border-radius:8px; font-size:13.5px; outline:none; box-sizing:border-box; height: 38px;">
-            <option value="true">Nam</option>
-            <option value="false">Nữ</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label" style="font-size:13px; font-weight:600; color:#374151; margin-bottom:5px; display:block;">Ngày sinh (dd/MM/yyyy)</label>
-          <input type="text" name="dob" id="editEmpDob" class="form-input" placeholder="Ví dụ: 15/05/1990" oninput="validateEditEmpForm()"
-                 style="width:100%; padding:9px 12px; border:1px solid #e5e7eb; border-radius:8px; font-size:13.5px; outline:none; box-sizing:border-box;"/>
-          <div id="editEmpDobMsg" style="font-size: 12px; margin-top: 4px;"></div>
-        </div>
-        <div class="form-group">
-          <label class="form-label" style="font-size:13px; font-weight:600; color:#374151; margin-bottom:5px; display:block;">Phòng ban</label>
+          <label class="form-label" style="font-size:13px; font-weight:600; color:#374151; margin-bottom:5px; display:block;">Phòng ban <span style="color:red;">*</span></label>
           <select name="departmentId" id="editEmpDept" class="form-input" style="width:100%; padding:9px 12px; border:1px solid #e5e7eb; border-radius:8px; font-size:13.5px; outline:none; box-sizing:border-box; height: 38px;">
             <% if (deptsList != null) { for (Map<String, Object> d : deptsList) { %>
               <option value="<%= d.get("id") %>"><%= d.get("name") %></option>
             <% }} %>
           </select>
         </div>
+
         <div class="form-group">
-          <label class="form-label" style="font-size:13px; font-weight:600; color:#374151; margin-bottom:5px; display:block;">Chức vụ</label>
+          <label class="form-label" style="font-size:13px; font-weight:600; color:#374151; margin-bottom:5px; display:block;">Chức vụ <span style="color:red;">*</span></label>
           <select name="positionId" id="editEmpPos" class="form-input" style="width:100%; padding:9px 12px; border:1px solid #e5e7eb; border-radius:8px; font-size:13.5px; outline:none; box-sizing:border-box; height: 38px;">
             <% if (positionsList != null) { for (Map<String, Object> p : positionsList) { %>
               <option value="<%= p.get("id") %>"><%= p.get("name") %></option>
@@ -413,68 +401,41 @@
 
   function validateEditEmpForm() {
     var currId = parseInt(document.getElementById('editEmpUserId').value);
-    var em = (document.getElementById('editEmpEmail').value || '').trim().toLowerCase();
-    var ph = (document.getElementById('editEmpPhone').value || '').trim();
-    var dob = (document.getElementById('editEmpDob').value || '').trim();
+    var rawEm = document.getElementById('editEmpEmail') ? document.getElementById('editEmpEmail').value : '';
+    var em = rawEm.trim().toLowerCase();
 
     var emInput = document.getElementById('editEmpEmail');
     var emMsg   = document.getElementById('editEmpEmailMsg');
-    var phInput = document.getElementById('editEmpPhone');
-    var phMsg   = document.getElementById('editEmpPhoneMsg');
-    var dobInput = document.getElementById('editEmpDob');
-    var dobMsg   = document.getElementById('editEmpDobMsg');
     var submitBtn = document.getElementById('editEmpSubmitBtn');
 
     var hasError = false;
 
-    // 1. Validate Email
-    if (em.length > 0) {
-      var isEmDup = EXISTING_EMPLOYEES.some(function(e){ return e.id !== currId && e.email.toLowerCase() === em; });
-      if (isEmDup) {
-        setEmpFieldStatus(emInput, emMsg, false, 'Email công ty này đã được dùng bởi nhân viên khác!');
+    // Validate Email
+    if (rawEm.length > 0) {
+      if (/\s/.test(rawEm)) {
+        setEmpFieldStatus(emInput, emMsg, false, 'Email phải viết liền, không được chứa khoảng trắng!');
         hasError = true;
-      } else if (!em.includes('@') || !em.includes('.')) {
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
         setEmpFieldStatus(emInput, emMsg, false, 'Định dạng email chưa đúng!');
         hasError = true;
       } else {
-        setEmpFieldStatus(emInput, emMsg, true, 'Email hợp lệ');
+        var isEmDup = EXISTING_EMPLOYEES.some(function(e){ return e.id !== currId && e.email.toLowerCase() === em; });
+        if (isEmDup) {
+          setEmpFieldStatus(emInput, emMsg, false, 'Email công ty này đã được dùng bởi nhân viên khác!');
+          hasError = true;
+        } else {
+          setEmpFieldStatus(emInput, emMsg, true, 'Email hợp lệ');
+        }
       }
     } else {
       setEmpFieldStatus(emInput, emMsg, null, '');
     }
 
-    // 2. Validate Phone
-    if (ph.length > 0) {
-      var isPhDup = EXISTING_EMPLOYEES.some(function(e){ return e.id !== currId && e.phone && e.phone === ph; });
-      if (isPhDup) {
-        setEmpFieldStatus(phInput, phMsg, false, 'Số điện thoại này đã được dùng bởi nhân viên khác!');
-        hasError = true;
-      } else if (!/^[0-9]{9,11}$/.test(ph)) {
-        setEmpFieldStatus(phInput, phMsg, false, 'Số điện thoại phải từ 9 - 11 chữ số!');
-        hasError = true;
-      } else {
-        setEmpFieldStatus(phInput, phMsg, true, 'Số điện thoại hợp lệ');
-      }
-    } else {
-      setEmpFieldStatus(phInput, phMsg, null, '');
+    if (submitBtn) {
+      submitBtn.disabled = hasError;
+      submitBtn.style.opacity = hasError ? '0.5' : '1';
+      submitBtn.style.cursor = hasError ? 'not-allowed' : 'pointer';
     }
-
-    // 3. Validate Dob
-    if (dob.length > 0) {
-      var dobRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
-      if (!dobRegex.test(dob)) {
-        setEmpFieldStatus(dobInput, dobMsg, false, 'Định dạng ngày sinh phải là dd/MM/yyyy (ví dụ: 15/05/1990)!');
-        hasError = true;
-      } else {
-        setEmpFieldStatus(dobInput, dobMsg, true, 'Ngày sinh hợp lệ');
-      }
-    } else {
-      setEmpFieldStatus(dobInput, dobMsg, null, '');
-    }
-
-    submitBtn.disabled = hasError;
-    submitBtn.style.opacity = hasError ? '0.5' : '1';
-    submitBtn.style.cursor = hasError ? 'not-allowed' : 'pointer';
   }
 
   const EMP_PAGE_SIZE = 10;
@@ -633,18 +594,18 @@
 
   function openEditEmpModal(btn) {
     var row = btn.closest('tr');
-    document.getElementById('editEmpUserId').value    = row.dataset.userId;
-    document.getElementById('editEmpFullName').value  = row.dataset.name;
-    document.getElementById('editEmpEmail').value     = row.dataset.email;
-    document.getElementById('editEmpPhone').value     = row.dataset.phone || '';
-    document.getElementById('editEmpGender').value    = row.dataset.genderRaw || 'true';
-    document.getElementById('editEmpDob').value       = (row.dataset.dob && row.dataset.dob !== '—') ? row.dataset.dob : '';
-    document.getElementById('editEmpDept').value      = row.dataset.deptId || '';
-    document.getElementById('editEmpPos').value       = row.dataset.posId || '';
+    document.getElementById('editEmpUserId').value = row.dataset.userId;
+    document.getElementById('editEmpCodeBadge').textContent = row.dataset.code || 'EMP';
+    document.getElementById('editEmpNameDisplay').textContent = row.dataset.name || '';
+    var initial = (row.dataset.name || 'E').trim().charAt(0).toUpperCase();
+    var avatarEl = document.getElementById('editEmpAvatar');
+    if (avatarEl) avatarEl.textContent = initial;
+
+    document.getElementById('editEmpEmail').value = row.dataset.email;
+    document.getElementById('editEmpDept').value  = row.dataset.deptId || '';
+    document.getElementById('editEmpPos').value   = row.dataset.posId || '';
 
     setEmpFieldStatus(document.getElementById('editEmpEmail'), document.getElementById('editEmpEmailMsg'), null, '');
-    setEmpFieldStatus(document.getElementById('editEmpPhone'), document.getElementById('editEmpPhoneMsg'), null, '');
-    setEmpFieldStatus(document.getElementById('editEmpDob'), document.getElementById('editEmpDobMsg'), null, '');
     document.getElementById('editEmpSubmitBtn').disabled = false;
     document.getElementById('editEmpSubmitBtn').style.opacity = '1';
     document.getElementById('editEmpSubmitBtn').style.cursor = 'pointer';

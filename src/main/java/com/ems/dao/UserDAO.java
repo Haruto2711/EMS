@@ -486,6 +486,22 @@ public class UserDAO {
         return false;
     }
 
+    /** Cập nhật thông tin phân công nhân viên (Email công ty, Phòng ban, Chức vụ) */
+    public boolean updateEmployeeAssignment(int userId, String email, int departmentId, int positionId) {
+        String query = "UPDATE users SET EmailCompany = ?, DepartmentId = ?, PositionId = ? WHERE Id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setString(1, email);
+            ps.setInt(2, departmentId);
+            ps.setInt(3, positionId);
+            ps.setInt(4, userId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     /** Bật/Tắt trạng thái nhân viên trong bảng users */
     public void updateEmployeeStatus(int userId, boolean status) {
         String query = "UPDATE users SET Status = ? WHERE Id = ?";
