@@ -1,6 +1,7 @@
 package com.ems.dao;
 
 import com.ems.dto.RequestDTO;
+import com.ems.util.DBConnection;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,12 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RequestDAO {
-
-    private final Connection connection;
-
-    public RequestDAO(Connection connection) {
-        this.connection = connection;
-    }
 
     /**
      * Common SELECT query
@@ -37,7 +32,8 @@ public class RequestDAO {
                     "r.CreatedByAccountId, " +
                     "u.FullName AS CreatedByName, " +
                     "r.CurrentApproverAccountId, " +
-                    "au.FullName AS ApproverName " +
+                    "au.FullName AS ApproverName, " +
+                    "r.RejectionReason " +
 
                     "FROM Requests r " +
 
@@ -60,79 +56,35 @@ public class RequestDAO {
      * Convert ResultSet -> RequestDTO
      */
     private RequestDTO mapResultSet(ResultSet rs) throws SQLException {
-
         RequestDTO request = new RequestDTO();
 
         request.setId(rs.getInt("Id"));
-
-        request.setTitle(
-                rs.getString("Title")
-        );
-
-        request.setReason(
-                rs.getString("Reason")
-        );
-
-        request.setStatus(
-                rs.getString("Status")
-        );
-
-        request.setStartDate(
-                rs.getTimestamp("StartDate")
-        );
-
-        request.setEndDate(
-                rs.getTimestamp("EndDate")
-        );
-
-        request.setValue(
-                rs.getDouble("Value")
-        );
-
-        request.setImageUrl(
-                rs.getString("ImageUrl")
-        );
-
-        request.setCreatedAt(
-                rs.getTimestamp("CreatedAt")
-        );
+        request.setTitle(rs.getString("Title"));
+        request.setReason(rs.getString("Reason"));
+        request.setStatus(rs.getString("Status"));
+        request.setStartDate(rs.getTimestamp("StartDate"));
+        request.setEndDate(rs.getTimestamp("EndDate"));
+        request.setValue(rs.getDouble("Value"));
+        request.setImageUrl(rs.getString("ImageUrl"));
+        request.setCreatedAt(rs.getTimestamp("CreatedAt"));
 
         // Request Type
-        request.setRequestTypeId(
-                rs.getInt("RequestTypeId")
-        );
-
-        request.setRequestTypeName(
-                rs.getString("RequestTypeName")
-        );
+        request.setRequestTypeId(rs.getInt("RequestTypeId"));
+        request.setRequestTypeName(rs.getString("RequestTypeName"));
 
         // Creator
-        request.setCreatedByAccountId(
-                rs.getInt("CreatedByAccountId")
-        );
-
-        request.setCreatedByName(
-                rs.getString("CreatedByName")
-        );
+        request.setCreatedByAccountId(rs.getInt("CreatedByAccountId"));
+        request.setCreatedByName(rs.getString("CreatedByName"));
 
         // Current Approver
-        int approverId =
-                rs.getInt("CurrentApproverAccountId");
-
+        int approverId = rs.getInt("CurrentApproverAccountId");
         if (rs.wasNull()) {
-
             request.setCurrentApproverAccountId(null);
-
         } else {
-
-            request.setCurrentApproverAccountId(
-                    approverId
-            );
+            request.setCurrentApproverAccountId(approverId);
         }
-
-        request.setCurrentApproverName(
-                rs.getString("ApproverName")
-        );
+        request.setCurrentApproverName(rs.getString("ApproverName"));
+        request.setRejectionReason(rs.getString("RejectionReason"));
 
         return request;
     }
@@ -140,289 +92,181 @@ public class RequestDAO {
     /**
      * Get all requests
      */
-    public List<RequestDTO> getAll() throws SQLException {
-
+    public List<RequestDTO> getAll() {
         List<RequestDTO> list = new ArrayList<>();
+        String sql = BASE_SELECT + "ORDER BY r.CreatedAt DESC";
 
-        String sql =
-                BASE_SELECT +
-                        "ORDER BY r.CreatedAt DESC";
-
-        try (
-                PreparedStatement ps =
-                        connection.prepareStatement(sql);
-
-                ResultSet rs =
-                        ps.executeQuery()
-        ) {
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
-
-                list.add(
-                        mapResultSet(rs)
-                );
+                list.add(mapResultSet(rs));
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-
         return list;
     }
 
     /**
      * Get request by ID
      */
-    public RequestDTO getById(int id) throws SQLException {
+    public RequestDTO getById(int id) {
+        String sql = BASE_SELECT + "WHERE r.Id = ?";
 
-        String sql =
-                BASE_SELECT +
-                        "WHERE r.Id = ?";
-
-        try (
-                PreparedStatement ps =
-                        connection.prepareStatement(sql)
-        ) {
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
 
             ps.setInt(1, id);
 
-            try (
-                    ResultSet rs =
-                            ps.executeQuery()
-            ) {
-
+            try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-
                     return mapResultSet(rs);
                 }
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-
         return null;
     }
 
     /**
      * Insert new request
      */
-    public boolean insert(RequestDTO request)
-            throws SQLException {
+    public boolean insert(RequestDTO request) {
+        String sql = "INSERT INTO Requests " +
+                "(Title, Reason, Status, StartDate, EndDate, Value, ImageUrl, RequestTypeId, CreatedByAccountId, CurrentApproverAccountId) " +
+                "VALUES (?, ?, 'Pending', ?, ?, ?, ?, ?, ?, ?)";
 
-        String sql =
-                "INSERT INTO Requests " +
-                        "(" +
-                        "Title, " +
-                        "Reason, " +
-                        "Status, " +
-                        "StartDate, " +
-                        "EndDate, " +
-                        "Value, " +
-                        "ImageUrl, " +
-                        "RequestTypeId, " +
-                        "CreatedByAccountId, " +
-                        "CurrentApproverAccountId" +
-                        ") " +
-                        "VALUES (?, ?, 'Pending', ?, ?, ?, ?, ?, ?, ?)";
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
 
-        try (
-                PreparedStatement ps =
-                        connection.prepareStatement(sql)
-        ) {
+            ps.setString(1, request.getTitle());
+            ps.setString(2, request.getReason());
+            ps.setTimestamp(3, request.getStartDate());
+            ps.setTimestamp(4, request.getEndDate());
+            ps.setDouble(5, request.getValue());
+            ps.setString(6, request.getImageUrl());
+            ps.setInt(7, request.getRequestTypeId());
+            ps.setInt(8, request.getCreatedByAccountId());
 
-            ps.setString(
-                    1,
-                    request.getTitle()
-            );
-
-            ps.setString(
-                    2,
-                    request.getReason()
-            );
-
-            ps.setTimestamp(
-                    3,
-                    request.getStartDate()
-            );
-
-            ps.setTimestamp(
-                    4,
-                    request.getEndDate()
-            );
-
-            ps.setDouble(
-                    5,
-                    request.getValue()
-            );
-
-            ps.setString(
-                    6,
-                    request.getImageUrl()
-            );
-
-            ps.setInt(
-                    7,
-                    request.getRequestTypeId()
-            );
-
-            ps.setInt(
-                    8,
-                    request.getCreatedByAccountId()
-            );
-
-            if (
-                    request.getCurrentApproverAccountId()
-                            != null
-            ) {
-
-                ps.setInt(
-                        9,
-                        request.getCurrentApproverAccountId()
-                );
-
+            if (request.getCurrentApproverAccountId() != null) {
+                ps.setInt(9, request.getCurrentApproverAccountId());
             } else {
-
-                ps.setNull(
-                        9,
-                        Types.INTEGER
-                );
+                ps.setNull(9, Types.INTEGER);
             }
 
             return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+        return false;
     }
 
     /**
      * Update request status
      */
-    public boolean updateStatus(
-            int requestId,
-            String status
-    ) throws SQLException {
+    public boolean updateStatus(int requestId, String status) {
+        String sql = "UPDATE Requests SET Status = ? WHERE Id = ?";
 
-        String sql =
-                "UPDATE Requests " +
-                        "SET Status = ? " +
-                        "WHERE Id = ?";
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
 
-        try (
-                PreparedStatement ps =
-                        connection.prepareStatement(sql)
-        ) {
-
-            ps.setString(
-                    1,
-                    status
-            );
-
-            ps.setInt(
-                    2,
-                    requestId
-            );
+            ps.setString(1, status);
+            ps.setInt(2, requestId);
 
             return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+        return false;
     }
 
-    /** Updates a pending request, setting the status and recording the manager who approved/rejected it. */
-    public boolean updateStatusForApprover(int requestId, int approverAccountId, String status)
-            throws SQLException {
-        String sql = "UPDATE Requests SET Status = ?, CurrentApproverAccountId = ? WHERE Id = ? "
+    /**
+     * Updates a pending request, setting the status, recording the manager who
+     * approved/rejected it, and optionally setting the rejection reason.
+     */
+    public boolean updateStatusForApprover(int requestId, int approverAccountId, String status, String rejectionReason) {
+        String sql = "UPDATE Requests SET Status = ?, CurrentApproverAccountId = ?, RejectionReason = ? WHERE Id = ? "
                 + "AND Status = 'Pending'";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, status);
             ps.setInt(2, approverAccountId);
-            ps.setInt(3, requestId);
+            ps.setString(3, rejectionReason);
+            ps.setInt(4, requestId);
             return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+        return false;
     }
 
     /**
      * Delete request
      */
-    public boolean delete(int id)
-            throws SQLException {
+    public boolean delete(int id) {
+        String sql = "DELETE FROM Requests WHERE Id = ?";
 
-        String sql =
-                "DELETE FROM Requests " +
-                        "WHERE Id = ?";
-
-        try (
-                PreparedStatement ps =
-                        connection.prepareStatement(sql)
-        ) {
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
 
             ps.setInt(1, id);
 
             return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+        return false;
     }
 
     /**
      * Get requests created by account
      */
-    public List<RequestDTO> getByCreatedByAccountId(
-            int accountId
-    ) throws SQLException {
-
+    public List<RequestDTO> getByCreatedByAccountId(int accountId) {
         List<RequestDTO> list = new ArrayList<>();
+        String sql = BASE_SELECT +
+                "WHERE r.CreatedByAccountId = ? " +
+                "ORDER BY r.CreatedAt DESC";
 
-        String sql =
-                BASE_SELECT +
-                        "WHERE r.CreatedByAccountId = ? " +
-                        "ORDER BY r.CreatedAt DESC";
-
-        try (
-                PreparedStatement ps =
-                        connection.prepareStatement(sql)
-        ) {
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
 
             ps.setInt(1, accountId);
 
-            try (
-                    ResultSet rs =
-                            ps.executeQuery()
-            ) {
-
+            try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-
-                    list.add(
-                            mapResultSet(rs)
-                    );
+                    list.add(mapResultSet(rs));
                 }
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-
         return list;
     }
 
     /**
      * Get pending requests
      */
-    public List<RequestDTO> getPendingRequests() throws SQLException {
-
+    public List<RequestDTO> getPendingRequests() {
         List<RequestDTO> list = new ArrayList<>();
+        String sql = BASE_SELECT +
+                "WHERE r.Status = 'Pending' " +
+                "ORDER BY r.CreatedAt ASC";
 
-        String sql =
-                BASE_SELECT +
-                        "WHERE r.Status = 'Pending' " +
-                        "ORDER BY r.CreatedAt ASC";
+        try (Connection connection = DBConnection.getConnection();
+             PreparedStatement ps = connection.prepareStatement(sql)) {
 
-        try (
-                PreparedStatement ps =
-                        connection.prepareStatement(sql)
-        ) {
-
-            try (
-                    ResultSet rs =
-                            ps.executeQuery()
-            ) {
-
+            try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-
-                    list.add(
-                            mapResultSet(rs)
-                    );
+                    list.add(mapResultSet(rs));
                 }
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-
         return list;
     }
 }
