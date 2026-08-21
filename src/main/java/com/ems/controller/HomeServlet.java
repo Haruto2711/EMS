@@ -24,10 +24,10 @@ public class HomeServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         request.setCharacterEncoding("UTF-8");
         response.setCharacterEncoding("UTF-8");
-        
+
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("username") == null) {
             response.sendRedirect(request.getContextPath() + "/login");
@@ -44,7 +44,7 @@ public class HomeServlet extends HttpServlet {
         role = role.trim().toLowerCase();
 
         try (Connection conn = DBConnection.getConnection()) {
-            
+
             // 1. Fetch common account & user data
             int accountId = -1;
             int userId = -1;
@@ -53,10 +53,10 @@ public class HomeServlet extends HttpServlet {
             String deptName = "";
 
             String userQuery = "SELECT a.Id as AccountId, u.Id as UserId, u.FullName, u.DepartmentId, d.Name as DeptName " +
-                               "FROM accounts a " +
-                               "JOIN users u ON a.UserId = u.Id " +
-                               "LEFT JOIN departments d ON u.DepartmentId = d.Id " +
-                               "WHERE a.Username = ?";
+                    "FROM accounts a " +
+                    "JOIN users u ON a.UserId = u.Id " +
+                    "LEFT JOIN departments d ON u.DepartmentId = d.Id " +
+                    "WHERE a.Username = ?";
             try (PreparedStatement ps = conn.prepareStatement(userQuery)) {
                 ps.setString(1, username);
                 try (ResultSet rs = ps.executeQuery()) {
@@ -78,17 +78,17 @@ public class HomeServlet extends HttpServlet {
                 loadEmployeeData(conn, userId, accountId, request);
                 request.setAttribute("isLoaded", true);
                 request.getRequestDispatcher("/home.jsp").forward(request, response);
-            } 
+            }
             else if (role.equals("manager") || role.equals("quản lý")) {
                 loadManagerData(conn, userId, accountId, departmentId, request);
                 request.setAttribute("isLoaded", true);
                 request.getRequestDispatcher("/home_manager.jsp").forward(request, response);
-            } 
+            }
             else if (role.equals("admin") || role.equals("quản trị viên")) {
                 loadAdminData(conn, request);
                 request.setAttribute("isLoaded", true);
                 request.getRequestDispatcher("/home_admin.jsp").forward(request, response);
-            } 
+            }
             else {
                 // Fallback to employee home
                 loadEmployeeData(conn, userId, accountId, request);
@@ -126,7 +126,7 @@ public class HomeServlet extends HttpServlet {
         int periodId = -1;
         String periodName = "N/A";
         int actualWorkingDays = 0;
-        
+
         // Find latest/active timesheet period
         String periodQuery = "SELECT Id, Name FROM timesheetperiods ORDER BY StartDate DESC LIMIT 1";
         try (PreparedStatement ps = conn.prepareStatement(periodQuery);
@@ -136,7 +136,7 @@ public class HomeServlet extends HttpServlet {
                 periodName = rs.getString("Name");
             }
         }
-        
+
         if (periodId != -1) {
             String attCountQuery = "SELECT COUNT(*) as cnt FROM attendance WHERE EmployeeId = ? AND PeriodId = ? AND CheckInTime IS NOT NULL";
             try (PreparedStatement ps = conn.prepareStatement(attCountQuery)) {
@@ -171,7 +171,7 @@ public class HomeServlet extends HttpServlet {
         // D. Recent requests
         List<Map<String, Object>> requestsList = new ArrayList<>();
         String reqQuery = "SELECT r.Title, r.Reason, r.Status, r.StartDate, r.EndDate, r.Value FROM requests r " +
-                          "WHERE r.CreatedByAccountId = ? ORDER BY r.CreatedAt DESC LIMIT 5";
+                "WHERE r.CreatedByAccountId = ? ORDER BY r.CreatedAt DESC LIMIT 5";
         try (PreparedStatement ps = conn.prepareStatement(reqQuery)) {
             ps.setInt(1, accountId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -225,11 +225,11 @@ public class HomeServlet extends HttpServlet {
         // B. Pending requests for the manager to approve
         List<Map<String, Object>> pendingRequests = new ArrayList<>();
         String pendingQuery = "SELECT r.Id, r.Title, r.Reason, r.Status, r.StartDate, r.EndDate, r.Value, u.FullName " +
-                              "FROM requests r " +
-                              "JOIN accounts a ON r.CreatedByAccountId = a.Id " +
-                              "JOIN users u ON a.UserId = u.Id " +
-                              "WHERE r.Status = 'Pending' " +
-                              "ORDER BY r.CreatedAt DESC";
+                "FROM requests r " +
+                "JOIN accounts a ON r.CreatedByAccountId = a.Id " +
+                "JOIN users u ON a.UserId = u.Id " +
+                "WHERE r.Status = 'Pending' " +
+                "ORDER BY r.CreatedAt DESC";
         try (PreparedStatement ps = conn.prepareStatement(pendingQuery)) {
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -251,10 +251,10 @@ public class HomeServlet extends HttpServlet {
         // C. Today's attendance list in the department
         List<Map<String, Object>> departmentAttendance = new ArrayList<>();
         String attQuery = "SELECT u.FullName, a.CheckInTime, a.CheckOutTime " +
-                          "FROM users u " +
-                          "LEFT JOIN attendance a ON u.Id = a.EmployeeId AND a.AttendanceDate = CURDATE() " +
-                          "WHERE u.DepartmentId = ? AND u.Id != ? " +
-                          "ORDER BY u.FullName ASC";
+                "FROM users u " +
+                "LEFT JOIN attendance a ON u.Id = a.EmployeeId AND a.AttendanceDate = CURDATE() " +
+                "WHERE u.DepartmentId = ? AND u.Id != ? " +
+                "ORDER BY u.FullName ASC";
         try (PreparedStatement ps = conn.prepareStatement(attQuery)) {
             ps.setInt(1, departmentId);
             ps.setInt(2, userId);
@@ -262,10 +262,10 @@ public class HomeServlet extends HttpServlet {
                 while (rs.next()) {
                     Map<String, Object> att = new HashMap<>();
                     att.put("fullName", rs.getString("FullName"));
-                    
+
                     String inTime = rs.getString("CheckInTime");
                     String outTime = rs.getString("CheckOutTime");
-                    
+
                     att.put("checkIn", inTime != null ? inTime.substring(0, 5) : null);
                     att.put("checkOut", outTime != null ? outTime.substring(0, 5) : null);
                     departmentAttendance.add(att);
@@ -273,7 +273,7 @@ public class HomeServlet extends HttpServlet {
             }
         }
         request.setAttribute("departmentAttendance", departmentAttendance);
-        
+
         // Calculate attendance rate
         int presentCount = 0;
         for (Map<String, Object> att : departmentAttendance) {
@@ -341,8 +341,8 @@ public class HomeServlet extends HttpServlet {
         // 2. Danh sách Nhân viên gần đây (Recent Employees)
         List<Map<String, Object>> recentEmployees = new ArrayList<>();
         String empQuery = "SELECT u.FullName, d.Name as DeptName FROM users u " +
-                          "LEFT JOIN departments d ON u.DepartmentId = d.Id " +
-                          "ORDER BY u.Id DESC LIMIT 5";
+                "LEFT JOIN departments d ON u.DepartmentId = d.Id " +
+                "ORDER BY u.Id DESC LIMIT 5";
         try (PreparedStatement ps = conn.prepareStatement(empQuery);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
@@ -354,9 +354,14 @@ public class HomeServlet extends HttpServlet {
         }
         request.setAttribute("recentEmployees", recentEmployees);
 
-        int totalHolidays = 0;
-        String countHolidays = "SELECT COUNT(*) as cnt FROM holidaytemplates";
-        try (PreparedStatement ps = conn.prepareStatement(countHolidays);
+        // 3. Phân bổ nhân viên theo phòng ban (Department Distribution)
+        List<Map<String, Object>> deptDistribution = new ArrayList<>();
+        String distQuery = "SELECT d.Name as DeptName, COUNT(u.Id) as EmpCount " +
+                "FROM departments d " +
+                "LEFT JOIN users u ON u.DepartmentId = d.Id " +
+                "GROUP BY d.Id, d.Name " +
+                "ORDER BY EmpCount DESC";
+        try (PreparedStatement ps = conn.prepareStatement(distQuery);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 Map<String, Object> dist = new HashMap<>();
