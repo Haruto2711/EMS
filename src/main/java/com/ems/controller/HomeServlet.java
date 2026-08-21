@@ -362,7 +362,7 @@ public class HomeServlet extends HttpServlet {
         request.setAttribute("totalShifts", totalShifts);
 
         int totalHolidays = 0;
-        String countHolidays = "SELECT COUNT(*) as cnt FROM holidays";
+        String countHolidays = "SELECT COUNT(*) as cnt FROM holidaytemplates";
         try (PreparedStatement ps = conn.prepareStatement(countHolidays);
              ResultSet rs = ps.executeQuery()) {
             if (rs.next()) totalHolidays = rs.getInt("cnt");
