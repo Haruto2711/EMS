@@ -109,22 +109,18 @@ public class EmployeeServlet extends HttpServlet {
         if ("update".equals(action)) {
             try {
                 int userId       = Integer.parseInt(request.getParameter("userId"));
-                String fullName  = request.getParameter("fullName");
                 String email     = request.getParameter("email");
-                String phone     = request.getParameter("phone");
-
-                fullName = fullName != null ? fullName.trim() : "";
                 email = email != null ? email.trim() : "";
-                phone = phone != null ? phone.trim() : "";
 
                 // Validate
                 String error = null;
-                if (fullName.isEmpty() || email.isEmpty()) {
-                    error = "Vui lòng điền đầy đủ họ và tên và email!";
+                String rawEmail = request.getParameter("email");
+                if (email.isEmpty()) {
+                    error = "Vui lòng nhập email công ty!";
+                } else if (rawEmail != null && rawEmail.contains(" ")) {
+                    error = "Email phải viết liền, không được chứa khoảng trắng!";
                 } else if (userDAO.isEmailExistsForOtherUserId(email, userId)) {
                     error = "Email công ty '" + email + "' đã được sử dụng bởi nhân viên khác!";
-                } else if (!phone.isEmpty() && userDAO.isPhoneExistsForOtherUserId(phone, userId)) {
-                    error = "Số điện thoại '" + phone + "' đã được sử dụng bởi nhân viên khác!";
                 }
 
                 if (error != null) {
@@ -132,34 +128,11 @@ public class EmployeeServlet extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/employees");
                     return;
                 }
-                
-                Boolean genderVal = null;
-                String genderParam = request.getParameter("gender");
-                if (genderParam != null && !genderParam.trim().isEmpty()) {
-                    genderVal = Boolean.parseBoolean(genderParam);
-                }
-
-                java.sql.Date dobDate = null;
-                String dobParam = request.getParameter("dob");
-                if (dobParam != null && !dobParam.trim().isEmpty()) {
-                    dobParam = dobParam.trim();
-                    try {
-                        if (dobParam.contains("/")) {
-                            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy");
-                            java.util.Date parsed = sdf.parse(dobParam);
-                            dobDate = new java.sql.Date(parsed.getTime());
-                        } else if (dobParam.contains("-")) {
-                            dobDate = java.sql.Date.valueOf(dobParam);
-                        }
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
-                }
 
                 int departmentId = Integer.parseInt(request.getParameter("departmentId"));
                 int positionId   = Integer.parseInt(request.getParameter("positionId"));
 
-                boolean success = userDAO.updateEmployeeInfo(userId, fullName, email, phone, genderVal, dobDate, departmentId, positionId);
+                boolean success = userDAO.updateEmployeeAssignment(userId, email, departmentId, positionId);
                 if (success) {
                     session.setAttribute("successMessage", "Cập nhật thông tin nhân viên thành công!");
                 } else {
