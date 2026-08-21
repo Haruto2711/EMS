@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,6 +65,47 @@ public class NotificationServlet extends HttpServlet {
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("totalRecords", totalRecords);
         request.getRequestDispatcher("/notification.jsp").forward(request, response);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        HttpSession session = request.getSession();
+        Integer userId = (Integer) session.getAttribute("accountId");
+
+        response.setContentType("application/json;charset=UTF-8");
+
+        if (userId == null) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            try (PrintWriter out = response.getWriter()) {
+                out.write("{\"success\":false,\"message\":\"Chưa đăng nhập\"}");
+            }
+            return;
+        }
+
+        String action = request.getParameter("action");
+        if (!"markAsRead".equals(action)) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            try (PrintWriter out = response.getWriter()) {
+                out.write("{\"success\":false,\"message\":\"Action không hợp lệ\"}");
+            }
+            return;
+        }
+
+        Integer notificationId = null;
+        try {
+            notificationId = Integer.parseInt(request.getParameter("id"));
+        } catch (NumberFormatException e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            try (PrintWriter out = response.getWriter()) {
+                out.write("{\"success\":false,\"message\":\"id không hợp lệ\"}");
+            }
+            return;
+        }
+
+        boolean updated = notificationService.markAsRead(notificationId, userId);
+        try (PrintWriter out = response.getWriter()) {
+            out.write("{\"success\":" + updated + "}");
+        }
     }
 
 }

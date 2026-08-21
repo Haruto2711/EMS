@@ -107,6 +107,19 @@ public class NotificationDAO {
         }
     }
 
+
+    public static boolean markAsRead(Integer notificationId, Integer userId) {
+        String sql = "UPDATE notifications SET IsRead = 1 WHERE Id = ? AND UserId = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stm = conn.prepareStatement(sql)) {
+            stm.setInt(1, notificationId);
+            stm.setInt(2, userId);
+            return stm.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private static Notifications mapRow(ResultSet rs) throws SQLException {
         Notifications n = new Notifications();
         n.setId(rs.getInt("Id"));

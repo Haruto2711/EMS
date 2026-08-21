@@ -93,7 +93,10 @@
                 </c:when>
                 <c:otherwise>
                     <c:forEach var="n" items="${notifications}">
-                        <div class="noti-row ${n.isread ? '' : 'is-unread'}">
+                        <div class="noti-row ${n.isread ? '' : 'is-unread'}"
+                             data-id="${n.id}"
+                             onclick="markNotificationAsRead(this)"
+                             style="cursor:pointer;">
                             <div class="noti-icon">
                                 <i class="fa-regular fa-bell"></i>
                             </div>
@@ -185,6 +188,50 @@
         </div>
     </div>
 </div>
+
+<script>
+    /**
+     * Bấm vào 1 dòng thông báo -> gọi AJAX POST xuống NotificationServlet
+     * để đánh dấu IsRead = true, sau đó cập nhật lại giao diện ngay,
+     * không cần reload lại trang.
+     */
+    function markNotificationAsRead(rowEl) {
+        // Nếu đã đọc rồi thì không cần gọi lại API nữa
+        if (!rowEl.classList.contains('is-unread')) return;
+
+        var notificationId = rowEl.getAttribute('data-id');
+
+        fetch('${pageContext.request.contextPath}/notification', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: 'action=markAsRead&id=' + encodeURIComponent(notificationId)
+        })
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+                if (data.success) {
+                    // Bỏ trạng thái "chưa đọc" trên dòng
+                    rowEl.classList.remove('is-unread');
+
+                    // Xoá chấm tròn đỏ cạnh tiêu đề
+                    var dot = rowEl.querySelector('.noti-unread-dot');
+                    if (dot) dot.remove();
+
+                    // Đổi badge trạng thái từ "Chưa đọc" -> "Đã đọc"
+                    var badge = rowEl.querySelector('.noti-status-badge');
+                    if (badge) {
+                        badge.classList.remove('status-unread');
+                        badge.classList.add('status-read');
+                        badge.textContent = 'Đã đọc';
+                    }
+                }
+            })
+            .catch(function (err) {
+                console.error('Không thể đánh dấu đã đọc:', err);
+            });
+    }
+</script>
 
 </body>
 </html>

@@ -18,4 +18,9 @@ public class NotificationService {
         int offset = (page - 1) * pageSize;
         return NotificationDAO.getNotificationById(userId, keyword == null ? "" : keyword, sort, offset, pageSize);
     }
+
+    public boolean markAsRead(Integer notificationId, Integer userId) {
+        if (notificationId == null || userId == null) return false;
+        return NotificationDAO.markAsRead(notificationId, userId);
+    }
 }
