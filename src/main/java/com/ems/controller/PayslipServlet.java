@@ -33,7 +33,8 @@ public class PayslipServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         response.setContentType("text/html; charset=UTF-8");
 
@@ -43,17 +44,24 @@ public class PayslipServlet extends HttpServlet {
 
         int periodId = 0;
         if (periodIdParam != null && !periodIdParam.isEmpty()) {
-            try { periodId = Integer.parseInt(periodIdParam); } catch (NumberFormatException e) { }
+            try {
+                periodId = Integer.parseInt(periodIdParam);
+            } catch (NumberFormatException e) {
+            }
         }
 
         Integer departmentId = null;
         if (deptIdParam != null && !deptIdParam.isEmpty()) {
-            try { departmentId = Integer.parseInt(deptIdParam); } catch (NumberFormatException e) {}
+            try {
+                departmentId = Integer.parseInt(deptIdParam);
+            } catch (NumberFormatException e) {
+            }
         }
-        
+
         String searchStr = (searchParam != null) ? searchParam.trim() : "";
 
         // Get periods and default to latest if none requested
+        // Nothing
         List<Timesheetperiods> periods = payslipService.getAllTimesheetPeriods();
         if (periodId == 0 && !periods.isEmpty()) {
             periodId = periods.get(0).getId();
@@ -77,10 +85,14 @@ public class PayslipServlet extends HttpServlet {
         BigDecimal totalDeductions = BigDecimal.ZERO;
 
         for (PayslipDTO p : payslips) {
-            if (p.getGrossAmount() != null) totalGross = totalGross.add(p.getGrossAmount());
-            if (p.getNetAmount() != null) totalNet = totalNet.add(p.getNetAmount());
-            if (p.getTotalInsurance() != null) totalDeductions = totalDeductions.add(p.getTotalInsurance());
-            if (p.getTaxDeduction() != null) totalDeductions = totalDeductions.add(p.getTaxDeduction());
+            if (p.getGrossAmount() != null)
+                totalGross = totalGross.add(p.getGrossAmount());
+            if (p.getNetAmount() != null)
+                totalNet = totalNet.add(p.getNetAmount());
+            if (p.getTotalInsurance() != null)
+                totalDeductions = totalDeductions.add(p.getTotalInsurance());
+            if (p.getTaxDeduction() != null)
+                totalDeductions = totalDeductions.add(p.getTaxDeduction());
         }
 
         DecimalFormat decimalFormat = new DecimalFormat("#,###");
@@ -89,21 +101,31 @@ public class PayslipServlet extends HttpServlet {
         int page = 1;
         String pageParam = request.getParameter("page");
         if (pageParam != null && !pageParam.trim().isEmpty()) {
-            try { page = Integer.parseInt(pageParam); } catch (NumberFormatException ignored) {}
+            try {
+                page = Integer.parseInt(pageParam);
+            } catch (NumberFormatException ignored) {
+            }
         }
-        if (page < 1) page = 1;
+        if (page < 1)
+            page = 1;
 
         int pageSize = 5;
         String pageSizeParam = request.getParameter("pageSize");
         if (pageSizeParam != null && !pageSizeParam.trim().isEmpty()) {
-            try { pageSize = Integer.parseInt(pageSizeParam); } catch (NumberFormatException ignored) {}
+            try {
+                pageSize = Integer.parseInt(pageSizeParam);
+            } catch (NumberFormatException ignored) {
+            }
         }
-        if (pageSize < 1) pageSize = 5;
+        if (pageSize < 1)
+            pageSize = 5;
 
         int totalFilteredItems = payslips.size();
         int totalPages = (int) Math.ceil((double) totalFilteredItems / pageSize);
-        if (totalPages < 1) totalPages = 1;
-        if (page > totalPages) page = totalPages;
+        if (totalPages < 1)
+            totalPages = 1;
+        if (page > totalPages)
+            page = totalPages;
 
         int fromIndex = (page - 1) * pageSize;
         int toIndex = Math.min(fromIndex + pageSize, totalFilteredItems);
@@ -113,7 +135,7 @@ public class PayslipServlet extends HttpServlet {
                 : java.util.Collections.emptyList();
 
         request.setAttribute("payslips", pagedPayslips);
-        
+
         request.setAttribute("totalFilteredItems", totalFilteredItems);
         request.setAttribute("currentPage", page);
         request.setAttribute("pageSize", pageSize);
@@ -134,7 +156,8 @@ public class PayslipServlet extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         HttpSession session = request.getSession();
         Integer managerId = (Integer) session.getAttribute("accountId");
 
@@ -145,7 +168,7 @@ public class PayslipServlet extends HttpServlet {
 
         String action = request.getParameter("action");
 
-        if ("generate".equals(action)){
+        if ("generate".equals(action)) {
             int periodId = Integer.parseInt(request.getParameter("periodId"));
 
             if (isPeriodLocked(periodId)) {
@@ -157,20 +180,21 @@ public class PayslipServlet extends HttpServlet {
             PayrollService payrollService = new PayrollService();
             String result = payrollService.generatePayrollMonth(periodId, managerId);
 
-            if (result.startsWith("SUCCESS")){
+            if (result.startsWith("SUCCESS")) {
                 String count = result.split(":")[1];
-                request.getSession().setAttribute("msgSuccess", "Đã tính lương thành công cho " + count + " nhân viên!");
+                request.getSession().setAttribute("msgSuccess",
+                        "Đã tính lương thành công cho " + count + " nhân viên!");
 
             } else {
                 request.getSession().setAttribute("msgError", result);
             }
 
             response.sendRedirect(request.getContextPath() + "/payslips?periodId=" + periodId);
-        } else if ("edit".equals(action)){
+        } else if ("edit".equals(action)) {
             // Lấy dữ liệu từ Form Edit gửi lên
             int payslipId = Integer.parseInt(request.getParameter("payslipId"));
             int periodId = Integer.parseInt(request.getParameter("periodId"));
-            
+
             if (isPeriodLocked(periodId)) {
                 request.getSession().setAttribute("msgError", "Kỳ lương đã bị khóa, không thể thực hiện thao tác!");
                 response.sendRedirect(request.getContextPath() + "/payslips?periodId=" + periodId);
@@ -180,16 +204,20 @@ public class PayslipServlet extends HttpServlet {
             String note = request.getParameter("note");
 
             // Xử lý tiền tệ (Nếu rỗng thì cho = 0)
-            BigDecimal bonus = request.getParameter("bonus").isEmpty() ? BigDecimal.ZERO : new BigDecimal(request.getParameter("bonus"));
-            BigDecimal penalty = request.getParameter("penalty").isEmpty() ? BigDecimal.ZERO : new BigDecimal(request.getParameter("penalty"));
-            BigDecimal advance = request.getParameter("advance").isEmpty() ? BigDecimal.ZERO : new BigDecimal(request.getParameter("advance"));
+            BigDecimal bonus = request.getParameter("bonus").isEmpty() ? BigDecimal.ZERO
+                    : new BigDecimal(request.getParameter("bonus"));
+            BigDecimal penalty = request.getParameter("penalty").isEmpty() ? BigDecimal.ZERO
+                    : new BigDecimal(request.getParameter("penalty"));
+            BigDecimal advance = request.getParameter("advance").isEmpty() ? BigDecimal.ZERO
+                    : new BigDecimal(request.getParameter("advance"));
 
             // Gọi Service tính lại và cập nhật
             com.ems.service.PayrollService payrollService = new com.ems.service.PayrollService();
             String result = payrollService.updateManualPayslip(payslipId, bonus, penalty, advance, note, managerId);
 
             if ("SUCCESS".equals(result)) {
-                request.getSession().setAttribute("msgSuccess", "Đã cập nhật phiếu lương thành công! Thuế và Thực lĩnh đã được tính toán lại.");
+                request.getSession().setAttribute("msgSuccess",
+                        "Đã cập nhật phiếu lương thành công! Thuế và Thực lĩnh đã được tính toán lại.");
             } else {
                 request.getSession().setAttribute("msgError", result);
             }
@@ -215,7 +243,8 @@ public class PayslipServlet extends HttpServlet {
 
             if (result.startsWith("SUCCESS")) {
                 String count = result.split(":")[1];
-                request.getSession().setAttribute("msgSuccess", "Đã chốt thành công " + count + " phiếu lương! Dữ liệu đã được khóa.");
+                request.getSession().setAttribute("msgSuccess",
+                        "Đã chốt thành công " + count + " phiếu lương! Dữ liệu đã được khóa.");
             } else {
                 request.getSession().setAttribute("msgError", result);
             }
